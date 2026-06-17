@@ -1,0 +1,3066 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HelpDesk Pro — Painel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&family=DM+Mono&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#080c14; --bg2:#0e1520; --bg3:#141d2e; --bg4:#1c2840;
+  --card:#0e1520; --border:rgba(255,255,255,0.06); --border2:rgba(255,255,255,0.11);
+  --text:#e8edf5; --muted:#6b7a94; --muted2:#8a97b0;
+  --accent:#3b82f6; --accent2:#2563eb;
+  --green:#10b981; --green-bg:rgba(16,185,129,0.1);
+  --orange:#f59e0b; --orange-bg:rgba(245,158,11,0.1);
+  --red:#ef4444; --red-bg:rgba(239,68,68,0.1);
+  --purple:#8b5cf6; --purple-bg:rgba(139,92,246,0.1);
+  --cyan:#06b6d4; --cyan-bg:rgba(6,182,212,0.1);
+  --radius:10px; --radius-lg:14px;
+}
+html,body{height:100%;overflow:hidden}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);display:flex}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:4px}
+
+/* SIDEBAR */
+.sidebar{width:230px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;z-index:20}
+.logo{padding:20px 18px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:11px}
+.logo-icon{width:34px;height:34px;background:var(--accent);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.logo-text{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;letter-spacing:-0.3px}
+.logo-sub{font-size:10px;color:var(--muted);letter-spacing:0.4px}
+nav{padding:12px 10px;flex:1;overflow-y:auto}
+.nav-section{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;padding:10px 10px 5px;margin-top:4px}
+nav a{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;color:var(--muted);text-decoration:none;font-size:13.5px;cursor:pointer;transition:all .15s;margin-bottom:1px;user-select:none}
+nav a:hover{color:var(--text);background:var(--bg3)}
+nav a.active{color:#fff;background:rgba(59,130,246,0.15);font-weight:500}
+nav a.active .ni{color:var(--accent)}
+nav a .ni{width:16px;text-align:center;font-size:14px;flex-shrink:0}
+nav a .badge{margin-left:auto;background:var(--accent);color:#fff;font-size:10px;border-radius:10px;padding:1px 7px;font-weight:600}
+nav a .badge.orange{background:var(--orange)}
+nav a .badge.red{background:var(--red)}
+.sidebar-footer{padding:14px 12px;border-top:1px solid var(--border)}
+.user-card{display:flex;align-items:center;gap:10px;cursor:pointer;border-radius:8px;padding:6px;transition:background .15s}
+.user-card:hover{background:var(--bg3)}
+.av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;color:#fff}
+.user-name{font-size:13px;font-weight:500}
+.user-role{font-size:11px;color:var(--muted)}
+
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.topbar{height:54px;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:12px;flex-shrink:0;background:var(--bg2)}
+.topbar-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;flex:1;letter-spacing:-0.2px}
+.search-wrap{display:flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:7px 12px;flex:1;max-width:340px;transition:border .15s}
+.search-wrap:focus-within{border-color:var(--accent)}
+.search-wrap input{background:none;border:none;outline:none;color:var(--text);font-size:13px;width:100%;font-family:'DM Sans',sans-serif}
+.search-wrap input::placeholder{color:var(--muted)}
+.icon-btn{width:34px;height:34px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);font-size:13px;transition:all .15s;position:relative;flex-shrink:0}
+.icon-btn:hover{color:var(--text);border-color:var(--border2)}
+.notif-dot{position:absolute;top:7px;right:7px;width:6px;height:6px;background:var(--red);border-radius:50%;border:2px solid var(--bg2)}
+.new-btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:7px;font-family:'Syne',sans-serif;transition:all .15s;white-space:nowrap;letter-spacing:-0.1px}
+.new-btn:hover{background:var(--accent2)}
+.content{flex:1;overflow-y:auto;padding:24px}
+.view{display:none}.view.active{display:block;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg)}
+.card-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border)}
+.card-title{font-family:'Syne',sans-serif;font-size:13.5px;font-weight:700;letter-spacing:-0.2px}
+.card-body{padding:20px}
+
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:var(--radius-lg) var(--radius-lg) 0 0}
+.kpi.blue::before{background:var(--accent)}
+.kpi.green::before{background:var(--green)}
+.kpi.orange::before{background:var(--orange)}
+.kpi.red::before{background:var(--red)}
+.kpi-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;display:flex;align-items:center;gap:7px}
+.kpi-icon{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px}
+.kpi-icon.blue{background:rgba(59,130,246,0.15);color:var(--accent)}
+.kpi-icon.green{background:var(--green-bg);color:var(--green)}
+.kpi-icon.orange{background:var(--orange-bg);color:var(--orange)}
+.kpi-icon.red{background:var(--red-bg);color:var(--red)}
+.kpi-val{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;letter-spacing:-1.5px;line-height:1}
+.kpi-sub{font-size:11.5px;color:var(--muted);margin-top:6px;display:flex;align-items:center;gap:4px}
+.up{color:var(--green)}.down{color:var(--red)}
+
+/* LAYOUT GRIDS */
+.dash-grid{display:grid;grid-template-columns:1fr 320px;gap:16px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+
+/* BAR CHART */
+.bar-chart{display:flex;gap:8px;align-items:flex-end;height:110px}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end}
+.bar-pair{display:flex;gap:2px;align-items:flex-end;width:100%}
+.bar{border-radius:4px 4px 0 0;flex:1;transition:height .3s}
+.bar-lbl{font-size:10px;color:var(--muted)}
+.bar-val{font-size:10px;font-weight:500}
+.legend{display:flex;gap:14px;margin-top:12px}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted)}
+.legend-dot{width:8px;height:8px;border-radius:2px}
+
+/* DONUT */
+.donut-wrap{display:flex;align-items:center;gap:18px}
+.donut-legend{display:flex;flex-direction:column;gap:8px;flex:1}
+.dl-item{display:flex;align-items:center;gap:7px;font-size:12.5px}
+.dl-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+
+/* SLA */
+.sla-list{display:flex;flex-direction:column;gap:10px}
+.sla-row{display:flex;align-items:center;gap:12px}
+.sla-name{font-size:12.5px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sla-bar{flex:2;height:5px;background:var(--bg3);border-radius:4px;overflow:hidden}
+.sla-fill{height:100%;border-radius:4px;transition:width .5s}
+.sla-pct{font-size:11.5px;font-weight:600;min-width:36px;text-align:right}
+
+/* AGENT PERF */
+.agent-list{display:flex;flex-direction:column;gap:9px}
+.agent-row2{display:flex;align-items:center;gap:10px}
+.agent-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;color:#fff}
+.agent-name{font-size:12.5px;flex:1}
+.agent-bar{flex:2;height:4px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.agent-fill{height:100%;border-radius:3px}
+.agent-cnt{font-size:11px;color:var(--muted);min-width:50px;text-align:right}
+
+/* TABLE */
+.tbl-wrap{border-radius:var(--radius-lg);border:1px solid var(--border);overflow:hidden}
+table{width:100%;border-collapse:collapse}
+th{background:var(--bg3);font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;padding:10px 16px;text-align:left;font-weight:500;border-bottom:1px solid var(--border)}
+td{padding:12px 16px;font-size:13px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,0.015)}
+tr{cursor:pointer;transition:background .1s}
+.tid{font-family:'DM Mono',monospace;font-size:11.5px;color:var(--accent)}
+.ttitle{font-weight:500;font-size:13px}
+.tdesc{font-size:11.5px;color:var(--muted);margin-top:2px}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500;white-space:nowrap}
+.badge.open{background:var(--cyan-bg);color:var(--cyan)}
+.badge.progress{background:var(--orange-bg);color:var(--orange)}
+.badge.resolved{background:var(--green-bg);color:var(--green)}
+.badge.closed{background:rgba(255,255,255,0.06);color:var(--muted)}
+.badge.escalated{background:var(--red-bg);color:var(--red)}
+.badge.waiting{background:var(--purple-bg);color:var(--purple)}
+.prio{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500}
+.prio.critical{color:var(--red)}.prio.high{color:var(--orange)}.prio.medium{color:var(--cyan)}.prio.low{color:var(--muted)}
+.prio-dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+.tier-tag{font-size:11px;color:var(--muted);background:var(--bg3);border:1px solid var(--border);padding:2px 8px;border-radius:5px}
+.sla-ok{color:var(--green)}.sla-warn{color:var(--orange)}.sla-breach{color:var(--red)}
+
+/* FILTERS */
+.filter-row{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.tabs{display:flex;gap:3px;background:var(--bg3);border-radius:8px;padding:3px}
+.tab{padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;color:var(--muted);transition:all .15s}
+.tab.active{background:var(--bg4);color:var(--text);font-weight:500}
+.fsel{background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:6px 10px;font-size:12px;color:var(--text);font-family:'DM Sans',sans-serif;cursor:pointer;outline:none}
+.fsel:focus{border-color:var(--accent)}
+.spacer{flex:1}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);backdrop-filter:blur(6px);z-index:100;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius-lg);width:800px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 32px 80px rgba(0,0,0,0.6);transform:translateY(12px);transition:transform .2s;overflow:hidden}
+.modal-overlay.open .modal{transform:translateY(0)}
+.modal-hdr{display:flex;align-items:flex-start;gap:14px;padding:22px 24px;border-bottom:1px solid var(--border)}
+.modal-hdr-info{flex:1}
+.modal-num{font-family:'DM Mono',monospace;font-size:12px;color:var(--accent);margin-bottom:4px}
+.modal-ttl{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;margin-bottom:8px;letter-spacing:-0.3px}
+.modal-meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.close-btn{width:28px;height:28px;background:var(--bg3);border:1px solid var(--border);border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);font-size:12px;flex-shrink:0;transition:all .15s}
+.close-btn:hover{color:var(--text)}
+.modal-body{display:flex;flex:1;overflow:hidden;min-height:0}
+.modal-main{flex:1;overflow-y:auto;padding:22px 24px}
+.modal-side{width:220px;border-left:1px solid var(--border);padding:18px;overflow-y:auto;display:flex;flex-direction:column;gap:18px}
+.ms-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:7px}
+.ms-val{font-size:13px}
+.modal-footer{padding:14px 24px;border-top:1px solid var(--border)}
+.reply-area{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;resize:none;outline:none;transition:border .15s;min-height:70px}
+.reply-area:focus{border-color:var(--accent)}
+.reply-acts{display:flex;gap:8px;margin-top:8px}
+
+/* TL */
+.tl{display:flex;flex-direction:column;gap:0}
+.tl-item{display:flex;gap:12px;padding-bottom:18px}
+.tl-l{display:flex;flex-direction:column;align-items:center}
+.tl-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.tl-dot.blue{background:rgba(59,130,246,0.12);color:var(--accent)}
+.tl-dot.green{background:var(--green-bg);color:var(--green)}
+.tl-dot.orange{background:var(--orange-bg);color:var(--orange)}
+.tl-dot.gray{background:var(--bg3);color:var(--muted)}
+.tl-dot.purple{background:var(--purple-bg);color:var(--purple)}
+.tl-line{flex:1;width:1px;background:var(--border);margin:4px 0}
+.tl-r{flex:1;padding-top:4px}
+.tl-actor{font-size:12.5px;font-weight:600}
+.tl-time{font-size:11px;color:var(--muted);margin-left:6px}
+.tl-msg{font-size:13px;color:var(--muted2);margin-top:4px;line-height:1.6}
+.tl-note{background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.15);border-radius:7px;padding:8px 12px;margin-top:6px;font-size:12.5px;color:var(--orange)}
+.tl-system{background:var(--bg3);border-radius:6px;padding:6px 10px;font-size:12px;color:var(--muted);margin-top:4px}
+
+/* BTNS */
+.btn{padding:8px 16px;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;border:none;font-family:'Syne',sans-serif;transition:all .15s;letter-spacing:-0.1px}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:var(--accent2)}
+.btn-ghost{background:var(--bg3);color:var(--muted);border:1px solid var(--border)}.btn-ghost:hover{color:var(--text);border-color:var(--border2)}
+.btn-danger{background:var(--red-bg);color:var(--red);border:1px solid rgba(239,68,68,0.2)}.btn-danger:hover{background:rgba(239,68,68,0.15)}
+.btn-sm{padding:5px 12px;font-size:11.5px;border-radius:7px}
+
+/* FORM */
+.form-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;max-width:740px}
+.fg{margin-bottom:18px}
+.fl{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:0.4px;font-weight:500;display:block;margin-bottom:7px}
+.fi{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:11px 13px;color:var(--text);font-size:13.5px;font-family:'DM Sans',sans-serif;outline:none;transition:border .15s}
+.fi:focus{border-color:var(--accent)}
+.fi::placeholder{color:var(--muted)}
+textarea.fi{resize:vertical;min-height:110px;line-height:1.6}
+select.fi{cursor:pointer;appearance:none}
+.form-row2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.upload-zone{border:1.5px dashed var(--border2);border-radius:9px;padding:28px;text-align:center;cursor:pointer;transition:all .15s}
+.upload-zone:hover{border-color:var(--accent);background:rgba(59,130,246,0.03)}
+.ai-hint{background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.18);border-radius:9px;padding:12px 14px;margin-bottom:18px}
+.ai-hint-label{font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:5px;display:flex;align-items:center;gap:5px}
+.ai-hint p{font-size:13px;color:var(--muted2);line-height:1.6}
+.ai-hint a{color:var(--accent);cursor:pointer}
+
+/* KB */
+.kb-search{background:var(--bg3);border:1px solid var(--border);border-radius:11px;padding:14px 18px;display:flex;align-items:center;gap:12px;margin-bottom:24px}
+.kb-search input{flex:1;background:none;border:none;outline:none;color:var(--text);font-size:15px;font-family:'DM Sans',sans-serif}
+.kb-search input::placeholder{color:var(--muted)}
+.kb-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:22px}
+.kb-cat{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;cursor:pointer;transition:all .15s}
+.kb-cat:hover{border-color:var(--border2);background:var(--bg3)}
+.kb-cat-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;margin-bottom:10px}
+.kb-cat-name{font-size:13.5px;font-weight:600;margin-bottom:3px;font-family:'Syne',sans-serif}
+.kb-cat-count{font-size:11.5px;color:var(--muted)}
+.kb-art{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:13px 16px;cursor:pointer;display:flex;align-items:center;gap:12px;margin-bottom:8px;transition:all .15s}
+.kb-art:hover{border-color:var(--border2)}
+.kb-art-info{flex:1}
+.kb-art-title{font-size:13.5px;font-weight:500}
+.kb-art-meta{font-size:11.5px;color:var(--muted);margin-top:2px}
+.helpful{background:var(--green-bg);color:var(--green);font-size:10.5px;padding:2px 7px;border-radius:10px}
+
+/* AGENTS MGMT */
+.agents-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.agent-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;text-align:center;transition:all .15s}
+.agent-card:hover{border-color:var(--border2)}
+.agent-card .av-lg{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;margin:0 auto 12px}
+.agent-card .an{font-size:14px;font-weight:600;font-family:'Syne',sans-serif;margin-bottom:3px}
+.agent-card .ae{font-size:12px;color:var(--muted);margin-bottom:8px}
+.role-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;margin-bottom:12px}
+.role-badge.admin{background:rgba(59,130,246,0.12);color:var(--accent)}
+.role-badge.N1{background:var(--green-bg);color:var(--green)}
+.role-badge.N2{background:var(--orange-bg);color:var(--orange)}
+.role-badge.N3{background:var(--red-bg);color:var(--red)}
+.agent-stats{display:flex;justify-content:center;gap:16px;font-size:12px;color:var(--muted);margin-bottom:12px}
+.agent-stats b{color:var(--text);display:block;font-size:16px;font-family:'Syne',sans-serif;font-weight:700}
+
+/* REPORTS */
+.rep-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.pbar-row{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:5px}
+.pbar-wrap{height:7px;background:var(--bg3);border-radius:4px;overflow:hidden;margin-bottom:12px}
+.pbar-fill{height:100%;border-radius:4px}
+
+/* CHAT */
+.chat-box{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);display:flex;flex-direction:column;height:520px}
+.chat-msgs{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:12px}
+.cm{display:flex;gap:10px}
+.cm.user{flex-direction:row-reverse}
+.cb{max-width:78%;padding:10px 14px;border-radius:12px;font-size:13px;line-height:1.6}
+.cm:not(.user) .cb{background:var(--bg3);border:1px solid var(--border);border-bottom-left-radius:4px}
+.cm.user .cb{background:var(--accent);color:#fff;border-bottom-right-radius:4px}
+.cm .cav{width:28px;height:28px;border-radius:50%;background:var(--purple-bg);color:var(--purple);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;margin-top:2px}
+.cm.user .cav{background:rgba(59,130,246,0.15);color:var(--accent)}
+.chat-in{display:flex;gap:8px;padding:14px;border-top:1px solid var(--border)}
+.chat-in input{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 13px;color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;outline:none;transition:border .15s}
+.chat-in input:focus{border-color:var(--accent)}
+.chat-send{background:var(--accent);border:none;border-radius:8px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;font-size:13px;flex-shrink:0;transition:background .15s}
+.chat-send:hover{background:var(--accent2)}
+.typing span{display:inline-block;width:6px;height:6px;background:var(--muted);border-radius:50%;margin:0 2px;animation:bounce .9s infinite}
+.typing span:nth-child(2){animation-delay:.2s}.typing span:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-5px)}}
+
+/* ASSETS */
+.assets-sum{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.asset-sum-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px}
+.asc-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px}
+.asc-val{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;letter-spacing:-1px}
+
+/* NOTIFICATION PANEL */
+.notif-panel{position:fixed;top:56px;right:16px;width:320px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius-lg);box-shadow:0 16px 48px rgba(0,0,0,0.4);z-index:50;display:none;overflow:hidden}
+.notif-panel.open{display:block;animation:fadeIn .15s ease}
+.notif-hdr{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-family:'Syne',sans-serif;font-size:13px;font-weight:700}
+.notif-item{padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+.notif-item:hover{background:var(--bg3)}
+.notif-item:last-child{border-bottom:none}
+.notif-title{font-size:12.5px;font-weight:500;margin-bottom:3px}
+.notif-desc{font-size:11.5px;color:var(--muted)}
+.notif-time{font-size:10.5px;color:var(--muted);margin-top:3px}
+.notif-unread{width:7px;height:7px;background:var(--accent);border-radius:50%;flex-shrink:0;margin-top:4px}
+
+/* AGENT FORM MODAL */
+.aform-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.aform-overlay.open{opacity:1;pointer-events:all}
+.aform{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius-lg);width:480px;padding:28px;box-shadow:0 32px 80px rgba(0,0,0,0.5)}
+
+/* ── RESPONSIVE ──────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Allow body to scroll on mobile */
+  html, body { height: auto; overflow: auto; }
+
+  /* Sidebar becomes a bottom nav drawer */
+  .sidebar {
+    position: fixed; bottom: 0; left: 0; right: 0; top: auto;
+    width: 100%; height: auto; flex-direction: row;
+    border-right: none; border-top: 1px solid var(--border);
+    z-index: 100; overflow-x: auto; overflow-y: hidden;
+    padding: 0; background: var(--bg2);
+  }
+  .logo { display: none; }
+  .nav-section { display: none; }
+  nav {
+    display: flex; flex-direction: row; padding: 6px 8px;
+    gap: 2px; overflow-x: auto; flex: 1;
+    scrollbar-width: none;
+  }
+  nav::-webkit-scrollbar { display: none; }
+  nav a {
+    flex-direction: column; gap: 3px; padding: 6px 10px;
+    min-width: 56px; border-radius: 8px; white-space: nowrap;
+    font-size: 10px; align-items: center;
+  }
+  nav a .ni { font-size: 18px; width: auto; }
+  nav a .badge { display: none; }
+  .sidebar-footer { display: none; }
+
+  /* Main fills viewport above bottom nav */
+  .main { padding-bottom: 70px; overflow: visible; }
+
+  /* Topbar compact */
+  .topbar { padding: 0 12px; gap: 8px; height: 50px; flex-wrap: wrap; }
+  .topbar-title { font-size: 13px; }
+  .search-wrap { display: none; }
+  .new-btn span { display: none; }
+  .new-btn { padding: 8px 10px; font-size: 12px; }
+
+  /* Content scrolls */
+  .content { overflow-y: auto; padding: 14px; height: auto; }
+
+  /* KPI grid: 2 columns on mobile */
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .kpi-val { font-size: 24px; }
+
+  /* All two-col grids become single column */
+  .dash-grid,
+  .two-col,
+  .form-row2,
+  .rep-grid { grid-template-columns: 1fr !important; }
+
+  /* Agents grid: 1 column */
+  .agents-grid { grid-template-columns: 1fr; }
+
+  /* Tables: horizontal scroll */
+  .tbl-wrap { overflow-x: auto; }
+  table { min-width: 600px; }
+  th, td { padding: 8px 10px; font-size: 11.5px; }
+
+  /* Modals: full screen on mobile */
+  .modal { width: 100% !important; max-height: 95vh; border-radius: 14px 14px 0 0; }
+  .modal-overlay { align-items: flex-end; }
+  .aform { width: 100% !important; max-width: 100% !important; border-radius: 14px 14px 0 0; }
+  .aform-overlay { align-items: flex-end; }
+
+  /* Topbar logos smaller */
+  .topbar img { height: 22px; }
+
+  /* Reports period tabs: scroll */
+  #v-reports > div:first-child { overflow-x: auto; }
+  #v-reports .tab { white-space: nowrap; font-size: 11px; padding: 5px 9px; }
+
+  /* KPI strip in reports: 2 cols */
+  #rp-kpis { grid-template-columns: repeat(2, 1fr) !important; }
+
+  /* Notification panel: full width */
+  .notif-panel { right: 0; left: 0; width: 100%; top: 50px; border-radius: 0; }
+
+  /* SLA view stats */
+  #v-sla .two-col { grid-template-columns: 1fr !important; }
+}
+
+@media (max-width: 480px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .kpi-val { font-size: 22px; }
+  .content { padding: 10px; }
+  nav a { min-width: 48px; padding: 5px 6px; font-size: 9px; }
+  nav a .ni { font-size: 16px; }
+  /* Hide less critical table columns on small phones */
+  table th:nth-child(6), table td:nth-child(6),
+  table th:nth-child(7), table td:nth-child(7) { display: none; }
+  /* Compact ticket table */
+  .ttitle { font-size: 12px; }
+  .tdesc  { display: none; }
+  /* Modal full height */
+  .modal { border-radius: 0 !important; max-height: 100vh !important; width: 100% !important; }
+  .modal-overlay { align-items: flex-start !important; }
+  /* Topbar: hide title text, keep icons */
+  .topbar-title { display: none; }
+}
+
+/* Touch-friendly button sizes on mobile */
+@media (hover: none) and (pointer: coarse) {
+  .btn { min-height: 40px; }
+  .btn-sm { min-height: 36px; }
+  nav a { min-height: 52px; }
+  .icon-btn { width: 40px; height: 40px; }
+  td, th { padding: 10px 8px; }
+}
+
+/* SETTINGS MODAL */
+.settings-tab{background:none;border:none;border-bottom:2px solid transparent;padding:10px 16px;font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif;color:var(--muted);cursor:pointer;transition:all .15s;white-space:nowrap}
+.settings-tab:hover{color:var(--text)}
+.settings-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+</style>
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/img/icon-192.png">
+<meta name="theme-color" content="#2563eb">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-icon">🎧</div>
+    <div>
+      <div class="logo-text">HelpDesk Pro</div>
+      <div class="logo-sub">Painel do Agente</div>
+    </div>
+  </div>
+  <nav>
+    <div class="nav-section">Principal</div>
+    <a class="active" data-view="dashboard" onclick="show('dashboard',this)">
+      <span class="ni">📊</span> Dashboard
+    </a>
+    <a data-view="tickets" onclick="show('tickets',this)">
+      <span class="ni">🎫</span> Chamados
+      <span class="badge" id="nav-open">—</span>
+    </a>
+    <a data-view="new-ticket" onclick="show('new-ticket',this)">
+      <span class="ni">➕</span> Novo Chamado
+    </a>
+    <a data-view="kb" onclick="show('kb',this)">
+      <span class="ni">📚</span> Base de Conhecimento
+    </a>
+    <a data-view="chat" onclick="show('chat',this)">
+      <span class="ni">🤖</span> IA Assistente
+    </a>
+    <div class="nav-section">Gestão</div>
+    <a data-view="sla" onclick="show('sla',this)">
+      <span class="ni">⏱</span> SLAs
+      <span class="badge red" id="nav-breach" style="display:none">!</span>
+    </a>
+    <a data-view="assets" onclick="show('assets',this)">
+      <span class="ni">🖥</span> Ativos (CMDB)
+    </a>
+    <a data-view="agents" onclick="show('agents',this)">
+      <span class="ni">👥</span> Agentes
+    </a>
+    <a data-view="reports" onclick="show('reports',this)">
+      <span class="ni">📈</span> Relatórios
+    </a>
+    <a data-view="datashow" onclick="show('datashow',this)">
+      <span class="ni">📽</span> Datashow
+    </a>
+    <a href="/tv.html" target="_blank" style="margin-top:4px">
+      <span class="ni">📺</span> Painel TV
+      <span style="font-size:9px;color:var(--accent);margin-left:auto;border:1px solid var(--accent);border-radius:4px;padding:1px 5px">LIVE</span>
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-card" style="cursor:default">
+      <div class="av" id="sidebar-av" style="background:var(--accent)">?</div>
+      <div>
+        <div class="user-name" id="sidebar-name">Carregando…</div>
+        <div class="user-role" id="sidebar-role"></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:6px;margin-top:8px;padding:0 6px">
+      <button onclick="document.getElementById('own-pass-overlay').classList.add('open')" style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:6px 8px;font-size:11px;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">🔑 Senha</button>
+      <button onclick="logout()" style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:6px 8px;font-size:11px;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--muted)'">⏏ Sair</button>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+      <img src="/img/hospital-regional.jpg" alt="Hospital Regional" style="height:30px;object-fit:contain;background:#fff;border-radius:4px;padding:2px 4px">
+      <span style="color:var(--border2);font-size:18px">|</span>
+      <img src="/img/pb-saude.jpg" alt="PB Saúde" style="height:26px;object-fit:contain;background:#fff;border-radius:4px;padding:2px 8px">
+    </div>
+    <div class="topbar-title" id="page-title">Dashboard</div>
+    <div class="search-wrap">
+      <span style="color:var(--muted);font-size:13px">🔍</span>
+      <input type="text" placeholder="Buscar chamados, artigos, ativos…" oninput="liveSearch(this.value)">
+    </div>
+    <div class="icon-btn" onclick="toggleNotifs()" id="notif-btn">
+      🔔<span class="notif-dot" id="notif-dot"></span>
+    </div>
+    <div class="icon-btn" onclick="openSettings()" title="Configurações">⚙️</div>
+    <button class="new-btn" onclick="show('new-ticket',null)">＋ Novo Chamado</button>
+  </div>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="view active" id="v-dashboard">
+      <div class="kpi-grid" id="kpi-grid">
+        <div class="kpi blue"><div class="kpi-label"><div class="kpi-icon blue">🎫</div>Abertos</div><div class="kpi-val" id="k-open">—</div><div class="kpi-sub">chamados ativos</div></div>
+        <div class="kpi green"><div class="kpi-label"><div class="kpi-icon green">✅</div>Resolvidos Hoje</div><div class="kpi-val" id="k-resolved" style="color:var(--green)">—</div><div class="kpi-sub">no dia corrente</div></div>
+        <div class="kpi orange"><div class="kpi-label"><div class="kpi-icon orange">⏱</div>Em Andamento</div><div class="kpi-val" id="k-progress" style="color:var(--orange)">—</div><div class="kpi-sub">sendo trabalhados</div></div>
+        <div class="kpi red"><div class="kpi-label"><div class="kpi-icon red">🚨</div>Breaches SLA</div><div class="kpi-val" id="k-breach" style="color:var(--red)">—</div><div class="kpi-sub">violações ativas</div></div>
+      </div>
+      <div class="dash-grid">
+        <div>
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-header"><span class="card-title">Volume de Chamados</span><span style="font-size:12px;color:var(--muted)">Últimos 7 dias</span></div>
+            <div class="card-body"><div class="bar-chart" id="bar-chart"></div>
+            <div class="legend"><div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div>Abertos</div><div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Resolvidos</div></div></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">Desempenho dos Agentes</span></div>
+            <div class="card-body"><div class="agent-list" id="agent-perf"></div></div>
+          </div>
+        </div>
+        <div>
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-header"><span class="card-title">SLA por Categoria</span></div>
+            <div class="card-body"><div class="sla-list" id="sla-cats"></div></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">Por Canal</span></div>
+            <div class="card-body">
+              <div class="donut-wrap">
+                <svg style="transform:rotate(-90deg)" width="90" height="90" viewBox="0 0 90 90">
+                  <circle cx="45" cy="45" r="36" fill="none" stroke="var(--bg3)" stroke-width="12"/>
+                  <circle id="dc1" cx="45" cy="45" r="36" fill="none" stroke="var(--accent)" stroke-width="12" stroke-dasharray="0 226"/>
+                  <circle id="dc2" cx="45" cy="45" r="36" fill="none" stroke="var(--green)" stroke-width="12" stroke-dasharray="0 226"/>
+                  <circle id="dc3" cx="45" cy="45" r="36" fill="none" stroke="var(--orange)" stroke-width="12" stroke-dasharray="0 226"/>
+                  <circle id="dc4" cx="45" cy="45" r="36" fill="none" stroke="var(--purple)" stroke-width="12" stroke-dasharray="0 226"/>
+                </svg>
+                <div class="donut-legend" id="donut-legend"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TICKETS -->
+    <div class="view" id="v-tickets">
+      <div class="filter-row">
+        <div class="tabs" id="status-tabs">
+          <div class="tab active" onclick="filterTickets('all',this)">Todos</div>
+          <div class="tab" onclick="filterTickets('open',this)">Abertos</div>
+          <div class="tab" onclick="filterTickets('progress',this)">Em Andamento</div>
+          <div class="tab" onclick="filterTickets('waiting',this)">Aguardando</div>
+          <div class="tab" onclick="filterTickets('resolved',this)">Resolvidos</div>
+        </div>
+        <select class="fsel" id="prio-filter" onchange="renderTickets()"><option value="">Todas as prioridades</option><option value="critical">Crítica</option><option value="high">Alta</option><option value="medium">Média</option><option value="low">Baixa</option></select>
+        <select class="fsel" id="agent-filter" onchange="renderTickets()"><option value="">Todos os agentes</option></select>
+        <span class="spacer"></span>
+        <span style="font-size:12px;color:var(--muted)" id="ticket-count">— chamados</span>
+      </div>
+      <div class="tbl-wrap">
+        <table><thead><tr><th>#</th><th>Assunto / Descrição</th><th>Solicitante</th><th>Setor</th><th>Status</th><th>Prioridade</th><th>Agente</th><th>Nível</th><th>SLA</th><th>Aberto em</th></tr></thead>
+        <tbody id="tickets-tbody"></tbody></table>
+      </div>
+    </div>
+
+    <!-- NEW TICKET -->
+    <div class="view" id="v-new-ticket">
+      <div class="form-card">
+        <div class="ai-hint">
+          <div class="ai-hint-label">✨ Sugestão da IA</div>
+          <p>Antes de abrir um chamado, consulte a <a onclick="show('kb',null)">Base de Conhecimento</a> — resolva problemas comuns como redefinição de senha em 2 minutos sem intervenção técnica.</p>
+        </div>
+        <div class="form-row2">
+          <div class="fg"><label class="fl">Nome do Solicitante</label><input class="fi" type="text" id="nt-name" placeholder="Nome completo"></div>
+          <div class="fg"><label class="fl">E-mail</label><input class="fi" type="email" id="nt-email" placeholder="email@empresa.com"></div>
+        </div>
+        <div class="fg"><label class="fl">Assunto</label><input class="fi" type="text" id="nt-title" placeholder="Descreva o problema brevemente"></div>
+        <div class="form-row2">
+          <div class="fg"><label class="fl">Categoria</label><select class="fi" id="nt-cat"><option value="hardware">Hardware</option><option value="software">Software</option><option value="rede">Rede</option><option value="acesso">Acesso / Segurança</option><option value="impressora">Impressora</option><option value="outros">Outros</option></select></div>
+          <div class="fg"><label class="fl">Prioridade</label><select class="fi" id="nt-prio"><option value="low">Baixa</option><option value="medium" selected>Média</option><option value="high">Alta</option><option value="critical">Crítica</option></select></div>
+        </div>
+        <div class="form-row2">
+          <div class="fg"><label class="fl">Canal</label><select class="fi" id="nt-channel"><option value="portal">Portal Web</option><option value="email">E-mail</option><option value="whatsapp">WhatsApp</option><option value="telefone">Telefone</option><option value="chat">Chat ao Vivo</option></select></div>
+          <div class="fg"><label class="fl">Ativo Relacionado</label><select class="fi" id="nt-asset"><option value="">— Selecionar ativo —</option></select></div>
+        </div>
+        <div class="fg"><label class="fl">Descrição Detalhada</label><textarea class="fi" id="nt-desc" placeholder="Descreva o problema com detalhes: mensagens de erro, quando começou, impacto no trabalho…"></textarea></div>
+        <div class="fg">
+          <label class="fl">Anexos</label>
+          <div class="upload-zone" onclick="document.getElementById('file-input').click()">
+            <div style="font-size:24px;margin-bottom:8px">📎</div>
+            <div style="font-size:13px;color:var(--muted)">Arraste ou <span style="color:var(--accent)">clique para selecionar</span></div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px">PNG, JPG, PDF, DOCX — máx. 10 MB</div>
+          </div>
+          <input type="file" id="file-input" style="display:none" multiple>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-primary" onclick="createTicket()">📨 Abrir Chamado</button>
+          <button class="btn btn-ghost" onclick="show('chat',null)">🤖 Pedir à IA</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- KB -->
+    <div class="view" id="v-kb">
+      <div class="kb-search">
+        <span style="color:var(--muted);font-size:16px">🔍</span>
+        <input type="text" placeholder="Pesquisar na base de conhecimento…" id="kb-search-input" oninput="searchKB(this.value)">
+        <button class="btn btn-primary btn-sm">Buscar</button>
+      </div>
+      <div class="kb-grid" id="kb-cats"></div>
+      <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:12px;color:var(--muted2)">ARTIGOS POPULARES</div>
+      <div id="kb-articles"></div>
+    </div>
+
+    <!-- AI CHAT -->
+    <div class="view" id="v-chat">
+      <div style="display:flex;gap:16px;max-width:900px">
+        <div style="flex:1">
+          <div class="chat-box">
+            <div class="chat-msgs" id="chat-msgs">
+              <div class="cm">
+                <div class="cav">🤖</div>
+                <div class="cb">Olá! Sou o assistente do HelpDesk Pro. Posso ajudar a resolver problemas, abrir chamados ou encontrar artigos. Como posso ajudar?</div>
+              </div>
+            </div>
+            <div class="chat-in">
+              <input type="text" id="chat-input" placeholder="Descreva seu problema…" onkeydown="if(event.key==='Enter')sendChat()">
+              <button class="chat-send" onclick="sendChat()">➤</button>
+            </div>
+          </div>
+        </div>
+        <div style="width:220px;display:flex;flex-direction:column;gap:8px">
+          <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--muted2);margin-bottom:4px">AÇÕES RÁPIDAS</div>
+          <div class="card" style="padding:12px;cursor:pointer;transition:border .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'" onclick="prefill('Preciso redefinir minha senha do AD')"><div style="font-weight:500;font-size:13px;margin-bottom:3px">🔑 Redefinir Senha</div><div style="font-size:11.5px;color:var(--muted)">AD, e-mail ou sistema</div></div>
+          <div class="card" style="padding:12px;cursor:pointer;transition:border .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'" onclick="prefill('Minha VPN não está conectando')"><div style="font-weight:500;font-size:13px;margin-bottom:3px">🛡 Problema de VPN</div><div style="font-size:11.5px;color:var(--muted)">Diagnóstico passo a passo</div></div>
+          <div class="card" style="padding:12px;cursor:pointer;transition:border .15s" onmouseover="this.style.borderColor='var(--red)'" onmouseout="this.style.borderColor='var(--border)'" onclick="prefill('Quero abrir um chamado urgente, produção parada')"><div style="font-weight:500;font-size:13px;margin-bottom:3px">🚨 Chamado Urgente</div><div style="font-size:11.5px;color:var(--muted)">Escalada imediata para N2</div></div>
+          <div class="card" style="padding:12px;cursor:pointer;transition:border .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'" onclick="prefill('Qual o status dos meus chamados abertos?')"><div style="font-weight:500;font-size:13px;margin-bottom:3px">📋 Status dos Chamados</div><div style="font-size:11.5px;color:var(--muted)">Ver em andamento</div></div>
+          <div class="card" style="padding:12px;cursor:pointer;transition:border .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'" onclick="prefill('Minha impressora não está imprimindo')"><div style="font-weight:500;font-size:13px;margin-bottom:3px">🖨 Impressora</div><div style="font-size:11.5px;color:var(--muted)">Fila, spooler, driver</div></div>
+          <div class="card" style="padding:12px;cursor:pointer;transition:border .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'" onclick="prefill('Meu Outlook ou e-mail não está funcionando')"><div style="font-weight:500;font-size:13px;margin-bottom:3px">📧 E-mail / Outlook</div><div style="font-size:11.5px;color:var(--muted)">Não envia ou não recebe</div></div>
+          <div class="card" style="padding:12px;cursor:pointer;transition:border .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'" onclick="prefill('Sem acesso à internet ou rede instável')"><div style="font-weight:500;font-size:13px;margin-bottom:3px">🌐 Internet / Rede</div><div style="font-size:11.5px;color:var(--muted)">Sem conexão ou lento</div></div>
+          <div class="card" style="padding:12px;cursor:pointer;transition:border .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'" onclick="prefill('Meu computador está lento ou travando')"><div style="font-weight:500;font-size:13px;margin-bottom:3px">💻 PC Lento / Travando</div><div style="font-size:11.5px;color:var(--muted)">Desempenho do sistema</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLA -->
+    <div class="view" id="v-sla">
+      <div class="two-col" style="margin-bottom:20px">
+        <div class="card"><div class="card-body" style="display:flex;gap:16px">
+          <div style="text-align:center;flex:1"><div style="font-family:'Syne',sans-serif;font-size:32px;font-weight:800;color:var(--green)" id="sla-pct">—%</div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px">SLA Global</div></div>
+          <div style="text-align:center;flex:1"><div style="font-family:'Syne',sans-serif;font-size:32px;font-weight:800;color:var(--orange)" id="sla-risk">—</div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px">Em Risco</div></div>
+          <div style="text-align:center;flex:1"><div style="font-family:'Syne',sans-serif;font-size:32px;font-weight:800;color:var(--red)" id="sla-breach-cnt">—</div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px">Violados</div></div>
+        </div></div>
+        <div class="card"><div class="card-body"><div style="font-size:12px;color:var(--muted);margin-bottom:8px">Acordos de nível (SLA Rules)</div>
+          <div style="display:flex;flex-direction:column;gap:6px" id="sla-rules"></div>
+        </div></div>
+      </div>
+      <div class="tbl-wrap">
+        <table><thead><tr><th>#</th><th>Assunto</th><th>Prioridade</th><th>Agente</th><th>Prazo Resolução</th><th>Restante</th><th>Status SLA</th></tr></thead>
+        <tbody id="sla-tbody"></tbody></table>
+      </div>
+    </div>
+
+    <!-- ASSETS -->
+    <div class="view" id="v-assets">
+      <!-- Header -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:3px">🖥 Ativos — CMDB</div>
+          <div style="font-size:13px;color:var(--muted)">Catálogo de equipamentos, sistemas e infraestrutura de TI</div>
+        </div>
+        <button class="btn btn-primary" onclick="openAssetForm(null)">➕ Novo Ativo</button>
+      </div>
+
+      <!-- KPI summary -->
+      <div class="assets-sum" id="assets-sum"></div>
+
+      <!-- Search + filters -->
+      <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+        <div class="search-wrap" style="max-width:280px;flex:1">
+          <span style="color:var(--muted);font-size:13px">🔍</span>
+          <input type="text" id="asset-search" placeholder="Buscar por código, nome, serial…" oninput="filterAssets()">
+        </div>
+        <select class="fsel" id="asset-filter-type" onchange="filterAssets()">
+          <option value="">Todos os tipos</option>
+          <option>Notebook</option><option>Desktop</option><option>Servidor</option>
+          <option>Impressora</option><option>Rede</option><option>Software</option>
+          <option>Periférico</option><option>Telefone</option><option>Outro</option>
+        </select>
+        <select class="fsel" id="asset-filter-status" onchange="filterAssets()">
+          <option value="">Todos os status</option>
+          <option value="online">Online</option>
+          <option value="instavel">Instável</option>
+          <option value="offline">Offline</option>
+          <option value="manutencao">Em manutenção</option>
+          <option value="desativado">Desativado</option>
+        </select>
+        <span style="font-size:12px;color:var(--muted)" id="asset-count"></span>
+      </div>
+
+      <!-- Table -->
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Nome</th>
+              <th>Tipo</th>
+              <th>Atribuído a</th>
+              <th>Nº de Série</th>
+              <th>Status</th>
+              <th>Observações</th>
+              <th style="min-width:100px">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="assets-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- AGENTS -->
+    <div class="view" id="v-agents">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div style="display:flex;gap:3px;background:var(--bg3);border-radius:8px;padding:3px">
+          <div class="tab active" id="tab-agents-btn" onclick="switchAgentTab('agents')">👥 Agentes</div>
+          <div class="tab" id="tab-users-btn" onclick="switchAgentTab('users')">🙎 Usuários / Clientes</div>
+        </div>
+        <button class="btn btn-primary" id="new-agent-btn" onclick="openAgentForm(null)">➕ Novo Agente</button>
+      </div>
+      <!-- AGENTS LIST -->
+      <div id="tab-agents">
+        <div class="agents-grid" id="agents-grid"></div>
+      </div>
+      <!-- USERS LIST -->
+      <div id="tab-users" style="display:none">
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Nome</th><th>E-mail</th><th>Departamento</th><th>Cadastrado em</th><th>Chamados</th><th style="min-width:160px">Ações</th></tr></thead>
+            <tbody id="users-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- REPORTS -->
+    <div class="view" id="v-reports">
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:18px;flex-wrap:wrap">
+        <div style="display:flex;gap:3px;background:var(--bg3);border-radius:8px;padding:3px">
+          <div class="tab active" onclick="setReportPeriod('current_month',this)">Mês atual</div>
+          <div class="tab" onclick="setReportPeriod('last_month',this)">Último mês</div>
+          <div class="tab" onclick="setReportPeriod('last_7',this)">7 dias</div>
+          <div class="tab" onclick="setReportPeriod('last_30',this)">30 dias</div>
+          <div class="tab" onclick="setReportPeriod('custom',this)">Personalizado</div>
+        </div>
+        <div id="custom-range" style="display:none;gap:8px;align-items:center;display:flex">
+          <input type="date" id="rp-from" class="fsel" style="padding:5px 9px">
+          <span style="color:var(--muted)">até</span>
+          <input type="date" id="rp-to" class="fsel" style="padding:5px 9px">
+          <button class="btn btn-primary btn-sm" onclick="applyCustomRange()">Aplicar</button>
+        </div>
+        <span class="spacer"></span>
+        <span style="font-size:12px;color:var(--muted)" id="rp-period-label"></span>
+        <button class="btn btn-ghost btn-sm" onclick="exportReportCSV()">📊 Exportar CSV</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportReportPDF()" style="color:var(--red);border-color:rgba(239,68,68,.3)">📄 Exportar PDF</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px" id="rp-kpis"></div>
+      <div class="two-col" style="margin-bottom:16px">
+        <div class="card"><div class="card-header"><span class="card-title">📁 Por Categoria</span></div><div class="card-body" id="rp-categories"></div></div>
+        <div class="card"><div class="card-header"><span class="card-title">🚦 Por Prioridade</span></div><div class="card-body" id="rp-priority"></div></div>
+      </div>
+      <div class="two-col" style="margin-bottom:16px">
+        <div class="card"><div class="card-header"><span class="card-title">🔄 Incidentes Frequentes</span></div><div class="card-body" id="rp-incidents"></div></div>
+        <div class="card"><div class="card-header"><span class="card-title">👤 Quem Mais Abre</span></div><div class="card-body" id="rp-users"></div></div>
+      </div>
+      <div class="two-col" style="margin-bottom:16px">
+        <div class="card"><div class="card-header"><span class="card-title">🏢 Por Setor</span></div><div class="card-body" id="rp-dept"></div></div>
+        <div class="card"><div class="card-header"><span class="card-title">📊 Desempenho Agentes</span></div><div class="card-body" id="rep-agents"></div></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">📋 Chamados no Período</span>
+          <span style="font-size:12px;color:var(--muted)" id="rp-ticket-count"></span>
+        </div>
+        <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">
+          <thead><tr><th>N°</th><th>Assunto</th><th>Status</th><th>Prioridade</th><th>Categoria</th><th>Solicitante</th><th>Setor</th><th>Aberto em</th></tr></thead>
+          <tbody id="rp-tickets-tbody"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+
+    <!-- DATASHOW VIEW -->
+    <div class="view" id="v-datashow">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:12px">
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:4px">📽 Agendamentos de Datashow</div>
+          <div style="font-size:13px;color:var(--muted)">Visualize e gerencie todas as solicitações de reserva do projetor.</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <select class="fsel" id="ds-filter-status" onchange="renderDsAgent()">
+            <option value="">Todos os status</option>
+            <option value="confirmed">Confirmados</option>
+            <option value="pending">Pendentes</option>
+            <option value="cancelled">Cancelados</option>
+          </select>
+          <button class="btn btn-primary" onclick="openDsAgentForm(null)">➕ Nova Reserva</button>
+        </div>
+      </div>
+
+      <!-- Week navigation -->
+      <div style="display:flex;align-items:center;gap:10px;margin:16px 0;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" onclick="changeDsAgentWeek(-7)">‹ Semana anterior</button>
+        <span style="font-size:14px;font-weight:600;font-family:'Syne',sans-serif" id="dsa-week-label">—</span>
+        <button class="btn btn-ghost btn-sm" onclick="changeDsAgentWeek(7)">Próxima semana ›</button>
+        <button class="btn btn-ghost btn-sm" onclick="initDsAgent()">Hoje</button>
+        <span class="spacer"></span>
+        <span style="font-size:12px;color:var(--muted)" id="dsa-count"></span>
+      </div>
+
+      <!-- Table view -->
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Horário</th>
+              <th>Duração</th>
+              <th>Local</th>
+              <th>Finalidade</th>
+              <th>Solicitante</th>
+              <th>Setor</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="dsa-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-overlay" id="settings-overlay" onclick="if(event.target===this)closeSettings()">
+  <div class="modal" style="width:620px;max-height:88vh" onclick="event.stopPropagation()">
+    <div class="modal-hdr">
+      <div style="flex:1">
+        <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:700">⚙️ Configurações</div>
+        <div style="font-size:12.5px;color:var(--muted);margin-top:3px">Personalize o sistema e gerencie sua conta</div>
+      </div>
+      <div class="close-btn" onclick="closeSettings()">✕</div>
+    </div>
+
+    <!-- Tabs -->
+    <div style="display:flex;gap:0;border-bottom:1px solid var(--border);padding:0 22px">
+      <button class="settings-tab active" id="stab-perfil"   onclick="switchSettingsTab('perfil')">👤 Meu Perfil</button>
+      <button class="settings-tab" id="stab-sistema"  onclick="switchSettingsTab('sistema')">🏥 Sistema</button>
+      <button class="settings-tab" id="stab-sla"      onclick="switchSettingsTab('sla')">⏱ SLA</button>
+      <button class="settings-tab" id="stab-notif"    onclick="switchSettingsTab('notif')">🔔 Notificações</button>
+    </div>
+
+    <div style="overflow-y:auto;max-height:calc(88vh - 160px)">
+
+      <!-- TAB: PERFIL -->
+      <div id="stab-content-perfil" style="padding:22px 24px">
+        <div id="settings-ok"  style="background:var(--green-bg);border:1px solid rgba(16,185,129,.2);border-radius:8px;padding:9px 13px;font-size:13px;color:var(--green);margin-bottom:16px;display:none"></div>
+        <div id="settings-err" style="background:var(--red-bg);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:9px 13px;font-size:13px;color:var(--red);margin-bottom:16px;display:none"></div>
+
+        <!-- Avatar + nome -->
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid var(--border)">
+          <div id="settings-av" style="width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#fff;flex-shrink:0"></div>
+          <div>
+            <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:700" id="settings-name-display">—</div>
+            <div style="font-size:12.5px;color:var(--muted)" id="settings-role-display">—</div>
+            <div style="font-size:12px;color:var(--muted)" id="settings-email-display">—</div>
+          </div>
+        </div>
+
+        <!-- Dados do agente -->
+        <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px">Dados da Conta</div>
+        <div class="form-row2" style="margin-bottom:16px">
+          <div class="fg" style="margin-bottom:0"><label class="fl">Nome completo</label><input class="fi" id="cfg-name" placeholder="Seu nome"></div>
+          <div class="fg" style="margin-bottom:0"><label class="fl">E-mail</label><input class="fi" id="cfg-email" type="email" placeholder="email@hospital.com"></div>
+        </div>
+        <div class="fg" style="margin-bottom:20px">
+          <label class="fl">Cor do avatar</label>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px" id="cfg-colors"></div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="saveProfileSettings()">💾 Salvar dados</button>
+
+        <!-- Alterar senha -->
+        <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border)">
+          <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px">Alterar Senha</div>
+          <div class="form-row2" style="margin-bottom:14px">
+            <div class="fg" style="margin-bottom:0"><label class="fl">Senha atual</label><input class="fi" id="cfg-pass-old" type="password" placeholder="••••••••"></div>
+            <div class="fg" style="margin-bottom:0"><label class="fl">Nova senha</label><input class="fi" id="cfg-pass-new" type="password" placeholder="Mín. 8 caracteres"></div>
+          </div>
+          <div class="fg" style="margin-bottom:14px"><label class="fl">Confirmar nova senha</label><input class="fi" id="cfg-pass-confirm" type="password" placeholder="Repita a nova senha"></div>
+          <button class="btn btn-ghost btn-sm" onclick="savePasswordSettings()">🔑 Alterar senha</button>
+        </div>
+      </div>
+
+      <!-- TAB: SISTEMA -->
+      <div id="stab-content-sistema" style="padding:22px 24px;display:none">
+        <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px">Identidade do Sistema</div>
+        <div class="fg"><label class="fl">Nome do Sistema</label>
+          <input class="fi" id="cfg-sys-name" value="HelpDesk Pro" placeholder="Ex: Central de TI Hospital Regional"></div>
+        <div class="fg"><label class="fl">Organização</label>
+          <input class="fi" id="cfg-sys-org" value="Hospital Regional de Guarabira / PB Saúde" placeholder="Nome da instituição"></div>
+        <div class="fg"><label class="fl">E-mail de suporte</label>
+          <input class="fi" id="cfg-sys-email" placeholder="ti@hospital.com"></div>
+        <div class="fg" style="margin-bottom:20px"><label class="fl">Telefone de suporte</label>
+          <input class="fi" id="cfg-sys-phone" placeholder="(83) 9XXXX-XXXX"></div>
+
+        <div style="border-top:1px solid var(--border);padding-top:20px;margin-bottom:20px">
+          <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px">Informações do Servidor</div>
+          <div style="display:flex;flex-direction:column;gap:8px" id="cfg-server-info">
+            <div style="display:flex;justify-content:space-between;font-size:12.5px;padding:8px 12px;background:var(--bg3);border-radius:7px">
+              <span style="color:var(--muted)">Versão do Sistema</span>
+              <span style="font-family:'DM Mono',monospace">HelpDesk Pro v5.0</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:12.5px;padding:8px 12px;background:var(--bg3);border-radius:7px">
+              <span style="color:var(--muted)">URL da API</span>
+              <span style="font-family:'DM Mono',monospace" id="cfg-api-url">—</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:12.5px;padding:8px 12px;background:var(--bg3);border-radius:7px">
+              <span style="color:var(--muted)">Status da API</span>
+              <span id="cfg-api-status">Verificando…</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:12.5px;padding:8px 12px;background:var(--bg3);border-radius:7px">
+              <span style="color:var(--muted)">Total de chamados</span>
+              <span id="cfg-total-tickets">—</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:12.5px;padding:8px 12px;background:var(--bg3);border-radius:7px">
+              <span style="color:var(--muted)">Total de agentes</span>
+              <span id="cfg-total-agents">—</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:12.5px;padding:8px 12px;background:var(--bg3);border-radius:7px">
+              <span style="color:var(--muted)">Total de usuários</span>
+              <span id="cfg-total-clients">—</span>
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="saveSystemSettings()">💾 Salvar configurações</button>
+        <a href="/tv.html" target="_blank" class="btn btn-ghost btn-sm" style="margin-left:8px;text-decoration:none">📺 Abrir Painel TV</a>
+      </div>
+
+      <!-- TAB: SLA -->
+      <div id="stab-content-sla" style="padding:22px 24px;display:none">
+        <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Prazos de Atendimento</div>
+        <div style="font-size:12.5px;color:var(--muted);margin-bottom:18px">Tempo máximo de resposta e resolução por prioridade (em horas).</div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:6px">
+          <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Prioridade</div>
+          <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Resposta (h)</div>
+          <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Resolução (h)</div>
+        </div>
+
+        ${[
+          {key:'critical', label:'🔴 Crítica',  resp:'0.5',  res:'2'},
+          {key:'high',     label:'🟠 Alta',     resp:'1',    res:'4'},
+          {key:'medium',   label:'🟡 Média',    resp:'4',    res:'8'},
+          {key:'low',      label:'⚪ Baixa',    resp:'8',    res:'24'},
+        ].map(p => `
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;align-items:center;margin-bottom:10px">
+          <div style="font-size:13.5px;font-weight:500">${p.label}</div>
+          <input class="fi" id="sla-resp-${p.key}" type="number" value="${p.resp}" min="0.5" step="0.5" style="padding:8px 10px;font-size:13px">
+          <input class="fi" id="sla-res-${p.key}"  type="number" value="${p.res}"  min="1"   step="0.5" style="padding:8px 10px;font-size:13px">
+        </div>`).join('')}
+
+        <div style="margin-top:8px;padding-top:16px;border-top:1px solid var(--border)">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:12px">⚠️ Alterar os prazos afeta apenas chamados criados após a mudança.</div>
+          <button class="btn btn-primary btn-sm" onclick="saveSLASettings()">💾 Salvar prazos de SLA</button>
+        </div>
+      </div>
+
+      <!-- TAB: NOTIFICAÇÕES -->
+      <div id="stab-content-notif" style="padding:22px 24px;display:none">
+        <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px">Alertas em Tempo Real</div>
+
+        ${[
+          {id:'ntf-new',      label:'Novo chamado aberto',           sub:'Toast ao chegar novo ticket', default:true},
+          {id:'ntf-breach',   label:'SLA violado',                    sub:'Alerta quando prazo vence', default:true},
+          {id:'ntf-escalate', label:'Chamado escalado',               sub:'Notificar ao escalar nível', default:true},
+          {id:'ntf-resolved', label:'Chamado resolvido',              sub:'Confirmar resoluções', default:false},
+          {id:'ntf-sound',    label:'Som de notificação',             sub:'Bip ao receber alertas', default:false},
+        ].map(n => `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)">
+          <div>
+            <div style="font-size:13.5px;font-weight:500">${n.label}</div>
+            <div style="font-size:12px;color:var(--muted)">${n.sub}</div>
+          </div>
+          <label style="position:relative;display:inline-block;width:42px;height:24px;flex-shrink:0">
+            <input type="checkbox" id="${n.id}" ${n.default?'checked':''} style="opacity:0;width:0;height:0">
+            <span onclick="this.previousElementSibling.checked=!this.previousElementSibling.checked;saveNotifSettings()" style="position:absolute;cursor:pointer;inset:0;background:${n.default?'var(--accent)':'var(--bg4)'};border-radius:24px;transition:.3s" id="${n.id}-span">
+              <span style="position:absolute;left:${n.default?'20':'2'}px;top:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:.3s"></span>
+            </span>
+          </label>
+        </div>`).join('')}
+
+        <div style="margin-top:16px;font-size:12px;color:var(--muted)">
+          💡 As notificações por toast aparecem no canto inferior direito da tela enquanto o painel estiver aberto.
+        </div>
+      </div>
+
+    </div><!-- end scroll area -->
+
+    <div style="padding:14px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end">
+      <button class="btn btn-ghost btn-sm" onclick="closeSettings()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ASSET FORM MODAL -->
+<div class="aform-overlay" id="asset-form-overlay" onclick="closeModal('asset-form-overlay',event)">
+  <div class="aform" style="max-width:540px" onclick="event.stopPropagation()">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px">
+      <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700" id="asf-modal-title">Novo Ativo</div>
+      <div class="close-btn" onclick="closeModal('asset-form-overlay')">✕</div>
+    </div>
+    <div id="asf-ok"  style="background:var(--green-bg);border:1px solid rgba(16,185,129,.2);border-radius:8px;padding:9px 13px;font-size:13px;color:var(--green);margin-bottom:12px;display:none"></div>
+    <div id="asf-err" style="background:var(--red-bg);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:9px 13px;font-size:13px;color:var(--red);margin-bottom:12px;display:none"></div>
+
+    <div class="form-row2">
+      <div class="fg"><label class="fl">Código <span style="color:var(--red)">*</span></label>
+        <input class="fi" id="asf-code" placeholder="Ex: PC-TI001, PRT-002"></div>
+      <div class="fg"><label class="fl">Nome <span style="color:var(--red)">*</span></label>
+        <input class="fi" id="asf-name" placeholder="Ex: Dell Inspiron 15"></div>
+    </div>
+    <div class="form-row2">
+      <div class="fg"><label class="fl">Tipo <span style="color:var(--red)">*</span></label>
+        <select class="fi" id="asf-type">
+          <option value="">— Selecione —</option>
+          <option>Notebook</option><option>Desktop</option><option>Servidor</option>
+          <option>Impressora</option><option>Rede</option><option>Software</option>
+          <option>Periférico</option><option>Telefone</option><option>Outro</option>
+        </select></div>
+      <div class="fg"><label class="fl">Status <span style="color:var(--red)">*</span></label>
+        <select class="fi" id="asf-status">
+          <option value="online">✅ Online</option>
+          <option value="instavel">⚠️ Instável</option>
+          <option value="offline">❌ Offline</option>
+          <option value="manutencao">🔧 Em manutenção</option>
+          <option value="desativado">🚫 Desativado</option>
+        </select></div>
+    </div>
+    <div class="form-row2">
+      <div class="fg"><label class="fl">Atribuído a</label>
+        <input class="fi" id="asf-assigned" placeholder="Nome do usuário ou setor"></div>
+      <div class="fg"><label class="fl">Número de Série</label>
+        <input class="fi" id="asf-serial" placeholder="Ex: SN2024001"></div>
+    </div>
+    <div class="fg" style="margin-bottom:20px"><label class="fl">Observações</label>
+      <textarea class="fi" id="asf-notes" rows="3" placeholder="Localização, configurações especiais, histórico relevante…"></textarea></div>
+
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-primary" style="flex:1" id="asf-save-btn" onclick="saveAsset()">Salvar Ativo</button>
+      <button class="btn btn-ghost" onclick="closeModal('asset-form-overlay')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOTIFICATION PANEL -->
+<div class="notif-panel" id="notif-panel">
+  <div class="notif-hdr"><span>Notificações</span><span style="font-size:11px;color:var(--accent);cursor:pointer">Marcar lidas</span></div>
+  <div class="notif-item"><div style="display:flex;gap:10px;align-items:flex-start"><div class="notif-unread"></div><div><div class="notif-title">SLA violado — VPN não conecta</div><div class="notif-desc">Chamado #1040 ultrapassou o prazo de resolução</div><div class="notif-time">há 5 minutos</div></div></div></div>
+  <div class="notif-item"><div style="display:flex;gap:10px;align-items:flex-start"><div class="notif-unread"></div><div><div class="notif-title">Novo chamado crítico</div><div class="notif-desc">Tela azul — Maria Silva aguarda atendimento</div><div class="notif-time">há 12 minutos</div></div></div></div>
+  <div class="notif-item"><div style="display:flex;gap:10px;align-items:flex-start"><div style="width:7px;flex-shrink:0"></div><div><div class="notif-title">Chamado #1042 resolvido</div><div class="notif-desc">Ana Torres resolveu o problema do Outlook</div><div class="notif-time">há 30 minutos</div></div></div></div>
+</div>
+
+<!-- TICKET DETAIL MODAL -->
+<div class="modal-overlay" id="ticket-modal" onclick="closeModal('ticket-modal',event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-hdr">
+      <div class="modal-hdr-info">
+        <div class="modal-num" id="m-num"></div>
+        <div class="modal-ttl" id="m-title"></div>
+        <div class="modal-meta" id="m-meta"></div>
+      </div>
+      <div class="close-btn" onclick="closeModal('ticket-modal')">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="modal-main">
+        <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:14px">Histórico de Interações</div>
+        <div class="tl" id="m-timeline"></div>
+      </div>
+      <div class="modal-side">
+        <div>
+          <div class="ms-label">Agente Responsável</div>
+          <div class="ms-val" id="m-agent" style="margin-bottom:6px"></div>
+          <select class="fi" id="m-agent-select" style="font-size:12px;padding:6px 10px" onchange="assignAgent(this.value)">
+            <option value="">— Sem agente —</option>
+          </select>
+          <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:5px;font-size:11.5px;color:var(--accent);border-color:rgba(59,130,246,.3)" onclick="selfAssign()">👤 Atribuir a mim</button>
+        </div>
+        <div>
+          <div class="ms-label">Categoria</div>
+          <select class="fi" id="m-category" style="font-size:12px;padding:6px 10px" onchange="updateTicketCategory(this.value)">
+            <option value="hardware">💻 Hardware</option>
+            <option value="software">⚙ Software / Sistema</option>
+            <option value="rede">🌐 Rede / Conectividade</option>
+            <option value="acesso">🔑 Acesso / Segurança</option>
+            <option value="impressora">🖨 Impressora</option>
+            <option value="outros">📋 Outros</option>
+          </select>
+        </div>
+        <div><div class="ms-label">Nível</div><div class="ms-val" id="m-tier"></div></div>
+        <div><div class="ms-label">SLA Restante</div><div class="ms-val" id="m-sla"></div></div>
+        <div><div class="ms-label">Ativo</div><div class="ms-val" id="m-asset" style="font-size:12px;color:var(--muted)"></div></div>
+        <div>
+          <div class="ms-label">Status</div>
+          <select class="fi" id="m-status" style="font-size:12px;padding:7px 10px" onchange="updateTicketStatus()">
+            <option value="open">Aberto</option><option value="progress">Em Andamento</option>
+            <option value="waiting">Aguardando</option><option value="resolved">Resolvido</option>
+            <option value="closed">Fechado</option><option value="escalated">Escalado</option>
+          </select>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <button class="btn btn-ghost btn-sm" onclick="escalateTicket()">⬆ Escalar</button>
+          <button class="btn btn-ghost btn-sm" onclick="alert('Iniciando acesso remoto…')">🖥 Acesso Remoto</button>
+          <button class="btn btn-primary btn-sm" onclick="resolveTicket()">✅ Resolver</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <textarea class="reply-area" id="reply-body" placeholder="Adicionar resposta ou nota técnica…" rows="2"></textarea>
+      <div class="reply-acts">
+        <button class="btn btn-primary btn-sm" onclick="sendReply('reply')">📨 Enviar Resposta</button>
+        <button class="btn btn-ghost btn-sm" onclick="sendReply('note')">📝 Nota Interna</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AGENT FORM (create + edit) -->
+<div class="aform-overlay" id="agent-form-overlay" onclick="closeModal('agent-form-overlay',event)">
+  <div class="aform" onclick="event.stopPropagation()">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px">
+      <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700" id="af-modal-title">Novo Agente</div>
+      <div class="close-btn" onclick="closeModal('agent-form-overlay')">✕</div>
+    </div>
+    <div id="af-err" style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:9px 13px;font-size:13px;color:var(--red);margin-bottom:14px;display:none"></div>
+    <div id="af-ok"  style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:8px;padding:9px 13px;font-size:13px;color:var(--green);margin-bottom:14px;display:none"></div>
+    <div class="form-row2">
+      <div class="fg"><label class="fl">Nome completo</label><input class="fi" id="af-name" placeholder="Nome do agente"></div>
+      <div class="fg"><label class="fl">E-mail</label><input class="fi" id="af-email" type="email" placeholder="agente@helpdesk.com"></div>
+    </div>
+    <div class="form-row2">
+      <div class="fg"><label class="fl">Nível / Perfil</label>
+        <select class="fi" id="af-role">
+          <option value="N1">N1 — Suporte Básico</option>
+          <option value="N2">N2 — Suporte Avançado</option>
+          <option value="N3">N3 — Especialista</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <div class="fg"><label class="fl">Cor do avatar</label>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:6px" id="af-colors"></div>
+      </div>
+    </div>
+    <!-- Seção de senha -->
+    <div style="border-top:1px solid var(--border);padding-top:16px;margin-top:4px">
+      <div id="af-pass-section-create">
+        <div class="fg" style="margin-bottom:0">
+          <label class="fl">Senha inicial <span style="color:var(--red)">*</span></label>
+          <input class="fi" id="af-pass" type="password" placeholder="Mín. 8 caracteres">
+        </div>
+      </div>
+      <div id="af-pass-section-edit" style="display:none">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Deixe em branco para manter a senha atual. Preencha para redefinir.</div>
+        <div class="fg" style="margin-bottom:0">
+          <label class="fl">Nova senha (opcional)</label>
+          <input class="fi" id="af-pass-edit" type="password" placeholder="Nova senha para este agente…">
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:18px">
+      <button class="btn btn-primary" style="flex:1" id="af-save-btn" onclick="saveAgent()">Criar Agente</button>
+      <button class="btn btn-ghost" onclick="closeModal('agent-form-overlay')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- AGENT OWN PASSWORD MODAL -->
+<div class="aform-overlay" id="own-pass-overlay" onclick="closeModal('own-pass-overlay',event)">
+  <div class="aform" style="max-width:420px" onclick="event.stopPropagation()">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px">
+      <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700">Alterar Minha Senha</div>
+      <div class="close-btn" onclick="closeModal('own-pass-overlay')">✕</div>
+    </div>
+    <div id="op-err" style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:9px 13px;font-size:13px;color:var(--red);margin-bottom:14px;display:none"></div>
+    <div id="op-ok"  style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:8px;padding:9px 13px;font-size:13px;color:var(--green);margin-bottom:14px;display:none"></div>
+    <div class="fg"><label class="fl">Senha atual</label><input class="fi" id="op-current" type="password" placeholder="Sua senha atual"></div>
+    <div class="fg"><label class="fl">Nova senha</label><input class="fi" id="op-new" type="password" placeholder="Mín. 8 caracteres"></div>
+    <div class="fg" style="margin-bottom:20px"><label class="fl">Confirmar nova senha</label><input class="fi" id="op-confirm" type="password" placeholder="Repita a nova senha"></div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-primary" style="flex:1" onclick="saveOwnPassword()">Salvar Nova Senha</button>
+      <button class="btn btn-ghost" onclick="closeModal('own-pass-overlay')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- CLIENT PASSWORD MODAL (agente redefine senha de cliente) -->
+<div class="aform-overlay" id="client-pass-overlay" onclick="closeModal('client-pass-overlay',event)">
+  <div class="aform" style="max-width:420px" onclick="event.stopPropagation()">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700">Redefinir Senha do Usuário</div>
+      <div class="close-btn" onclick="closeModal('client-pass-overlay')">✕</div>
+    </div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:20px" id="cp-subtitle"></div>
+    <div id="cp-err" style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:9px 13px;font-size:13px;color:var(--red);margin-bottom:14px;display:none"></div>
+    <div id="cp-ok"  style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:8px;padding:9px 13px;font-size:13px;color:var(--green);margin-bottom:14px;display:none"></div>
+    <div class="fg"><label class="fl">Nova senha</label><input class="fi" id="cp-new" type="password" placeholder="Mín. 8 caracteres"></div>
+    <div class="fg" style="margin-bottom:20px"><label class="fl">Confirmar nova senha</label><input class="fi" id="cp-confirm" type="password" placeholder="Repita a nova senha"></div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-primary" style="flex:1" onclick="saveClientPassword()">Redefinir Senha</button>
+      <button class="btn btn-ghost" onclick="closeModal('client-pass-overlay')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- KB ARTICLE FORM MODAL -->
+<div class="aform-overlay" id="kb-form-overlay" onclick="closeModal('kb-form-overlay',event)">
+  <div class="aform" style="max-width:560px" onclick="event.stopPropagation()">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700">📝 Novo Artigo</div>
+      <div class="close-btn" onclick="closeModal('kb-form-overlay')">✕</div>
+    </div>
+    <div id="kbf-err" style="background:var(--red-bg);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:9px 13px;font-size:13px;color:var(--red);margin-bottom:12px;display:none"></div>
+    <div class="fg"><label class="fl">Categoria</label>
+      <select class="fi" id="kbf-cat"><option value="">— Sem categoria —</option></select>
+    </div>
+    <div class="fg"><label class="fl">Título do Artigo <span style="color:var(--red)">*</span></label>
+      <input class="fi" id="kbf-title" placeholder="Ex: Como redefinir senha no AD"></div>
+    <div class="fg" style="margin-bottom:20px"><label class="fl">Conteúdo <span style="color:var(--red)">*</span></label>
+      <textarea class="fi" id="kbf-body" rows="7" placeholder="Descreva a solução passo a passo…"></textarea></div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-primary" style="flex:1" onclick="saveKBArticle()">💾 Salvar Artigo</button>
+      <button class="btn btn-ghost" onclick="closeModal('kb-form-overlay')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- CLIENT EDIT MODAL -->
+<div class="aform-overlay" id="client-edit-overlay" onclick="closeModal('client-edit-overlay',event)">
+  <div class="aform" style="max-width:460px" onclick="event.stopPropagation()">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700">✏ Editar Usuário</div>
+      <div class="close-btn" onclick="closeModal('client-edit-overlay')">✕</div>
+    </div>
+    <div id="ce-ok"  style="background:var(--green-bg);border:1px solid rgba(16,185,129,.2);border-radius:8px;padding:9px 13px;font-size:13px;color:var(--green);margin-bottom:12px;display:none"></div>
+    <div id="ce-err" style="background:var(--red-bg);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:9px 13px;font-size:13px;color:var(--red);margin-bottom:12px;display:none"></div>
+    <div class="fg"><label class="fl">Nome completo</label><input class="fi" id="ce-name" placeholder="Nome do usuário"></div>
+    <div class="fg"><label class="fl">E-mail <span style="font-size:10px;color:var(--accent)">(pode corrigir)</span></label>
+      <input class="fi" id="ce-email" type="email" placeholder="email@hospital.com"></div>
+    <div class="fg" style="margin-bottom:20px"><label class="fl">Departamento / Setor</label>
+      <select class="fi" id="ce-dept">
+        <option value="">— Selecionar —</option>
+        <option>Administrativo</option><option>Almoxarifado</option><option>Centro Cirúrgico</option>
+        <option>Enfermagem</option><option>Farmácia</option><option>Financeiro</option>
+        <option>Internação</option><option>Jurídico</option><option>Laboratório</option>
+        <option>Manutenção</option><option>Nutrição</option><option>Radiologia</option>
+        <option>Recepção</option><option>RH</option><option>TI</option>
+        <option>UTI</option><option>Outro</option>
+      </select></div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-primary" style="flex:1" onclick="saveClientEdit()">Salvar Alterações</button>
+      <button class="btn btn-ghost" onclick="closeModal('client-edit-overlay')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- DATASHOW AGENT FORM MODAL -->
+<div class="aform-overlay" id="dsa-form-overlay" onclick="closeModal('dsa-form-overlay',event)">
+  <div class="aform" style="max-width:540px" onclick="event.stopPropagation()">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700" id="dsaf-title">Nova Reserva de Datashow</div>
+      <div class="close-btn" onclick="closeModal('dsa-form-overlay')">✕</div>
+    </div>
+    <div id="dsaf-ok"  style="background:var(--green-bg);border:1px solid rgba(16,185,129,.2);border-radius:8px;padding:9px 13px;font-size:13px;color:var(--green);margin-bottom:12px;display:none"></div>
+    <div id="dsaf-err" style="background:var(--red-bg);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:9px 13px;font-size:13px;color:var(--red);margin-bottom:12px;display:none"></div>
+    <div class="form-row2">
+      <div class="fg"><label class="fl">Data <span style="color:var(--red)">*</span></label>
+        <input class="fi" type="date" id="dsaf-date"></div>
+      <div class="fg"><label class="fl">Horário <span style="color:var(--red)">*</span></label>
+        <input class="fi" type="time" id="dsaf-time" value="08:00" step="1800"></div>
+    </div>
+    <div class="form-row2">
+      <div class="fg"><label class="fl">Duração</label>
+        <select class="fi" id="dsaf-duration">
+          <option value="30">30 minutos</option>
+          <option value="60" selected>1 hora</option>
+          <option value="90">1h 30min</option>
+          <option value="120">2 horas</option>
+          <option value="180">3 horas</option>
+          <option value="240">4 horas</option>
+        </select></div>
+      <div class="fg"><label class="fl">Local <span style="color:var(--red)">*</span></label>
+        <input class="fi" id="dsaf-location" placeholder="Ex: Auditório, Sala 2…"></div>
+    </div>
+    <div class="fg"><label class="fl">Finalidade <span style="color:var(--red)">*</span></label>
+      <input class="fi" id="dsaf-purpose" placeholder="Ex: Treinamento, Reunião de diretores…"></div>
+    <div class="form-row2">
+      <div class="fg"><label class="fl">Solicitante <span style="color:var(--red)">*</span></label>
+        <input class="fi" id="dsaf-rname" placeholder="Nome completo"></div>
+      <div class="fg"><label class="fl">Setor</label>
+        <select class="fi" id="dsaf-rdept">
+          <option value="">— Selecione —</option>
+          <option>Administrativo</option><option>Almoxarifado</option><option>Centro Cirúrgico</option>
+          <option>Enfermagem</option><option>Farmácia</option><option>Financeiro</option>
+          <option>Internação</option><option>Jurídico</option><option>Laboratório</option>
+          <option>Manutenção</option><option>Nutrição</option><option>Radiologia</option>
+          <option>Recepção</option><option>RH</option><option>TI</option>
+          <option>UTI</option><option>Outro</option>
+        </select></div>
+    </div>
+    <div class="fg" style="margin-bottom:8px"><label class="fl">Status</label>
+      <select class="fi" id="dsaf-status">
+        <option value="confirmed">✅ Confirmado</option>
+        <option value="pending">⏳ Pendente (aguardando aprovação)</option>
+        <option value="cancelled">❌ Cancelado</option>
+      </select></div>
+    <div class="fg" style="margin-bottom:20px"><label class="fl">Observações</label>
+      <textarea class="fi" id="dsaf-notes" rows="2" placeholder="Equipamentos extras, observações…"></textarea></div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-primary" style="flex:1" onclick="saveDsAgent()">📽 Salvar Reserva</button>
+      <button class="btn btn-ghost" onclick="closeModal('dsa-form-overlay')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '/api';
+let TOKEN = localStorage.getItem('hd_token');
+let AGENT = JSON.parse(localStorage.getItem('hd_agent') || 'null');
+let allTickets = [], allAgents = [], allClients = [], currentTicketId = null;
+let activeFilter = 'all';
+let editingAgentId = null, currentClientId = null;
+
+// Auth check
+if (!TOKEN || !AGENT) { window.location.href = '/'; }
+
+const api = (method, path, body) => fetch(API+path, {
+  method, headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+TOKEN },
+  body: body ? JSON.stringify(body) : undefined
+}).then(r => r.json());
+
+const fmtDate = iso => iso ? new Date(iso).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—';
+const slaRemaining = deadline => {
+  const diff = new Date(deadline) - new Date();
+  if (diff < 0) return { text: 'Vencido', cls: 'sla-breach' };
+  const h = Math.floor(diff/3600000), m = Math.floor((diff%3600000)/60000);
+  const cls = diff < 3600000 ? 'sla-warn' : 'sla-ok';
+  return { text: h+'h '+m+'m', cls };
+};
+const statusLabel = {open:'Aberto',progress:'Em Andamento',resolved:'Resolvido',closed:'Fechado',escalated:'Escalado',waiting:'Aguardando'};
+const prioLabel = {critical:'Crítica',high:'Alta',medium:'Média',low:'Baixa'};
+const colors = ['#3b82f6','#10b981','#a78bfa','#f59e0b','#ef4444','#06b6d4','#ec4899'];
+let selectedColor = colors[0];
+
+// Init
+(async () => {
+  // Sidebar user
+  const init = AGENT.name.split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('sidebar-av').textContent = init;
+  document.getElementById('sidebar-av').style.background = AGENT.color || '#3b82f6';
+  document.getElementById('sidebar-name').textContent = AGENT.name;
+  document.getElementById('sidebar-role').textContent = AGENT.role;
+
+  // Color picker for agent form
+  document.getElementById('af-colors').innerHTML = colors.map(c =>
+    `<div onclick="selectColor('${c}')" id="color-${c.slice(1)}" style="width:24px;height:24px;border-radius:50%;background:${c};cursor:pointer;border:2px solid transparent;transition:border .15s" title="${c}"></div>`
+  ).join('');
+  selectColor(colors[0]);
+
+  await loadAll();
+  show('dashboard', document.querySelector('nav a'));
+  // Start real-time updates via SSE
+  initSSE();
+})();
+
+async function loadAll() {
+  try {
+    const [stats, tickets, agents, assets, kbCats, kbArts, slaData, report, clients] = await Promise.all([
+      api('GET','/tickets/stats'), api('GET','/tickets'), api('GET','/agents'),
+      api('GET','/assets'), api('GET','/kb/categories'), api('GET','/kb/articles'),
+      api('GET','/reports/sla'), api('GET','/reports/dashboard'), api('GET','/clients')
+    ]);
+    allTickets = Array.isArray(tickets) ? tickets : [];
+    allAgents  = Array.isArray(agents)  ? agents  : [];
+    allClients = Array.isArray(clients) ? clients : [];
+
+    // KPIs
+    document.getElementById('k-open').textContent     = stats.open     ?? '—';
+    document.getElementById('k-resolved').textContent = stats.resolvedToday ?? '—';
+    document.getElementById('k-progress').textContent = stats.progress  ?? '—';
+    document.getElementById('k-breach').textContent   = stats.breached  ?? '—';
+    document.getElementById('nav-open').textContent   = (stats.open||0) + (stats.progress||0);
+
+    // Nav badge
+    const br = stats.breached || 0;
+    const bd = document.getElementById('nav-breach');
+    if (br > 0) { bd.textContent = br; bd.style.display = ''; } else bd.style.display = 'none';
+
+    // Bar chart
+    if (report.daily) {
+      const max = Math.max(...report.daily.map(d => Math.max(d.opened||0, d.resolved||0)), 1);
+      document.getElementById('bar-chart').innerHTML = report.daily.map(d => `
+        <div class="bar-col">
+          <div class="bar-pair">
+            <div class="bar" style="height:${((d.opened||0)/max)*90}px;background:var(--accent);opacity:0.8"></div>
+            <div class="bar" style="height:${((d.resolved||0)/max)*90}px;background:var(--green);opacity:0.8"></div>
+          </div>
+          <div class="bar-lbl">${new Date(d.date+'T12:00').toLocaleDateString('pt-BR',{weekday:'short'}).slice(0,3)}</div>
+        </div>`).join('');
+    }
+
+    // Donut by channel
+    const ch = report.byChannel || {};
+    const chTotal = Object.values(ch).reduce((a,b)=>a+b,0) || 1;
+    const chColors = ['var(--accent)','var(--green)','var(--orange)','var(--purple)'];
+    const chLabels = Object.keys(ch);
+    let offset = 0;
+    ['dc1','dc2','dc3','dc4'].forEach((id,i) => {
+      const val = ch[chLabels[i]] || 0;
+      const pct = (val/chTotal)*226;
+      document.getElementById(id).setAttribute('stroke-dasharray', pct+' '+(226-pct));
+      document.getElementById(id).setAttribute('stroke-dashoffset', -offset);
+      offset += pct;
+    });
+    document.getElementById('donut-legend').innerHTML = chLabels.slice(0,4).map((k,i) =>
+      `<div class="dl-item"><div class="dl-dot" style="background:${chColors[i]}"></div>${k} — ${Math.round((ch[k]/chTotal)*100)}%</div>`
+    ).join('');
+
+    // SLA cats (static sample enriched)
+    document.getElementById('sla-cats').innerHTML = [
+      {name:'Hardware',pct:97,c:'var(--green)'},{name:'Software',pct:89,c:'var(--green)'},
+      {name:'Rede',pct:78,c:'var(--orange)'},{name:'Acesso',pct:95,c:'var(--green)'},
+      {name:'Impressora',pct:100,c:'var(--green)'},
+    ].map(s=>`<div class="sla-row"><div class="sla-name">${s.name}</div><div class="sla-bar"><div class="sla-fill" style="width:${s.pct}%;background:${s.c}"></div></div><div class="sla-pct" style="color:${s.c}">${s.pct}%</div></div>`).join('');
+
+    // Agent perf
+    const aReport = await api('GET','/reports/agents');
+    if (Array.isArray(aReport)) {
+      const maxT = Math.max(...aReport.map(a=>a.total), 1);
+      document.getElementById('agent-perf').innerHTML = aReport.slice(0,5).map(a =>
+        `<div class="agent-row2">
+          <div class="agent-av" style="background:${a.color||'#3b82f6'};font-size:10px">${a.name.split(' ').map(x=>x[0]).join('').slice(0,2)}</div>
+          <div class="agent-name">${a.name}</div>
+          <div class="agent-bar"><div class="agent-fill" style="width:${(a.total/maxT)*100}%;background:${a.color||'var(--accent)'}"></div></div>
+          <div class="agent-cnt">${a.total} tickets</div>
+        </div>`).join('');
+    }
+
+    // Agent filter dropdown
+    document.getElementById('agent-filter').innerHTML = '<option value="">Todos os agentes</option>' +
+      allAgents.map(a=>`<option value="${a._id}">${a.name}</option>`).join('');
+
+    // Assets filter for new ticket
+    document.getElementById('nt-asset').innerHTML = '<option value="">— Selecionar ativo —</option>' +
+      (Array.isArray(assets) ? assets.map(a=>`<option value="${a._id}">${a.code} — ${a.name}</option>`).join('') : '');
+
+    // KB
+    buildKB(kbCats, kbArts);
+    // Populate KB category select in new article modal
+    const kbfCat = document.getElementById('kbf-cat');
+    if (kbfCat) kbfCat.innerHTML = '<option value="">— Sem categoria —</option>' +
+      (kbCats||[]).map(c=>`<option value="${c._id}">${c.name}</option>`).join('');
+
+    // Agents grid + users tab
+    buildAgents(allAgents, aReport||[], allClients);
+
+    // Assets
+    buildAssets(assets||[]);
+
+    // SLA view
+    buildSLA(slaData||[], stats);
+
+    // Reports
+    buildReports(report, aReport||[]);
+
+    // Render tickets
+    renderTickets();
+  } catch(e) { console.error('Load error', e); }
+}
+
+function renderTickets() {
+  const prio = document.getElementById('prio-filter').value;
+  const agent = document.getElementById('agent-filter').value;
+  let filtered = allTickets.filter(t => {
+    if (activeFilter !== 'all' && t.status !== activeFilter) return false;
+    if (prio && t.priority !== prio) return false;
+    if (agent && t.agent_id !== agent) return false;
+    return true;
+  });
+  document.getElementById('ticket-count').textContent = filtered.length + ' chamados';
+  document.getElementById('tickets-tbody').innerHTML = filtered.map(t => {
+    const ag = allAgents.find(a=>a._id===t.agent_id);
+    const sla = slaRemaining(t.sla_resolve_deadline);
+    // Look up client department from allClients if available
+    const clientObj = (allClients||[]).find(c => c.email === t.requester_email);
+    const dept = clientObj ? (clientObj.department || '—') : (t.requester_department || '—');
+    const descFull = t.description || '';
+    const descShort = descFull.length > 80 ? descFull.slice(0,80)+'…' : descFull;
+    return `<tr onclick="openTicket('${t._id}')">
+      <td><span class="tid">#${t.number}</span></td>
+      <td style="max-width:260px">
+        <div class="ttitle">${t.title}</div>
+        <div class="tdesc" title="${descFull.replace(/"/g,'&quot;')}" style="white-space:normal;line-height:1.4">${descShort}</div>
+      </td>
+      <td>
+        <div style="font-size:13px;font-weight:500">${t.requester_name}</div>
+        <div style="font-size:11px;color:var(--muted)">${t.requester_email}</div>
+      </td>
+      <td><span style="font-size:12px;color:var(--muted2);background:var(--bg3);border:1px solid var(--border);padding:2px 8px;border-radius:5px;white-space:nowrap">${dept}</span></td>
+      <td><span class="badge ${t.status}">${statusLabel[t.status]||t.status}</span></td>
+      <td><span class="prio ${t.priority}"><span class="prio-dot"></span>${prioLabel[t.priority]||t.priority}</span></td>
+      <td><div style="display:flex;align-items:center;gap:7px">
+        ${ag?`<div class="av" style="background:${ag.color||'#3b82f6'};width:22px;height:22px;font-size:9px">${ag.name.split(' ').map(x=>x[0]).join('').slice(0,2)}</div>`:''}
+        <span style="font-size:12.5px">${ag?ag.name:'—'}</span>
+      </div></td>
+      <td><span class="tier-tag">${t.tier}</span></td>
+      <td><span style="font-family:'DM Mono',monospace;font-size:12px" class="${sla.cls}">${t.status==='resolved'||t.status==='closed'?'✓':sla.text}</span></td>
+      <td><span style="font-size:11.5px;color:var(--muted)">${fmtDate(t.created_at)}</span></td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:32px">Nenhum chamado encontrado</td></tr>';
+}
+
+function filterTickets(status, el) {
+  activeFilter = status;
+  document.querySelectorAll('#status-tabs .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderTickets();
+}
+
+async function openTicket(id) {
+  currentTicketId = id;
+  const t = await api('GET', '/tickets/'+id);
+  document.getElementById('m-num').textContent = '#'+t.number;
+  document.getElementById('m-title').textContent = t.title;
+  const sla = slaRemaining(t.sla_resolve_deadline);
+  document.getElementById('m-meta').innerHTML = `
+    <span class="badge ${t.status}">${statusLabel[t.status]||t.status}</span>
+    <span class="prio ${t.priority}"><span class="prio-dot"></span>${prioLabel[t.priority]}</span>
+    <span style="font-size:11.5px;color:var(--muted)">Aberto ${fmtDate(t.created_at)}</span>`;
+
+  // Agent display + assign dropdown
+  const ag = allAgents.find(a=>a._id===t.agent_id);
+  document.getElementById('m-agent').innerHTML = ag
+    ? `<div style="display:flex;align-items:center;gap:7px"><div class="av" style="background:${ag.color};width:22px;height:22px;font-size:9px">${ag.name.split(' ').map(x=>x[0]).join('').slice(0,2)}</div><span style="font-size:13px">${ag.name}</span></div>`
+    : '<span style="color:var(--muted);font-size:12.5px">Sem agente</span>';
+  // Populate agent dropdown
+  const agSel = document.getElementById('m-agent-select');
+  agSel.innerHTML = '<option value="">— Sem agente —</option>' +
+    allAgents.map(a => `<option value="${a._id}"${a._id===t.agent_id?' selected':''}>${a.name} (${a.role})</option>`).join('');
+
+  // Category
+  document.getElementById('m-category').value = t.category || 'outros';
+
+  document.getElementById('m-tier').innerHTML = `<span class="tier-tag">${t.tier}</span>`;
+  document.getElementById('m-sla').innerHTML = `<span class="${sla.cls}">${sla.text}</span>`;
+  document.getElementById('m-asset').textContent = t.asset_id || '—';
+  document.getElementById('m-status').value = t.status;
+
+  const tlColors = {system:'gray',reply:'blue',note:'orange',escalation:'red'};
+  document.getElementById('m-timeline').innerHTML = (t.comments||[]).map((c,i,arr)=>`
+    <div class="tl-item">
+      <div class="tl-l">
+        <div class="tl-dot ${tlColors[c.type]||'gray'}">
+          ${c.type==='system'?'⚙':c.type==='note'?'📝':c.type==='escalation'?'⬆':'💬'}
+        </div>
+        ${i<arr.length-1?'<div class="tl-line"></div>':''}
+      </div>
+      <div class="tl-r">
+        <span class="tl-actor">${c.author_name}</span>
+        <span class="tl-time">${fmtDate(c.created_at)}</span>
+        <div class="${c.type==='note'?'tl-note':c.type==='system'?'tl-system':'tl-msg'}">${c.body}</div>
+      </div>
+    </div>`).join('') || '<div style="color:var(--muted);font-size:13px">Nenhuma interação ainda.</div>';
+  document.getElementById('ticket-modal').classList.add('open');
+}
+
+async function sendReply(type) {
+  const body = document.getElementById('reply-body').value.trim();
+  if (!body) return;
+  await api('POST', '/tickets/'+currentTicketId+'/comments', { body, type });
+  document.getElementById('reply-body').value = '';
+  openTicket(currentTicketId);
+}
+
+async function updateTicketStatus() {
+  const status = document.getElementById('m-status').value;
+  await api('PATCH', '/tickets/'+currentTicketId, { status });
+  loadAll();
+}
+
+async function resolveTicket() {
+  await api('PATCH', '/tickets/'+currentTicketId, { status:'resolved' });
+  document.getElementById('m-status').value = 'resolved';
+  loadAll();
+}
+
+async function escalateTicket() {
+  const t = allTickets.find(t=>t._id===currentTicketId);
+  const newTier = t.tier==='N1'?'N2':t.tier==='N2'?'N3':'N3';
+  await api('PATCH', '/tickets/'+currentTicketId, { status:'escalated', tier: newTier });
+  await api('POST', '/tickets/'+currentTicketId+'/comments', { body:`Chamado escalado para ${newTier} por ${AGENT.name}.`, type:'escalation' });
+  loadAll(); openTicket(currentTicketId);
+}
+
+// Assign any agent to ticket
+async function assignAgent(agentId) {
+  const body = { agent_id: agentId || null };
+  if (agentId) {
+    const ag = allAgents.find(a=>a._id===agentId);
+    body.status = 'progress';
+    await api('PATCH', '/tickets/'+currentTicketId, body);
+    await api('POST', '/tickets/'+currentTicketId+'/comments', {
+      body: `Chamado atribuído a ${ag ? ag.name : 'agente'} por ${AGENT.name}.`,
+      type: 'system'
+    });
+  } else {
+    await api('PATCH', '/tickets/'+currentTicketId, body);
+  }
+  await loadAll();
+  openTicket(currentTicketId);
+}
+
+// Self-assign current agent to ticket
+async function selfAssign() {
+  const agSel = document.getElementById('m-agent-select');
+  agSel.value = AGENT._id;
+  await assignAgent(AGENT._id);
+}
+
+// Update category from modal dropdown
+async function updateTicketCategory(category) {
+  await api('PATCH', '/tickets/'+currentTicketId, { category });
+  // Update local cache too
+  const t = allTickets.find(t=>t._id===currentTicketId);
+  if (t) t.category = category;
+  // Refresh reports if visible
+  const repView = document.getElementById('v-reports');
+  if (repView && repView.classList.contains('active')) {
+    const rep = await api('GET', '/reports/dashboard');
+    buildReports(rep, await api('GET', '/reports/agents'));
+  }
+}
+
+// ── SSE: Real-time updates ────────────────────────────────────────────────────
+let sseConnection = null;
+let sseReconnectTimer = null;
+let lastKnownTotal = 0;
+
+function initSSE() {
+  if (sseConnection) { sseConnection.close(); sseConnection = null; }
+
+  const url = `${API}/tickets/stream?token=${encodeURIComponent(TOKEN)}`;
+  // SSE via fetch+ReadableStream (works with Authorization header unlike EventSource)
+  let abortCtrl = new AbortController();
+  sseConnection = abortCtrl;
+
+  fetch(`${API}/tickets/stream`, {
+    headers: { 'Authorization': 'Bearer ' + TOKEN },
+    signal: abortCtrl.signal,
+  }).then(async res => {
+    if (!res.ok) { scheduleSSEReconnect(); return; }
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const lines = buf.split('\n');
+      buf = lines.pop(); // incomplete line stays in buffer
+
+      let eventType = '', dataStr = '';
+      for (const line of lines) {
+        if (line.startsWith('event:')) eventType = line.slice(6).trim();
+        else if (line.startsWith('data:')) dataStr = line.slice(5).trim();
+        else if (line === '' && dataStr) {
+          if (eventType === 'update') handleSSEUpdate(JSON.parse(dataStr));
+          eventType = ''; dataStr = '';
+        }
+      }
+    }
+    // Stream ended — reconnect
+    scheduleSSEReconnect();
+  }).catch(err => {
+    if (err.name !== 'AbortError') scheduleSSEReconnect();
+  });
+}
+
+function scheduleSSEReconnect() {
+  clearTimeout(sseReconnectTimer);
+  sseReconnectTimer = setTimeout(initSSE, 10000);
+}
+
+function handleSSEUpdate(data) {
+  const newTickets = data.new_tickets || 0;
+  const updated    = data.updated    || [];
+
+  if (newTickets > 0 || updated.length > 0) {
+    // Refresh data silently in background
+    const wasOnTickets = document.getElementById('v-tickets')?.classList.contains('active');
+    loadAll().then(() => {
+      if (wasOnTickets) renderTickets();
+    });
+
+    // Show toast notification
+    if (newTickets > 0) {
+      showToast(`🎫 ${newTickets} novo${newTickets>1?'s':''} chamado${newTickets>1?'s':''} aberto${newTickets>1?'s':''}!`, 'accent');
+    } else if (updated.length > 0) {
+      showToast(`🔄 ${updated.length} chamado${updated.length>1?'s':''} atualizado${updated.length>1?'s':''}`, 'muted');
+    }
+
+    // Pulse notification bell
+    const dot = document.getElementById('notif-dot');
+    if (dot) { dot.style.display = ''; dot.style.animation = 'none'; void dot.offsetWidth; dot.style.animation = ''; }
+  }
+}
+
+function showToast(msg, type='accent') {
+  const existing = document.getElementById('hd-toast');
+  if (existing) existing.remove();
+  const colors = { accent:'var(--accent)', green:'var(--green)', muted:'var(--muted)', red:'var(--red)' };
+  const toast = document.createElement('div');
+  toast.id = 'hd-toast';
+  toast.style.cssText = `position:fixed;bottom:24px;right:24px;background:var(--bg2);border:1px solid ${colors[type]||colors.accent};border-radius:10px;padding:12px 18px;font-size:13.5px;font-weight:500;color:var(--text);z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,0.4);display:flex;align-items:center;gap:10px;animation:slideUp .3s ease;max-width:340px`;
+  toast.innerHTML = `<span style="color:${colors[type]||colors.accent};font-size:11px">●</span>${msg}<span onclick="this.parentElement.remove()" style="margin-left:auto;cursor:pointer;color:var(--muted);font-size:12px">✕</span>`;
+  document.body.appendChild(toast);
+  setTimeout(() => { if (toast.parentElement) { toast.style.opacity='0'; toast.style.transform='translateY(8px)'; toast.style.transition='all .3s'; setTimeout(()=>toast.remove(),300); } }, 6000);
+}
+
+// Add slideUp animation style once
+const _toastStyle = document.createElement('style');
+_toastStyle.textContent = '@keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}';
+document.head.appendChild(_toastStyle);
+
+async function createTicket() {
+  const title = document.getElementById('nt-title').value.trim();
+  const desc  = document.getElementById('nt-desc').value.trim();
+  const name  = document.getElementById('nt-name').value.trim();
+  const email = document.getElementById('nt-email').value.trim();
+  if (!title||!desc||!name||!email) return alert('Preencha todos os campos obrigatórios.');
+  const body = {
+    title, description:desc, requester_name:name, requester_email:email,
+    priority: document.getElementById('nt-prio').value,
+    category: document.getElementById('nt-cat').value,
+    channel:  document.getElementById('nt-channel').value,
+    asset_id: document.getElementById('nt-asset').value || null,
+  };
+  const r = await api('POST', '/tickets', body);
+  if (r._id) {
+    alert('Chamado #'+r.number+' aberto com sucesso!');
+    ['nt-title','nt-desc','nt-name','nt-email'].forEach(id => document.getElementById(id).value = '');
+    loadAll(); show('tickets', document.querySelector('[data-view="tickets"]'));
+  } else alert('Erro: '+(r.error||'Falha ao criar chamado'));
+}
+
+function buildAgents(agents, report, clients) {
+  const isAdmin = AGENT && AGENT.role === 'admin';
+  // Show/hide "Novo Agente" button based on role
+  const newBtn = document.getElementById('new-agent-btn');
+  if (newBtn) newBtn.style.display = isAdmin ? '' : 'none';
+
+  document.getElementById('agents-grid').innerHTML = agents.map(a => {
+    const rp = report.find(r=>r.agent_id===a._id)||{total:0,resolved:0};
+    const isSelf = AGENT && a._id === AGENT._id;
+    return `<div class="agent-card">
+      <div class="av-lg" style="background:${a.color||'#3b82f6'}">${a.name.split(' ').map(x=>x[0]).join('').slice(0,2)}</div>
+      <div class="an">${a.name}${isSelf?' <span style="font-size:10px;color:var(--accent)">(você)</span>':''}</div>
+      <div class="ae">${a.email}</div>
+      <span class="role-badge ${a.role}">${a.role}</span>
+      <div class="agent-stats"><div><b>${rp.total}</b>Total</div><div><b>${rp.resolved}</b>Resolvidos</div></div>
+      <div style="display:flex;gap:5px;justify-content:center;flex-wrap:wrap">
+        ${isAdmin ? `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openAgentForm('${a._id}')">✏ Editar</button>` : ''}
+        ${isAdmin && !isSelf ? `<button class="btn btn-ghost btn-sm" style="color:var(--orange);border-color:rgba(245,158,11,.3)" onclick="event.stopPropagation();openAgentPassReset('${a._id}','${a.name}')">🔑 Senha</button>` : ''}
+        ${isSelf ? `<button class="btn btn-ghost btn-sm" style="color:var(--accent)" onclick="event.stopPropagation();document.getElementById('own-pass-overlay').classList.add('open')">🔑 Minha Senha</button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  // Build users table
+  const tbody = document.getElementById('users-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = (clients||[]).map(c => {
+    const clientTickets = allTickets.filter(t=>t.requester_email===c.email).length;
+    return `<tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:9px">
+          <div class="av" style="background:#3b82f6;width:28px;height:28px;font-size:10px;flex-shrink:0">${c.name.split(' ').map(x=>x[0]).join('').slice(0,2)}</div>
+          <span style="font-size:13px;font-weight:500">${c.name}</span>
+        </div>
+      </td>
+      <td style="font-size:12.5px;color:var(--muted)">${c.email}</td>
+      <td><span style="font-size:12px;background:var(--bg3);border:1px solid var(--border);padding:2px 8px;border-radius:5px">${c.department||'—'}</span></td>
+      <td style="font-size:12px;color:var(--muted)">${fmtDate(c.created_at)}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:13px">${clientTickets}</td>
+      <td>
+        <div style="display:flex;gap:5px">
+          <button class="btn btn-ghost btn-sm" onclick="openClientEdit('${c._id}','${c.name}','${c.email}','${c.department||''}')">✏ Editar</button>
+          <button class="btn btn-ghost btn-sm" style="color:var(--orange);border-color:rgba(245,158,11,.3)" onclick="openClientPassReset('${c._id}','${c.name}')">🔑 Senha</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:28px">Nenhum cliente cadastrado ainda</td></tr>';
+}
+
+function switchAgentTab(tab) {
+  document.getElementById('tab-agents').style.display = tab==='agents' ? '' : 'none';
+  document.getElementById('tab-users').style.display  = tab==='users'  ? '' : 'none';
+  document.getElementById('tab-agents-btn').classList.toggle('active', tab==='agents');
+  document.getElementById('tab-users-btn').classList.toggle('active',  tab==='users');
+  const newBtn = document.getElementById('new-agent-btn');
+  if (newBtn) newBtn.style.display = tab==='agents' && AGENT && AGENT.role==='admin' ? '' : 'none';
+}
+
+// ── ASSETS (CMDB) ─────────────────────────────────────────────────────────────
+let allAssets = [];
+let editingAssetId = null;
+
+const assetStatusBadge = {
+  online:     '<span class="badge resolved">✅ Online</span>',
+  instavel:   '<span class="badge progress">⚠️ Instável</span>',
+  instável:   '<span class="badge progress">⚠️ Instável</span>',
+  offline:    '<span class="badge escalated">❌ Offline</span>',
+  manutencao: '<span class="badge waiting">🔧 Manutenção</span>',
+  desativado: '<span class="badge closed">🚫 Desativado</span>',
+};
+
+const assetTypeIcon = {
+  Notebook:'💻', Desktop:'🖥', Servidor:'🗄', Impressora:'🖨',
+  Rede:'🌐', Software:'⚙', Periférico:'🖱', Telefone:'📱', Outro:'📦'
+};
+
+function buildAssets(assets) {
+  allAssets = assets || [];
+
+  // KPI summary
+  const online  = allAssets.filter(a => a.status === 'online').length;
+  const warn    = allAssets.filter(a => a.status === 'instavel' || a.status === 'instável').length;
+  const off     = allAssets.filter(a => a.status === 'offline').length;
+  const manut   = allAssets.filter(a => a.status === 'manutencao').length;
+  document.getElementById('assets-sum').innerHTML = [
+    {label:'Total de Ativos',  val:allAssets.length, c:'var(--accent)'},
+    {label:'Online',           val:online,            c:'var(--green)'},
+    {label:'Com Problemas',    val:warn,              c:'var(--orange)'},
+    {label:'Offline',          val:off,               c:'var(--red)'},
+    {label:'Em Manutenção',    val:manut,             c:'var(--purple)'},
+    {label:'Servidores',       val:allAssets.filter(a=>a.type==='Servidor').length, c:'var(--cyan)'},
+  ].map(s=>`<div class="asset-sum-card"><div class="asc-label">${s.label}</div><div class="asc-val" style="color:${s.c}">${s.val}</div></div>`).join('');
+
+  filterAssets();
+}
+
+function filterAssets() {
+  const q       = (document.getElementById('asset-search')?.value  || '').toLowerCase();
+  const typeF   = document.getElementById('asset-filter-type')?.value   || '';
+  const statusF = document.getElementById('asset-filter-status')?.value || '';
+
+  const filtered = allAssets.filter(a => {
+    if (typeF   && a.type   !== typeF)   return false;
+    if (statusF && a.status !== statusF) return false;
+    if (q) {
+      const hay = `${a.code} ${a.name} ${a.serial||''} ${a.assigned_to||''}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  const countEl = document.getElementById('asset-count');
+  if (countEl) countEl.textContent = `${filtered.length} ativo${filtered.length !== 1 ? 's' : ''}`;
+
+  document.getElementById('assets-tbody').innerHTML = filtered.length
+    ? filtered.map(a => `<tr>
+        <td><span class="tid">${a.code}</span></td>
+        <td>
+          <div style="display:flex;align-items:center;gap:7px">
+            <span style="font-size:16px">${assetTypeIcon[a.type] || '📦'}</span>
+            <div>
+              <div style="font-weight:500;font-size:13px">${a.name}</div>
+              <div style="font-size:11px;color:var(--muted)">${a.type}</div>
+            </div>
+          </div>
+        </td>
+        <td style="font-size:12.5px;color:var(--muted)">${a.type}</td>
+        <td style="font-size:12.5px">${a.assigned_to || '—'}</td>
+        <td style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)">${a.serial || '—'}</td>
+        <td>${assetStatusBadge[a.status] || `<span class="badge open">${a.status}</span>`}</td>
+        <td style="font-size:12px;color:var(--muted);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${(a.notes||'').replace(/"/g,'&quot;')}">${a.notes || '—'}</td>
+        <td>
+          <div style="display:flex;gap:5px">
+            <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openAssetForm('${a._id}')">✏</button>
+            <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteAsset('${a._id}','${a.name.replace(/'/g,"\\'")}')">🗑</button>
+          </div>
+        </td>
+      </tr>`).join('')
+    : '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:32px">Nenhum ativo encontrado com os filtros aplicados</td></tr>';
+}
+
+function openAssetForm(id) {
+  editingAssetId = id;
+  const a = id ? allAssets.find(x => x._id === id) : null;
+  const okEl  = document.getElementById('asf-ok');
+  const errEl = document.getElementById('asf-err');
+  okEl.style.display = 'none'; errEl.style.display = 'none';
+
+  document.getElementById('asf-modal-title').textContent = id ? `Editar Ativo — ${a?.code || ''}` : 'Novo Ativo';
+  document.getElementById('asf-save-btn').textContent    = id ? 'Salvar Alterações' : 'Cadastrar Ativo';
+
+  document.getElementById('asf-code').value     = a?.code         || '';
+  document.getElementById('asf-name').value     = a?.name         || '';
+  document.getElementById('asf-type').value     = a?.type         || '';
+  document.getElementById('asf-status').value   = a?.status       || 'online';
+  document.getElementById('asf-assigned').value = a?.assigned_to  || '';
+  document.getElementById('asf-serial').value   = a?.serial       || '';
+  document.getElementById('asf-notes').value    = a?.notes        || '';
+
+  // Lock code field when editing (code is unique identifier)
+  document.getElementById('asf-code').readOnly  = !!id;
+  document.getElementById('asf-code').style.opacity = id ? '0.5' : '1';
+
+  document.getElementById('asset-form-overlay').classList.add('open');
+}
+
+async function saveAsset() {
+  const code     = document.getElementById('asf-code').value.trim().toUpperCase();
+  const name     = document.getElementById('asf-name').value.trim();
+  const type     = document.getElementById('asf-type').value;
+  const status   = document.getElementById('asf-status').value;
+  const assigned = document.getElementById('asf-assigned').value.trim();
+  const serial   = document.getElementById('asf-serial').value.trim();
+  const notes    = document.getElementById('asf-notes').value.trim();
+  const okEl     = document.getElementById('asf-ok');
+  const errEl    = document.getElementById('asf-err');
+  okEl.style.display = 'none'; errEl.style.display = 'none';
+
+  if (!name || !type) {
+    errEl.textContent = 'Nome e Tipo são obrigatórios.';
+    errEl.style.display = 'block'; return;
+  }
+  if (!editingAssetId && !code) {
+    errEl.textContent = 'Código é obrigatório.';
+    errEl.style.display = 'block'; return;
+  }
+
+  const body = { name, type, status, assigned_to: assigned || null, serial: serial || null, notes: notes || null };
+  if (!editingAssetId) body.code = code;
+
+  const r = editingAssetId
+    ? await api('PUT',  `/assets/${editingAssetId}`, body)
+    : await api('POST', '/assets', body);
+
+  if (r.message || r._id) {
+    okEl.textContent = editingAssetId ? '✓ Ativo atualizado com sucesso!' : `✓ Ativo ${code} cadastrado!`;
+    okEl.style.display = 'block';
+    await loadAll();
+    setTimeout(() => closeModal('asset-form-overlay'), 1200);
+  } else {
+    errEl.textContent = r.error || 'Erro ao salvar ativo.';
+    errEl.style.display = 'block';
+  }
+}
+
+async function deleteAsset(id, name) {
+  if (!confirm(`Remover o ativo "${name}"?\n\nEsta ação não pode ser desfeita.`)) return;
+  const r = await api('DELETE', `/assets/${id}`);
+  if (r.message) {
+    showToast(`🗑 Ativo "${name}" removido.`, 'muted');
+    loadAll();
+  } else {
+    showToast('Erro ao remover ativo: ' + (r.error || ''), 'red');
+  }
+}
+
+function buildSLA(slaData, stats) {
+  const pct = stats.total > 0 ? Math.round(((stats.total - (stats.breached||0)) / stats.total)*100) : 100;
+  document.getElementById('sla-pct').textContent = pct+'%';
+  document.getElementById('sla-risk').textContent = (slaData||[]).filter(t=>t.sla_status==='risk').length;
+  document.getElementById('sla-breach-cnt').textContent = (slaData||[]).filter(t=>t.sla_status==='breached').length;
+  document.getElementById('sla-rules').innerHTML = [
+    {p:'Crítica',r:'30min',res:'2h'},{p:'Alta',r:'1h',res:'4h'},
+    {p:'Média',r:'4h',res:'8h'},{p:'Baixa',r:'8h',res:'24h'}
+  ].map(r=>`<div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text)">${r.p}</span><span style="color:var(--muted)">Resp: ${r.r} · Res: ${r.res}</span></div>`).join('');
+  document.getElementById('sla-tbody').innerHTML = (slaData||[]).slice(0,20).map(t => {
+    const sla = slaRemaining(t.sla_resolve_deadline);
+    const badge = t.sla_status==='breached'?'<span class="badge escalated">Violado</span>':t.sla_status==='risk'?'<span class="badge progress">Em Risco</span>':'<span class="badge resolved">OK</span>';
+    const ag = allAgents.find(a=>a._id===t.agent_id);
+    return `<tr onclick="openTicket('${t._id}')"><td><span class="tid">#${t.number}</span></td><td>${t.title.slice(0,40)}</td>
+    <td><span class="prio ${t.priority}"><span class="prio-dot"></span>${prioLabel[t.priority]}</span></td>
+    <td>${ag?ag.name:'—'}</td>
+    <td style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)">${fmtDate(t.sla_resolve_deadline)}</td>
+    <td><span class="${sla.cls}" style="font-family:'DM Mono',monospace;font-size:12px">${sla.text}</span></td>
+    <td>${badge}</td></tr>`;
+  }).join('') || '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">Todos os SLAs cumpridos ✓</td></tr>';
+}
+
+function buildReports(report, aReport) {
+  const cats = report.byCategory || {};
+  const catMax = Math.max(...Object.values(cats),1);
+  document.getElementById('rep-categories').innerHTML = Object.entries(cats).sort((a,b)=>b[1]-a[1]).map(([k,v])=>
+    `<div class="pbar-row"><span>${k}</span><span style="font-weight:600">${v}</span></div><div class="pbar-wrap"><div class="pbar-fill" style="width:${(v/catMax)*100}%;background:var(--accent)"></div></div>`
+  ).join('') || '<div style="color:var(--muted);font-size:13px">Sem dados</div>';
+  const agMax = Math.max(...aReport.map(a=>a.total),1);
+  document.getElementById('rep-agents').innerHTML = aReport.slice(0,5).map(a=>
+    `<div class="pbar-row"><span>${a.name}</span><span style="color:${a.color||'var(--accent)'};font-weight:600">${a.total}</span></div><div class="pbar-wrap"><div class="pbar-fill" style="width:${(a.total/agMax)*100}%;background:${a.color||'var(--accent)'}"></div></div>`
+  ).join('');
+  const pct = report.totals?.all > 0 ? Math.round(((report.totals.all-(report.totals.breached||0))/report.totals.all)*100) : 100;
+  document.getElementById('rep-sla-pct').textContent = pct+'%';
+  document.getElementById('rep-sla-bar').style.width = pct+'%';
+}
+
+// Chat
+const chatReplies = {
+  vpn: `🔌 Problema de VPN identificado. Siga os passos:
+
+1. Verifique se o cliente VPN está atualizado (baixe em ti.hospital.com/vpn)
+2. Tente desconectar e reconectar
+3. Tente por outra rede (dados móveis ao invés de Wi-Fi)
+4. Limpe o cache SSL: abra o cliente VPN → Preferências → Limpar cache
+5. Reinicie o computador e tente novamente
+
+Se nenhum passo resolver, clique em 🎫 Novo Chamado para escalar para N2.`,
+
+  senha: `🔑 Para redefinir sua senha no Active Directory:
+
+1. Acesse o portal de autoatendimento
+2. Clique em "Esqueci minha senha"
+3. Confirme sua identidade (e-mail ou SMS)
+4. Defina a nova senha — mínimo 8 caracteres, 1 maiúscula e 1 número
+5. Aguarde 2 minutos e tente fazer login novamente
+
+⚠️ Se a conta estiver bloqueada (errou a senha 3x), um agente precisará desbloqueá-la manualmente. Abra um chamado na aba 🎫 Novo Chamado.`,
+
+  chamado: `🚨 Para abrir um chamado urgente com prioridade máxima:
+
+1. Clique em ➕ Novo Chamado no menu lateral
+2. Selecione Urgência: 🔴 Crítica — produção parada
+3. Descreva o problema com detalhes:
+   • Qual sistema/equipamento está afetado?
+   • Quantas pessoas impactadas?
+   • Desde quando ocorre?
+4. Clique em Enviar Chamado
+
+O sistema atribuirá automaticamente ao nível N2 e alertará o agente responsável em tempo real.`,
+
+  status: `📋 Para consultar o status dos seus chamados:
+
+1. Clique em 🎫 Chamados no menu lateral
+2. Use os filtros por status: Aberto, Em Andamento, Aguardando, Resolvido
+3. Clique em qualquer chamado para ver o histórico completo de interações
+
+💡 Você também pode ver o tempo restante de SLA de cada chamado na coluna "SLA" da tabela.`,
+
+  impressora: `🖨 Problemas com impressora — verifique:
+
+1. Cabo USB ou rede está conectado corretamente?
+2. A impressora está ligada e sem papel/toner?
+3. No Windows: Painel de Controle → Dispositivos e Impressoras → clique com botão direito → Ver fila de impressão → cancele todos os trabalhos pendentes
+4. Reinicie o serviço: pressione Win+R, digite services.msc, localize "Spooler de Impressão", clique com botão direito → Reiniciar
+5. Reinicie a impressora
+
+Se não resolver, abra um chamado na categoria 🖨 Impressora.`,
+
+  email: `📧 Problemas com e-mail / Outlook — soluções rápidas:
+
+1. Verifique a conexão com a internet
+2. Clique em Enviar/Receber manualmente (F9)
+3. Modo Seguro: pressione Win+R, digite outlook.exe /safe, Enter
+4. Se aparecer "Desconectado": verifique se a VPN está ativa (para acesso remoto)
+5. Reconstruir perfil: Painel de Controle → Email → Mostrar Perfis → Adicionar novo perfil
+
+Problema persiste? Abra um chamado na categoria ⚙ Software/Sistema.`,
+
+  internet: `🌐 Sem acesso à internet ou rede instável:
+
+1. Reinicie o roteador/switch (desligue 30 segundos e ligue)
+2. Verifique o cabo de rede ou reconecte ao Wi-Fi
+3. Teste em outro equipamento — se o problema for só no seu, é local
+4. Execute: Win+R → cmd → digite ping 8.8.8.8 → Enter
+   • Se der timeout = sem conexão
+   • Se responder = internet OK, problema pode ser no sistema específico
+5. Libere e renove o IP: Win+R → cmd → ipconfig /release → ipconfig /renew
+
+Se vários computadores estiverem sem acesso, abra chamado urgente — pode ser queda de rede.`,
+
+  sistema: `💻 Sistema lento ou travando — passos:
+
+1. Feche programas desnecessários (Alt+F4 ou Gerenciador de Tarefas → Ctrl+Shift+Esc)
+2. Reinicie o computador (não só hibernar)
+3. Verifique o uso de disco: Gerenciador de Tarefas → aba Desempenho → Disco
+4. Libere espaço: exclua arquivos temporários (Win+R → %temp% → selecione tudo → delete)
+5. Verifique se há atualizações pendentes do Windows travando em segundo plano
+
+Se o problema for recorrente, abra um chamado para análise do hardware.`,
+};
+
+function sendChat() {
+  const inp = document.getElementById('chat-input');
+  const val = inp.value.trim();
+  if (!val) return;
+  addMsg(val, true);
+  inp.value = '';
+  setTimeout(() => {
+    addTyping();
+    setTimeout(() => {
+      removeTyping();
+      const lower = val.toLowerCase();
+      let resp;
+      if (lower.includes('vpn') || lower.includes('conectar') && lower.includes('rede'))
+        resp = chatReplies.vpn;
+      else if (lower.includes('senha') || lower.includes('password') || lower.includes('bloqueado') || lower.includes('acesso'))
+        resp = chatReplies.senha;
+      else if ((lower.includes('chamado') && lower.includes('urgente')) || lower.includes('crítico') || lower.includes('critico') || lower.includes('produção parada') || lower.includes('producao parada'))
+        resp = chatReplies.chamado;
+      else if (lower.includes('status') || lower.includes('meus chamados') || lower.includes('andamento') || lower.includes('aberto'))
+        resp = chatReplies.status;
+      else if (lower.includes('impressora') || lower.includes('imprimir') || lower.includes('spooler'))
+        resp = chatReplies.impressora;
+      else if (lower.includes('email') || lower.includes('e-mail') || lower.includes('outlook') || lower.includes('correio'))
+        resp = chatReplies.email;
+      else if (lower.includes('internet') || lower.includes('rede') || lower.includes('wi-fi') || lower.includes('wifi') || lower.includes('cabo'))
+        resp = chatReplies.internet;
+      else if (lower.includes('lento') || lower.includes('travando') || lower.includes('devagar') || lower.includes('sistema') || lower.includes('computador'))
+        resp = chatReplies.sistema;
+      else
+        resp = `Entendi sua mensagem. Para te ajudar melhor, me diga mais detalhes:\n\n• Qual equipamento ou sistema está com problema?\n• Quando começou?\n• Mais pessoas do seu setor estão afetadas?\n\nOu, se preferir, clique em ➕ Novo Chamado para registrar formalmente e um técnico assumirá em breve.`;
+      addMsg(resp, false);
+    }, 1200);
+  }, 200);
+}
+
+// Auto-send when using quick action cards
+function prefill(txt) {
+  const inp = document.getElementById('chat-input');
+  inp.value = txt;
+  inp.focus();
+  // Small delay so user sees the text before sending
+  setTimeout(() => sendChat(), 300);
+}
+function addMsg(txt, user) {
+  const box = document.getElementById('chat-msgs');
+  const d = document.createElement('div'); d.className='cm'+(user?' user':'');
+  d.innerHTML=`<div class="cav">${user?'👤':'🤖'}</div><div class="cb">${txt.replace(/\n/g,'<br>')}</div>`;
+  box.appendChild(d); box.scrollTop=box.scrollHeight;
+}
+function addTyping() { const b=document.getElementById('chat-msgs'),d=document.createElement('div');d.className='cm';d.id='typing';d.innerHTML='<div class="cav">🤖</div><div class="cb typing"><span></span><span></span><span></span></div>';b.appendChild(d);b.scrollTop=b.scrollHeight; }
+function removeTyping() { const t=document.getElementById('typing');if(t)t.remove(); }
+
+// Agent form — create (id=null) or edit (id=agentId)
+function openAgentForm(id) {
+  editingAgentId = id || null;
+  const isEdit = !!id;
+  document.getElementById('af-modal-title').textContent = isEdit ? 'Editar Agente' : 'Novo Agente';
+  document.getElementById('af-save-btn').textContent    = isEdit ? 'Salvar Alterações' : 'Criar Agente';
+  document.getElementById('af-pass-section-create').style.display = isEdit ? 'none' : 'block';
+  document.getElementById('af-pass-section-edit').style.display   = isEdit ? 'block' : 'none';
+  document.getElementById('af-err').style.display = 'none';
+  document.getElementById('af-ok').style.display  = 'none';
+  document.getElementById('af-pass').value = '';
+  document.getElementById('af-pass-edit').value = '';
+
+  if (isEdit) {
+    const a = allAgents.find(x=>x._id===id);
+    if (a) {
+      document.getElementById('af-name').value  = a.name;
+      document.getElementById('af-email').value = a.email;
+      document.getElementById('af-role').value  = a.role;
+      selectedColor = a.color || colors[0];
+      document.querySelectorAll('#af-colors div').forEach(d=>d.style.border='2px solid transparent');
+      const el = document.getElementById('color-'+selectedColor.slice(1));
+      if (el) el.style.border = '2px solid white';
+    }
+  } else {
+    document.getElementById('af-name').value  = '';
+    document.getElementById('af-email').value = '';
+    document.getElementById('af-role').value  = 'N1';
+    selectColor(colors[0]);
+  }
+  document.getElementById('agent-form-overlay').classList.add('open');
+}
+
+function selectColor(c) {
+  selectedColor = c;
+  document.querySelectorAll('#af-colors div').forEach(d => d.style.border = '2px solid transparent');
+  const el = document.getElementById('color-'+c.slice(1));
+  if (el) el.style.border = '2px solid white';
+}
+
+async function saveAgent() {
+  const name  = document.getElementById('af-name').value.trim();
+  const email = document.getElementById('af-email').value.trim();
+  const role  = document.getElementById('af-role').value;
+  const errEl = document.getElementById('af-err');
+  const okEl  = document.getElementById('af-ok');
+  errEl.style.display='none'; okEl.style.display='none';
+
+  if (!name || !email) { errEl.textContent='Nome e e-mail são obrigatórios.'; errEl.style.display='block'; return; }
+
+  if (editingAgentId) {
+    // EDIT
+    const body = { name, email, role, color: selectedColor };
+    const pass = document.getElementById('af-pass-edit').value;
+    const r = await api('PUT', '/agents/'+editingAgentId, body);
+    if (r.message) {
+      // reset password separately if filled
+      if (pass) {
+        if (pass.length < 8) { errEl.textContent='Nova senha deve ter mínimo 8 caracteres.'; errEl.style.display='block'; return; }
+        const rp = await api('PUT', '/agents/'+editingAgentId+'/password', { new_password: pass });
+        if (rp.error) { errEl.textContent=rp.error; errEl.style.display='block'; return; }
+      }
+      okEl.textContent='Agente atualizado com sucesso!'; okEl.style.display='block';
+      await loadAll();
+      setTimeout(()=>closeModal('agent-form-overlay'),1200);
+    } else { errEl.textContent=r.error||'Erro ao atualizar.'; errEl.style.display='block'; }
+  } else {
+    // CREATE
+    const pass = document.getElementById('af-pass').value;
+    if (!pass) { errEl.textContent='Senha inicial é obrigatória.'; errEl.style.display='block'; return; }
+    if (pass.length < 8) { errEl.textContent='Senha deve ter mínimo 8 caracteres.'; errEl.style.display='block'; return; }
+    const r = await api('POST', '/agents', { name, email, password:pass, role, color:selectedColor });
+    if (r._id) {
+      okEl.textContent='Agente criado com sucesso!'; okEl.style.display='block';
+      await loadAll();
+      setTimeout(()=>closeModal('agent-form-overlay'),1200);
+    } else { errEl.textContent=r.error||'Erro ao criar agente.'; errEl.style.display='block'; }
+  }
+}
+
+// Agent resets own password
+async function saveOwnPassword() {
+  const current = document.getElementById('op-current').value;
+  const novo    = document.getElementById('op-new').value;
+  const confirm = document.getElementById('op-confirm').value;
+  const errEl   = document.getElementById('op-err');
+  const okEl    = document.getElementById('op-ok');
+  errEl.style.display='none'; okEl.style.display='none';
+  if (!current||!novo) { errEl.textContent='Preencha todos os campos.'; errEl.style.display='block'; return; }
+  if (novo !== confirm) { errEl.textContent='Nova senha e confirmação não coincidem.'; errEl.style.display='block'; return; }
+  if (novo.length < 8)  { errEl.textContent='Nova senha deve ter mínimo 8 caracteres.'; errEl.style.display='block'; return; }
+  const r = await api('PUT', '/agents/me/password', { current_password:current, new_password:novo });
+  if (r.message) {
+    okEl.textContent='Senha alterada com sucesso!'; okEl.style.display='block';
+    document.getElementById('op-current').value='';
+    document.getElementById('op-new').value='';
+    document.getElementById('op-confirm').value='';
+    setTimeout(()=>closeModal('own-pass-overlay'),1400);
+  } else { errEl.textContent=r.error||'Erro ao alterar senha.'; errEl.style.display='block'; }
+}
+
+// Admin resets agent password (no current needed)
+function openAgentPassReset(id, name) {
+  editingAgentId = id;
+  document.getElementById('cp-subtitle').textContent = `Redefina a senha de ${name}`;
+  document.getElementById('cp-new').value='';
+  document.getElementById('cp-confirm').value='';
+  document.getElementById('cp-err').style.display='none';
+  document.getElementById('cp-ok').style.display='none';
+  // Reuse client-pass-overlay but save as agent
+  document.getElementById('client-pass-overlay').setAttribute('data-target','agent');
+  document.getElementById('client-pass-overlay').classList.add('open');
+}
+
+// Admin/agent resets client password
+function openClientPassReset(id, name) {
+  currentClientId = id;
+  document.getElementById('cp-subtitle').textContent = `Redefina a senha de ${name}`;
+  document.getElementById('cp-new').value='';
+  document.getElementById('cp-confirm').value='';
+  document.getElementById('cp-err').style.display='none';
+  document.getElementById('cp-ok').style.display='none';
+  document.getElementById('client-pass-overlay').setAttribute('data-target','client');
+  document.getElementById('client-pass-overlay').classList.add('open');
+}
+
+async function saveClientPassword() {
+  const novo    = document.getElementById('cp-new').value;
+  const confirm = document.getElementById('cp-confirm').value;
+  const errEl   = document.getElementById('cp-err');
+  const okEl    = document.getElementById('cp-ok');
+  errEl.style.display='none'; okEl.style.display='none';
+  if (!novo) { errEl.textContent='Preencha a nova senha.'; errEl.style.display='block'; return; }
+  if (novo !== confirm) { errEl.textContent='Senhas não coincidem.'; errEl.style.display='block'; return; }
+  if (novo.length < 8)  { errEl.textContent='Nova senha deve ter mínimo 8 caracteres.'; errEl.style.display='block'; return; }
+  const target = document.getElementById('client-pass-overlay').getAttribute('data-target');
+  let r;
+  if (target === 'agent') {
+    r = await api('PUT', '/agents/'+editingAgentId+'/password', { new_password: novo });
+  } else {
+    r = await api('PUT', '/clients/'+currentClientId+'/password', { new_password: novo });
+  }
+  if (r.message) {
+    okEl.textContent='Senha redefinida com sucesso!'; okEl.style.display='block';
+    setTimeout(()=>closeModal('client-pass-overlay'),1400);
+  } else { errEl.textContent=r.error||'Erro ao redefinir senha.'; errEl.style.display='block'; }
+}
+
+// Nav
+function show(view, el) {
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('nav a').forEach(a=>a.classList.remove('active'));
+  const v = document.getElementById('v-'+view);
+  if (v) v.classList.add('active');
+  if (el) el.classList.add('active');
+  const titles = {dashboard:'Dashboard',tickets:'Chamados',['new-ticket']:'Novo Chamado',kb:'Base de Conhecimento',chat:'IA Assistente',sla:'Gestão de SLAs',assets:'Ativos (CMDB)',agents:'Agentes',reports:'Relatórios',datashow:'Agendamentos de Datashow'};
+  document.getElementById('page-title').textContent = titles[view]||view;
+}
+function closeModal(id, e) { if (!e||e.target===document.getElementById(id)) document.getElementById(id).classList.remove('open'); }
+function toggleNotifs() { document.getElementById('notif-panel').classList.toggle('open'); }
+function logout() { localStorage.removeItem('hd_token'); localStorage.removeItem('hd_agent'); window.location.href='/'; }
+function liveSearch(val) { /* search across tickets */ }
+document.addEventListener('click', e => { if (!document.getElementById('notif-btn').contains(e.target)) document.getElementById('notif-panel').classList.remove('open'); });
+
+// ── REPORTS ──────────────────────────────────────────────────────────────────
+let currentReportPeriod = 'current_month';
+let reportData = null;
+
+function setReportPeriod(period, el) {
+  document.querySelectorAll('#v-reports .tab').forEach(t=>t.classList.remove('active'));
+  if (el) el.classList.add('active');
+  const cr = document.getElementById('custom-range');
+  if (cr) cr.style.display = period === 'custom' ? 'flex' : 'none';
+  if (period !== 'custom') { currentReportPeriod = period; loadReportData(); }
+}
+
+function applyCustomRange() {
+  const from = document.getElementById('rp-from').value;
+  const to   = document.getElementById('rp-to').value;
+  if (!from || !to) return;
+  currentReportPeriod = `custom:${from}:${to}`;
+  loadReportData();
+}
+
+async function loadReportData() {
+  let url = '/api/reports/tickets?';
+  if (currentReportPeriod.startsWith('custom:')) {
+    const [,from,to] = currentReportPeriod.split(':');
+    url += `from=${from}&to=${to}`;
+    document.getElementById('rp-period-label').textContent = `${fmtDateShort(from)} – ${fmtDateShort(to)}`;
+  } else {
+    url += `period=${currentReportPeriod}`;
+    const labels = { current_month:'Mês atual', last_month:'Último mês', last_7:'Últimos 7 dias', last_30:'Últimos 30 dias' };
+    document.getElementById('rp-period-label').textContent = labels[currentReportPeriod]||'';
+  }
+  reportData = await api('GET', url.replace('/api',''));
+  renderReportData();
+  // Also load agent report
+  const ag = await api('GET', '/reports/agents');
+  const agMax = Math.max(...(ag||[]).map(a=>a.total),1);
+  document.getElementById('rep-agents').innerHTML = (ag||[]).slice(0,6).map(a=>
+    `<div class="pbar-row"><span style="font-size:12.5px">${a.name}</span><span style="color:${a.color||'var(--accent)'};font-weight:600">${a.total}</span></div>
+     <div class="pbar-wrap"><div class="pbar-fill" style="width:${(a.total/agMax)*100}%;background:${a.color||'var(--accent)'}"></div></div>`
+  ).join('');
+}
+
+function fmtDateShort(iso) {
+  if (!iso) return '—';
+  const [y,m,d] = iso.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+function renderReportData() {
+  if (!reportData) return;
+  const d = reportData;
+  const pColor = {critical:'var(--red)',high:'var(--orange)',medium:'var(--cyan)',low:'var(--muted)'};
+  const pLabel = {critical:'Crítica',high:'Alta',medium:'Média',low:'Baixa'};
+
+  // KPI strip
+  document.getElementById('rp-kpis').innerHTML = [
+    {label:'Total no Período',val:d.total,c:'var(--accent)'},
+    {label:'Resolvidos',val:d.resolved,c:'var(--green)'},
+    {label:'Violações SLA',val:d.breached,c:'var(--red)'},
+    {label:'SLA Cumprido',val:d.slaPct+'%',c:d.slaPct>=90?'var(--green)':'var(--orange)'},
+    {label:'TMA Resolução',val:d.avgResolveHours+'h',c:'var(--purple)'},
+  ].map(k=>`<div class="kpi blue" style="padding:14px 16px"><div class="kpi-label" style="font-size:10px">${k.label}</div><div class="kpi-val" style="font-size:22px;color:${k.c}">${k.val}</div></div>`).join('');
+
+  // By Category
+  const cats = Object.entries(d.byCategory||{}).sort((a,b)=>b[1]-a[1]);
+  const catMax = cats[0]?.[1]||1;
+  document.getElementById('rp-categories').innerHTML = cats.map(([k,v])=>
+    `<div class="pbar-row"><span style="font-size:12.5px">${k}</span><span style="font-weight:600">${v}</span></div>
+     <div class="pbar-wrap"><div class="pbar-fill" style="width:${(v/catMax)*100}%;background:var(--accent)"></div></div>`
+  ).join('') || '<div style="color:var(--muted);font-size:13px;padding:12px">Sem dados no período</div>';
+
+  // By Priority
+  const prios = Object.entries(d.byPriority||{}).sort((a,b)=>b[1]-a[1]);
+  const prioMax = prios[0]?.[1]||1;
+  document.getElementById('rp-priority').innerHTML = prios.map(([k,v])=>
+    `<div class="pbar-row"><span style="font-size:12.5px;color:${pColor[k]||'var(--text)'}">${pLabel[k]||k}</span><span style="color:${pColor[k]||'var(--text)'};font-weight:600">${v}</span></div>
+     <div class="pbar-wrap"><div class="pbar-fill" style="width:${(v/prioMax)*100}%;background:${pColor[k]||'var(--accent)'}"></div></div>`
+  ).join('');
+
+  // Incidents
+  const incMax = d.topIncidents?.[0]?.count||1;
+  document.getElementById('rp-incidents').innerHTML = (d.topIncidents||[]).slice(0,8).map(inc=>
+    `<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
+       <span style="font-size:10px;background:var(--bg3);padding:1px 6px;border-radius:4px;min-width:22px;text-align:center;font-weight:700">${inc.count}x</span>
+       <div style="flex:1"><div style="font-size:12.5px;font-weight:500">${inc.title.slice(0,45)}</div><div style="font-size:11px;color:var(--muted)">${inc.category}</div></div>
+       <div style="width:60px;height:5px;background:var(--bg3);border-radius:3px"><div style="width:${(inc.count/incMax)*100}%;height:100%;background:var(--orange);border-radius:3px"></div></div>
+     </div>`
+  ).join('') || '<div style="color:var(--muted);font-size:13px;padding:12px">Sem dados</div>';
+
+  // By User
+  const userMax = d.byUser?.[0]?.count||1;
+  document.getElementById('rp-users').innerHTML = (d.byUser||[]).slice(0,8).map(u=>
+    `<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
+       <div class="av" style="background:#3b82f6;width:26px;height:26px;font-size:9px;flex-shrink:0">${u.name.split(' ').map(x=>x[0]).join('').slice(0,2)}</div>
+       <div style="flex:1"><div style="font-size:12.5px;font-weight:500">${u.name}</div><div style="font-size:11px;color:var(--muted)">${u.email}</div></div>
+       <span style="font-family:'DM Mono',monospace;font-size:12px;font-weight:600">${u.count}</span>
+     </div>`
+  ).join('') || '<div style="color:var(--muted);font-size:13px;padding:12px">Sem dados</div>';
+
+  // By Dept
+  const depts = Object.entries(d.byDept||{}).sort((a,b)=>b[1]-a[1]);
+  const deptMax = depts[0]?.[1]||1;
+  document.getElementById('rp-dept').innerHTML = depts.map(([k,v])=>
+    `<div class="pbar-row"><span style="font-size:12.5px">${k}</span><span style="font-weight:600">${v}</span></div>
+     <div class="pbar-wrap"><div class="pbar-fill" style="width:${(v/deptMax)*100}%;background:var(--purple)"></div></div>`
+  ).join('') || '<div style="color:var(--muted);font-size:13px;padding:12px">Sem dados</div>';
+
+  // Ticket table
+  const tickets = (d.tickets||[]).slice(0,50);
+  document.getElementById('rp-ticket-count').textContent = `${d.total} chamados`;
+  document.getElementById('rp-tickets-tbody').innerHTML = tickets.map(t=>
+    `<tr><td><span class="tid">#${t.number}</span></td>
+     <td style="font-size:12.5px;max-width:200px">${t.title}</td>
+     <td><span class="badge ${t.status}">${statusLabel[t.status]||t.status}</span></td>
+     <td><span class="prio ${t.priority}"><span class="prio-dot"></span>${prioLabel[t.priority]||t.priority}</span></td>
+     <td style="font-size:12px;color:var(--muted)">${t.category}</td>
+     <td style="font-size:12px">${t.requester_name}</td>
+     <td style="font-size:12px;color:var(--muted)">${t.requester_dept||'—'}</td>
+     <td style="font-size:11px;color:var(--muted)">${fmtDate(t.created_at)}</td></tr>`
+  ).join('') || '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px">Nenhum chamado no período</td></tr>';
+}
+
+function exportReportCSV() {
+  if (!reportData) return;
+  const rows = [['N°','Assunto','Status','Prioridade','Categoria','Solicitante','Email','Setor','Aberto em','Resolvido em']];
+  (reportData.tickets||[]).forEach(t => rows.push([
+    t.number, t.title, t.status, t.priority, t.category,
+    t.requester_name, t.requester_email, t.requester_dept||'',
+    t.created_at.slice(0,10), t.resolved_at?t.resolved_at.slice(0,10):''
+  ]));
+  const csv = rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
+  a.download = `chamados_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+function exportReportPDF() {
+  if (!reportData) { alert('Carregue os dados do relatório primeiro.'); return; }
+  const d = reportData;
+  const periodLabel = document.getElementById('rp-period-label')?.textContent || '';
+  const now = new Date().toLocaleDateString('pt-BR', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  const sysOrg = localStorage.getItem('cfg_sys_org') || 'Hospital Regional de Guarabira / PB Saúde';
+  const pColor = {critical:'#ef4444',high:'#f59e0b',medium:'#06b6d4',low:'#6b7a94'};
+  const pLabel = {critical:'Crítica',high:'Alta',medium:'Média',low:'Baixa'};
+  const sLabel = {open:'Aberto',progress:'Em Andamento',resolved:'Resolvido',closed:'Fechado',escalated:'Escalado',waiting:'Aguardando'};
+
+  // Build bar for charts
+  const bar = (val, max, color) => {
+    const pct = max > 0 ? Math.round((val/max)*100) : 0;
+    return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+      <div style="flex:2;height:10px;background:#e5e7eb;border-radius:5px;overflow:hidden">
+        <div style="width:${pct}%;height:100%;background:${color};border-radius:5px"></div>
+      </div>
+      <span style="min-width:28px;text-align:right;font-weight:600;font-size:12px">${val}</span>
+    </div>`;
+  };
+
+  // Categories chart
+  const cats = Object.entries(d.byCategory||{}).sort((a,b)=>b[1]-a[1]);
+  const catMax = cats[0]?.[1]||1;
+  const catsHtml = cats.map(([k,v]) =>
+    `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+      <span style="width:90px;font-size:11px;color:#374151">${k}</span>
+      ${bar(v,catMax,'#3b82f6')}
+    </div>`).join('');
+
+  // Priority chart
+  const prios = Object.entries(d.byPriority||{}).sort((a,b)=>b[1]-a[1]);
+  const prioMax = prios[0]?.[1]||1;
+  const priosHtml = prios.map(([k,v]) =>
+    `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+      <span style="width:70px;font-size:11px;color:${pColor[k]||'#374151'}">${pLabel[k]||k}</span>
+      ${bar(v,prioMax,pColor[k]||'#6b7a94')}
+    </div>`).join('');
+
+  // Incidents
+  const incHtml = (d.topIncidents||[]).slice(0,8).map((inc,i) =>
+    `<tr style="background:${i%2?'#f9fafb':'#fff'}">
+      <td style="padding:6px 10px;border:1px solid #e5e7eb;font-weight:700;text-align:center;color:#3b82f6">${inc.count}x</td>
+      <td style="padding:6px 10px;border:1px solid #e5e7eb">${inc.title}</td>
+      <td style="padding:6px 10px;border:1px solid #e5e7eb;color:#6b7280">${inc.category}</td>
+    </tr>`).join('');
+
+  // Users
+  const usersHtml = (d.byUser||[]).slice(0,8).map((u,i) =>
+    `<tr style="background:${i%2?'#f9fafb':'#fff'}">
+      <td style="padding:6px 10px;border:1px solid #e5e7eb">${u.name}</td>
+      <td style="padding:6px 10px;border:1px solid #e5e7eb;color:#6b7280;font-size:11px">${u.email}</td>
+      <td style="padding:6px 10px;border:1px solid #e5e7eb;font-weight:700;text-align:center;color:#3b82f6">${u.count}</td>
+    </tr>`).join('');
+
+  // Dept
+  const depts = Object.entries(d.byDept||{}).sort((a,b)=>b[1]-a[1]);
+  const deptMax = depts[0]?.[1]||1;
+  const deptsHtml = depts.map(([k,v]) =>
+    `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+      <span style="width:110px;font-size:11px;color:#374151">${k}</span>
+      ${bar(v,deptMax,'#8b5cf6')}
+    </div>`).join('');
+
+  // Ticket table
+  const ticketsHtml = (d.tickets||[]).slice(0,100).map((t,i) =>
+    `<tr style="background:${i%2?'#f9fafb':'#fff'}">
+      <td style="padding:5px 8px;border:1px solid #e5e7eb;font-family:monospace;color:#3b82f6">#${t.number}</td>
+      <td style="padding:5px 8px;border:1px solid #e5e7eb;max-width:200px">${t.title}</td>
+      <td style="padding:5px 8px;border:1px solid #e5e7eb;font-size:10px">${sLabel[t.status]||t.status}</td>
+      <td style="padding:5px 8px;border:1px solid #e5e7eb;color:${pColor[t.priority]||'#374151'};font-size:10px">${pLabel[t.priority]||t.priority}</td>
+      <td style="padding:5px 8px;border:1px solid #e5e7eb;font-size:10px">${t.category}</td>
+      <td style="padding:5px 8px;border:1px solid #e5e7eb;font-size:10px">${t.requester_name}</td>
+      <td style="padding:5px 8px;border:1px solid #e5e7eb;font-size:10px;color:#6b7280">${t.requester_dept||'—'}</td>
+      <td style="padding:5px 8px;border:1px solid #e5e7eb;font-size:10px;white-space:nowrap">${t.created_at.slice(0,10)}</td>
+    </tr>`).join('');
+
+  const html = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Relatório de Chamados — ${periodLabel}</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: Arial, sans-serif; font-size: 12px; color: #111827; background: #fff; }
+  @page { margin: 15mm 15mm 15mm 15mm; size: A4 landscape; }
+  @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+
+  .header { display:flex; align-items:flex-start; justify-content:space-between; padding:16px 0 14px; border-bottom:3px solid #3b82f6; margin-bottom:18px; }
+  .header-left h1 { font-size:20px; font-weight:700; color:#1e3a5f; }
+  .header-left p  { font-size:11px; color:#6b7280; margin-top:3px; }
+  .header-right   { text-align:right; font-size:11px; color:#6b7280; }
+  .header-right strong { color:#374151; }
+
+  .kpi-row { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-bottom:18px; }
+  .kpi { background:#f0f7ff; border:1px solid #bfdbfe; border-radius:8px; padding:10px 12px; text-align:center; }
+  .kpi .val { font-size:22px; font-weight:800; color:#1d4ed8; line-height:1; margin-bottom:3px; }
+  .kpi .lbl { font-size:9px; text-transform:uppercase; letter-spacing:.5px; color:#6b7280; }
+
+  .section { margin-bottom:18px; }
+  .section-title { font-size:12px; font-weight:700; color:#1e3a5f; text-transform:uppercase; letter-spacing:.5px; border-left:3px solid #3b82f6; padding-left:8px; margin-bottom:10px; }
+
+  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:18px; }
+  .three-col { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; margin-bottom:18px; }
+
+  table { width:100%; border-collapse:collapse; font-size:11px; }
+  th { background:#1e3a5f; color:#fff; padding:7px 10px; text-align:left; font-size:10px; text-transform:uppercase; letter-spacing:.3px; }
+  td { padding:5px 8px; border:1px solid #e5e7eb; vertical-align:top; }
+
+  .footer { margin-top:20px; padding-top:10px; border-top:1px solid #e5e7eb; text-align:center; font-size:10px; color:#9ca3af; }
+  .badge { display:inline-block; padding:2px 7px; border-radius:20px; font-size:9px; font-weight:600; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>📊 Relatório de Chamados de TI</h1>
+    <p>${sysOrg}</p>
+    <p style="margin-top:4px;color:#3b82f6;font-weight:600">Período: ${periodLabel || 'Geral'}</p>
+  </div>
+  <div class="header-right">
+    <strong>HelpDesk Pro</strong><br>
+    Emitido em: ${now}<br>
+    Por: ${AGENT?.name || 'Agente'}
+  </div>
+</div>
+
+<!-- KPIs -->
+<div class="kpi-row">
+  <div class="kpi"><div class="val">${d.total}</div><div class="lbl">Total no Período</div></div>
+  <div class="kpi"><div class="val" style="color:#10b981">${d.resolved}</div><div class="lbl">Resolvidos</div></div>
+  <div class="kpi"><div class="val" style="color:${d.slaPct>=90?'#10b981':d.slaPct>=75?'#f59e0b':'#ef4444'}">${d.slaPct}%</div><div class="lbl">SLA Cumprido</div></div>
+  <div class="kpi"><div class="val" style="color:#8b5cf6">${d.avgResolveHours}h</div><div class="lbl">TMA Resolução</div></div>
+  <div class="kpi"><div class="val" style="color:#ef4444">${d.breached}</div><div class="lbl">Breaches SLA</div></div>
+</div>
+
+<!-- Categoria + Prioridade -->
+<div class="two-col">
+  <div class="section">
+    <div class="section-title">📁 Chamados por Categoria</div>
+    ${catsHtml || '<p style="color:#9ca3af;font-size:11px">Sem dados</p>'}
+  </div>
+  <div class="section">
+    <div class="section-title">🚦 Chamados por Prioridade</div>
+    ${priosHtml || '<p style="color:#9ca3af;font-size:11px">Sem dados</p>'}
+  </div>
+</div>
+
+<!-- Incidentes + Usuários -->
+<div class="two-col">
+  <div class="section">
+    <div class="section-title">🔄 Incidentes Mais Frequentes</div>
+    ${incHtml ? `<table><thead><tr><th style="width:45px">Qtd</th><th>Título</th><th>Categoria</th></tr></thead><tbody>${incHtml}</tbody></table>` : '<p style="color:#9ca3af;font-size:11px">Sem dados</p>'}
+  </div>
+  <div class="section">
+    <div class="section-title">👤 Quem Mais Abre Chamados</div>
+    ${usersHtml ? `<table><thead><tr><th>Nome</th><th>E-mail</th><th style="width:45px">Qtd</th></tr></thead><tbody>${usersHtml}</tbody></table>` : '<p style="color:#9ca3af;font-size:11px">Sem dados</p>'}
+  </div>
+</div>
+
+<!-- Por Setor -->
+<div class="section">
+  <div class="section-title">🏢 Chamados por Setor</div>
+  <div style="columns:2;gap:20px">
+    ${deptsHtml || '<p style="color:#9ca3af;font-size:11px">Sem dados</p>'}
+  </div>
+</div>
+
+<!-- Tabela de chamados -->
+<div class="section" style="page-break-before:always">
+  <div class="section-title">📋 Listagem de Chamados no Período (máx. 100)</div>
+  <table>
+    <thead><tr><th>#</th><th>Assunto</th><th>Status</th><th>Prioridade</th><th>Categoria</th><th>Solicitante</th><th>Setor</th><th>Aberto em</th></tr></thead>
+    <tbody>${ticketsHtml || '<tr><td colspan="8" style="text-align:center;color:#9ca3af;padding:16px">Nenhum chamado no período</td></tr>'}</tbody>
+  </table>
+</div>
+
+<div class="footer">
+  HelpDesk Pro · ${sysOrg} · Relatório gerado em ${now} · Página <span class="pagenum"></span>
+</div>
+
+<script>
+  window.onload = function() { window.print(); };
+<\/script>
+</body>
+</html>`;
+
+  const win = window.open('', '_blank', 'width=1100,height=800');
+  win.document.write(html);
+  win.document.close();
+}
+
+// ── KB NEW ARTICLE ────────────────────────────────────────────────────────────
+function buildKB(cats, arts) {
+  const isAdmin = AGENT && (AGENT.role === 'admin' || AGENT.role === 'N2' || AGENT.role === 'N3');
+  document.getElementById('kb-cats').innerHTML = (cats||[]).map(c=>
+    `<div class="kb-cat"><div class="kb-cat-icon" style="background:${c.color}22;color:${c.color}">${c.icon||'📁'}</div><div class="kb-cat-name">${c.name}</div><div class="kb-cat-count">${c.article_count||0} artigos</div></div>`
+  ).join('') + (isAdmin ? `<div class="kb-cat" onclick="openKBArticleForm()" style="border:2px dashed var(--border2);cursor:pointer"><div class="kb-cat-icon" style="background:var(--accent-bg);color:var(--accent)">➕</div><div class="kb-cat-name">Novo Artigo</div><div class="kb-cat-count">adicionar</div></div>` : '');
+  const sorted = [...(arts||[])].sort((a,b)=>(b.views||0)-(a.views||0));
+  document.getElementById('kb-articles').innerHTML = sorted.slice(0,7).map(a=>
+    `<div class="kb-art">
+       <span style="color:var(--muted);font-size:14px;width:24px;text-align:center;flex-shrink:0">📄</span>
+       <div class="kb-art-info"><div class="kb-art-title">${a.title}</div>
+       <div class="kb-art-meta">${fmtDate(a.updated_at)} · <span class="helpful">${a.helpful_pct||0}% útil</span> · ${a.views||0} views</div></div>
+       ${isAdmin ? `<button class="btn btn-ghost btn-sm" style="font-size:11px" onclick="event.stopPropagation();deleteKBArticle('${a._id}','${a.title.replace(/'/g,"\\'")}')">🗑</button>` : ''}
+       <span style="color:var(--muted);font-size:12px">›</span>
+     </div>`
+  ).join('');
+}
+
+function openKBArticleForm() {
+  document.getElementById('kb-form-overlay').classList.add('open');
+  document.getElementById('kbf-title').value='';
+  document.getElementById('kbf-body').value='';
+  document.getElementById('kbf-cat').value='';
+  document.getElementById('kbf-err').style.display='none';
+}
+
+function searchKB(val) {
+  const q = val.toLowerCase();
+  document.querySelectorAll('.kb-art').forEach(el => {
+    el.style.display = el.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+
+async function saveKBArticle() {
+  const title = document.getElementById('kbf-title').value.trim();
+  const body  = document.getElementById('kbf-body').value.trim();
+  const cat   = document.getElementById('kbf-cat').value;
+  const errEl = document.getElementById('kbf-err');
+  if (!title||!body) { errEl.textContent='Título e conteúdo são obrigatórios.'; errEl.style.display='block'; return; }
+  const r = await api('POST','/kb/articles',{ title, body, category_id: cat||null, helpful_pct:0 });
+  if (r._id) {
+    closeModal('kb-form-overlay');
+    await loadAll();
+    show('kb', document.querySelector('[data-view="kb"]'));
+  } else { errEl.textContent=r.error||'Erro ao salvar.'; errEl.style.display='block'; }
+}
+
+async function deleteKBArticle(id, title) {
+  if (!confirm(`Excluir artigo "${title}"?`)) return;
+  await api('DELETE',`/kb/articles/${id}`);
+  loadAll();
+}
+
+// ── CLIENT EDIT MODAL ────────────────────────────────────────────────────────
+function openClientEdit(id, name, email, dept) {
+  currentClientId = id;
+  document.getElementById('ce-name').value  = name;
+  document.getElementById('ce-email').value = email;
+  document.getElementById('ce-dept').value  = dept;
+  document.getElementById('ce-err').style.display='none';
+  document.getElementById('ce-ok').style.display='none';
+  document.getElementById('client-edit-overlay').classList.add('open');
+}
+
+async function saveClientEdit() {
+  const name  = document.getElementById('ce-name').value.trim();
+  const email = document.getElementById('ce-email').value.trim().toLowerCase();
+  const dept  = document.getElementById('ce-dept').value;
+  const errEl = document.getElementById('ce-err');
+  const okEl  = document.getElementById('ce-ok');
+  errEl.style.display='none'; okEl.style.display='none';
+  if (!name||!email) { errEl.textContent='Nome e e-mail são obrigatórios.'; errEl.style.display='block'; return; }
+  const r = await api('PUT',`/clients/${currentClientId}`,{ name, email, department:dept });
+  if (r.message) {
+    okEl.textContent='Dados atualizados!'; okEl.style.display='block';
+    await loadAll();
+    setTimeout(()=>closeModal('client-edit-overlay'),1200);
+  } else { errEl.textContent=r.error||'Erro ao atualizar.'; errEl.style.display='block'; }
+}
+
+// Override show to load reports data when tab opens
+const _origShow = show;
+show = (view, el) => {
+  _origShow(view, el);
+  if (view === 'reports')  loadReportData();
+  if (view === 'datashow') loadDsAgent();
+};
+
+// ── DATASHOW (AGENT VIEW) ─────────────────────────────────────────────────────
+let dsAgentOffset = 0;
+let dsAgentReservations = [];
+let dsAgentEditId = null;
+const dsMonths = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const dsDays   = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+function initDsAgent() { dsAgentOffset = 0; loadDsAgent(); }
+
+function changeDsAgentWeek(d) { dsAgentOffset += d; loadDsAgent(); }
+
+async function loadDsAgent() {
+  const base = new Date();
+  base.setDate(base.getDate() + dsAgentOffset);
+  const dow = base.getDay();
+  const mon = new Date(base); mon.setDate(base.getDate() - (dow === 0 ? 6 : dow - 1));
+  const sun = new Date(mon);  sun.setDate(mon.getDate() + 6);
+  const fmt  = d => d.toISOString().slice(0, 10);
+  const from = fmt(mon), to = fmt(sun);
+
+  document.getElementById('dsa-week-label').textContent =
+    `${mon.getDate()} ${dsMonths[mon.getMonth()]} – ${sun.getDate()} ${dsMonths[sun.getMonth()]} ${sun.getFullYear()}`;
+
+  dsAgentReservations = await api('GET', `/datashow?date_from=${from}&date_to=${to}`);
+  renderDsAgent();
+}
+
+function renderDsAgent() {
+  const statusFilter = document.getElementById('ds-filter-status')?.value || '';
+  let items = dsAgentReservations || [];
+  if (statusFilter) items = items.filter(r => r.status === statusFilter);
+
+  const cnt = document.getElementById('dsa-count');
+  if (cnt) cnt.textContent = `${items.length} reserva${items.length !== 1 ? 's' : ''} nesta semana`;
+
+  const statusBadge = {
+    confirmed: '<span class="badge resolved">✅ Confirmado</span>',
+    cancelled:  '<span class="badge escalated">❌ Cancelado</span>',
+    pending:    '<span class="badge progress">⏳ Pendente</span>',
+  };
+
+  document.getElementById('dsa-tbody').innerHTML = items.length
+    ? items.map(r => {
+        const d = new Date(r.date + 'T12:00');
+        const dayFmt = `${dsDays[d.getDay()]}, ${r.date.split('-').reverse().join('/')}`;
+        const endMin = parseInt(r.time.split(':')[0])*60 + parseInt(r.time.split(':')[1]) + (parseInt(r.duration)||60);
+        const endTime = `${Math.floor(endMin/60).toString().padStart(2,'0')}:${(endMin%60).toString().padStart(2,'0')}`;
+        return `<tr>
+          <td style="font-size:12.5px;font-weight:500">${dayFmt}</td>
+          <td style="font-family:'DM Mono',monospace;font-size:12px">${r.time}<span style="color:var(--muted)"> → ${endTime}</span></td>
+          <td style="font-size:12px;color:var(--muted)">${r.duration||60} min</td>
+          <td style="font-size:12.5px">${r.location}</td>
+          <td style="font-size:12.5px;max-width:180px">${r.purpose}</td>
+          <td style="font-size:12.5px">${r.requester_name}</td>
+          <td><span style="font-size:11.5px;background:var(--bg3);border:1px solid var(--border);padding:2px 8px;border-radius:5px">${r.requester_dept||'—'}</span></td>
+          <td>${statusBadge[r.status] || `<span class="badge open">${r.status}</span>`}</td>
+          <td>
+            <div style="display:flex;gap:5px">
+              <button class="btn btn-ghost btn-sm" onclick="openDsAgentForm('${r._id}')">✏</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteDsAgent('${r._id}')">✕</button>
+            </div>
+          </td>
+        </tr>`;
+      }).join('')
+    : `<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:32px">
+        Nenhum agendamento nesta semana
+        ${statusFilter ? '— tente remover o filtro de status' : ''}
+       </td></tr>`;
+}
+
+function openDsAgentForm(id) {
+  dsAgentEditId = id;
+  const r = id ? (dsAgentReservations||[]).find(x => x._id === id) : null;
+  document.getElementById('dsaf-title').textContent = id ? 'Editar Reserva' : 'Nova Reserva de Datashow';
+  document.getElementById('dsaf-ok').style.display  = 'none';
+  document.getElementById('dsaf-err').style.display = 'none';
+  document.getElementById('dsaf-date').value     = r?.date || new Date().toISOString().slice(0, 10);
+  document.getElementById('dsaf-time').value     = r?.time || '08:00';
+  document.getElementById('dsaf-duration').value = r?.duration?.toString() || '60';
+  document.getElementById('dsaf-location').value = r?.location || '';
+  document.getElementById('dsaf-purpose').value  = r?.purpose  || '';
+  document.getElementById('dsaf-rname').value    = r?.requester_name || '';
+  document.getElementById('dsaf-notes').value    = r?.notes || '';
+  document.getElementById('dsaf-status').value   = r?.status || 'confirmed';
+  const rdept = document.getElementById('dsaf-rdept');
+  const dept  = r?.requester_dept || '';
+  for (let opt of rdept.options) { if (opt.value === dept || opt.text === dept) { rdept.value = opt.value; break; } }
+  document.getElementById('dsa-form-overlay').classList.add('open');
+}
+
+async function saveDsAgent() {
+  const date    = document.getElementById('dsaf-date').value;
+  const time    = document.getElementById('dsaf-time').value;
+  const dur     = document.getElementById('dsaf-duration').value;
+  const loc     = document.getElementById('dsaf-location').value.trim();
+  const purpose = document.getElementById('dsaf-purpose').value.trim();
+  const rname   = document.getElementById('dsaf-rname').value.trim();
+  const rdept   = document.getElementById('dsaf-rdept').value;
+  const status  = document.getElementById('dsaf-status').value;
+  const notes   = document.getElementById('dsaf-notes').value.trim();
+  const okEl    = document.getElementById('dsaf-ok');
+  const errEl   = document.getElementById('dsaf-err');
+  okEl.style.display = 'none'; errEl.style.display = 'none';
+
+  if (!date || !time || !loc || !purpose || !rname) {
+    errEl.textContent = 'Preencha os campos obrigatórios: data, horário, local, finalidade e solicitante.';
+    errEl.style.display = 'block'; return;
+  }
+
+  const body = { date, time, duration: parseInt(dur)||60, location: loc, purpose,
+    requester_name: rname, requester_dept: rdept, notes, status };
+
+  const r = dsAgentEditId
+    ? await api('PATCH', `/datashow/${dsAgentEditId}`, body)
+    : await api('POST',  '/datashow', body);
+
+  if (r.error) {
+    errEl.innerHTML = `⚠ ${r.error}`;
+    errEl.style.display = 'block';
+  } else {
+    okEl.textContent = dsAgentEditId ? '✓ Reserva atualizada!' : '✓ Reserva criada!';
+    okEl.style.display = 'block';
+    await loadDsAgent();
+    setTimeout(() => closeModal('dsa-form-overlay'), 1200);
+  }
+}
+
+async function deleteDsAgent(id) {
+  if (!confirm('Tem certeza que deseja REMOVER este agendamento?\nEsta ação não pode ser desfeita.')) return;
+  await api('DELETE', `/datashow/${id}`);
+  loadDsAgent();
+}
+
+// ── SETTINGS ─────────────────────────────────────────────────────────────────
+const CFG_COLORS = ['#3b82f6','#10b981','#8b5cf6','#f59e0b','#ef4444','#06b6d4','#ec4899','#64748b'];
+let cfgSelectedColor = '#3b82f6';
+
+function openSettings() {
+  // Populate profile fields
+  document.getElementById('settings-av').style.background = AGENT.color || '#3b82f6';
+  document.getElementById('settings-av').textContent = AGENT.name.split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('settings-name-display').textContent  = AGENT.name;
+  document.getElementById('settings-role-display').textContent  = AGENT.role;
+  document.getElementById('settings-email-display').textContent = AGENT.email;
+  document.getElementById('cfg-name').value  = AGENT.name;
+  document.getElementById('cfg-email').value = AGENT.email;
+  cfgSelectedColor = AGENT.color || '#3b82f6';
+
+  // Color picker
+  document.getElementById('cfg-colors').innerHTML = CFG_COLORS.map(c =>
+    `<div onclick="cfgSelectColor('${c}')" id="cfgc-${c.slice(1)}"
+      style="width:26px;height:26px;border-radius:50%;background:${c};cursor:pointer;
+             border:2px solid ${c===cfgSelectedColor?'white':'transparent'};
+             transition:border .15s;flex-shrink:0"></div>`
+  ).join('');
+
+  // Load server info
+  loadServerInfo();
+
+  // Load saved settings from localStorage
+  loadSavedSettings();
+
+  document.getElementById('settings-ok').style.display  = 'none';
+  document.getElementById('settings-err').style.display = 'none';
+  document.getElementById('settings-overlay').classList.add('open');
+  switchSettingsTab('perfil');
+}
+
+function closeSettings() {
+  document.getElementById('settings-overlay').classList.remove('open');
+}
+
+function switchSettingsTab(tab) {
+  ['perfil','sistema','sla','notif'].forEach(t => {
+    document.getElementById(`stab-${t}`).classList.toggle('active', t===tab);
+    document.getElementById(`stab-content-${t}`).style.display = t===tab ? 'block' : 'none';
+  });
+}
+
+function cfgSelectColor(c) {
+  cfgSelectedColor = c;
+  document.querySelectorAll('[id^="cfgc-"]').forEach(el => el.style.border = '2px solid transparent');
+  const el = document.getElementById('cfgc-'+c.slice(1));
+  if (el) el.style.border = '2px solid white';
+}
+
+async function loadServerInfo() {
+  try {
+    const h = await api('GET', '/health'.replace('/api',''));
+    const [tickets, agents, clients] = await Promise.all([
+      api('GET','/tickets/stats'), api('GET','/agents'), api('GET','/clients')
+    ]);
+    document.getElementById('cfg-api-url').textContent     = window.location.origin + '/api';
+    document.getElementById('cfg-api-status').innerHTML    = '<span style="color:var(--green)">✓ Online</span>';
+    document.getElementById('cfg-total-tickets').textContent = tickets.total ?? '—';
+    document.getElementById('cfg-total-agents').textContent  = Array.isArray(agents) ? agents.length : '—';
+    document.getElementById('cfg-total-clients').textContent = Array.isArray(clients) ? clients.length : '—';
+  } catch {
+    document.getElementById('cfg-api-status').innerHTML = '<span style="color:var(--red)">✗ Erro ao conectar</span>';
+  }
+}
+
+function loadSavedSettings() {
+  // System settings
+  const sysName  = localStorage.getItem('cfg_sys_name');
+  const sysOrg   = localStorage.getItem('cfg_sys_org');
+  const sysEmail = localStorage.getItem('cfg_sys_email');
+  const sysPhone = localStorage.getItem('cfg_sys_phone');
+  if (sysName)  document.getElementById('cfg-sys-name').value  = sysName;
+  if (sysOrg)   document.getElementById('cfg-sys-org').value   = sysOrg;
+  if (sysEmail) document.getElementById('cfg-sys-email').value = sysEmail;
+  if (sysPhone) document.getElementById('cfg-sys-phone').value = sysPhone;
+
+  // SLA settings
+  ['critical','high','medium','low'].forEach(p => {
+    const resp = localStorage.getItem(`sla_resp_${p}`);
+    const res  = localStorage.getItem(`sla_res_${p}`);
+    if (resp) document.getElementById(`sla-resp-${p}`).value = resp;
+    if (res)  document.getElementById(`sla-res-${p}`).value  = res;
+  });
+
+  // Notification toggles
+  ['ntf-new','ntf-breach','ntf-escalate','ntf-resolved','ntf-sound'].forEach(id => {
+    const saved = localStorage.getItem(id);
+    if (saved !== null) document.getElementById(id).checked = saved === 'true';
+    updateToggleSpan(id);
+  });
+}
+
+function updateToggleSpan(id) {
+  const cb   = document.getElementById(id);
+  const span = document.getElementById(id+'-span');
+  if (!cb || !span) return;
+  span.style.background = cb.checked ? 'var(--accent)' : 'var(--bg4)';
+  const dot = span.querySelector('span');
+  if (dot) dot.style.left = cb.checked ? '20px' : '2px';
+}
+
+async function saveProfileSettings() {
+  const name  = document.getElementById('cfg-name').value.trim();
+  const email = document.getElementById('cfg-email').value.trim();
+  const okEl  = document.getElementById('settings-ok');
+  const errEl = document.getElementById('settings-err');
+  okEl.style.display='none'; errEl.style.display='none';
+  if (!name || !email) { errEl.textContent='Nome e e-mail são obrigatórios.'; errEl.style.display='block'; return; }
+
+  const r = await api('PUT', `/agents/${AGENT._id}`, { name, email, color: cfgSelectedColor });
+  if (r.message) {
+    AGENT.name  = name;
+    AGENT.email = email;
+    AGENT.color = cfgSelectedColor;
+    localStorage.setItem('hd_agent', JSON.stringify(AGENT));
+    // Update sidebar
+    document.getElementById('sidebar-av').textContent   = name.split(' ').map(x=>x[0]).join('').slice(0,2);
+    document.getElementById('sidebar-av').style.background = cfgSelectedColor;
+    document.getElementById('sidebar-name').textContent = name;
+    // Update header display
+    document.getElementById('settings-av').style.background = cfgSelectedColor;
+    document.getElementById('settings-av').textContent = name.split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase();
+    document.getElementById('settings-name-display').textContent = name;
+    okEl.textContent='✓ Perfil atualizado com sucesso!'; okEl.style.display='block';
+    setTimeout(()=>okEl.style.display='none', 3000);
+  } else {
+    errEl.textContent = r.error || 'Erro ao salvar.'; errEl.style.display='block';
+  }
+}
+
+async function savePasswordSettings() {
+  const oldP = document.getElementById('cfg-pass-old').value;
+  const newP = document.getElementById('cfg-pass-new').value;
+  const conf = document.getElementById('cfg-pass-confirm').value;
+  const okEl  = document.getElementById('settings-ok');
+  const errEl = document.getElementById('settings-err');
+  okEl.style.display='none'; errEl.style.display='none';
+  if (!oldP || !newP) { errEl.textContent='Preencha a senha atual e a nova senha.'; errEl.style.display='block'; return; }
+  if (newP !== conf)  { errEl.textContent='A confirmação não coincide com a nova senha.'; errEl.style.display='block'; return; }
+  if (newP.length < 8){ errEl.textContent='A nova senha deve ter mínimo 8 caracteres.'; errEl.style.display='block'; return; }
+  const r = await api('PUT', '/agents/me/password', { current_password: oldP, new_password: newP });
+  if (r.message) {
+    okEl.textContent='✓ Senha alterada com sucesso!'; okEl.style.display='block';
+    document.getElementById('cfg-pass-old').value='';
+    document.getElementById('cfg-pass-new').value='';
+    document.getElementById('cfg-pass-confirm').value='';
+    setTimeout(()=>okEl.style.display='none', 3000);
+  } else {
+    errEl.textContent = r.error || 'Erro ao alterar senha.'; errEl.style.display='block';
+  }
+}
+
+function saveSystemSettings() {
+  localStorage.setItem('cfg_sys_name',  document.getElementById('cfg-sys-name').value);
+  localStorage.setItem('cfg_sys_org',   document.getElementById('cfg-sys-org').value);
+  localStorage.setItem('cfg_sys_email', document.getElementById('cfg-sys-email').value);
+  localStorage.setItem('cfg_sys_phone', document.getElementById('cfg-sys-phone').value);
+  showToast('✓ Configurações do sistema salvas!', 'green');
+}
+
+function saveSLASettings() {
+  ['critical','high','medium','low'].forEach(p => {
+    localStorage.setItem(`sla_resp_${p}`, document.getElementById(`sla-resp-${p}`).value);
+    localStorage.setItem(`sla_res_${p}`,  document.getElementById(`sla-res-${p}`).value);
+  });
+  showToast('✓ Prazos de SLA salvos!', 'green');
+}
+
+function saveNotifSettings() {
+  ['ntf-new','ntf-breach','ntf-escalate','ntf-resolved','ntf-sound'].forEach(id => {
+    const cb = document.getElementById(id);
+    if (cb) { localStorage.setItem(id, cb.checked); updateToggleSpan(id); }
+  });
+}
+</script>
+</body>
+</html>

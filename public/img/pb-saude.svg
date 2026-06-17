@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 60">
+  <rect width="160" height="60" rx="6" fill="none"/>
+  <rect x="8" y="18" width="20" height="24" rx="2" fill="#3b82f6" opacity="0.8"/>
+  <rect x="14" y="12" width="8" height="36" rx="2" fill="#3b82f6"/>
+  <text x="90" y="27" font-family="Arial,sans-serif" font-size="14" font-weight="800" fill="white" text-anchor="middle">PB SAÚDE</text>
+  <text x="90" y="42" font-family="Arial,sans-serif" font-size="8" fill="rgba(255,255,255,0.6)" text-anchor="middle">GOVERNO DA PARAÍBA</text>
+</svg>

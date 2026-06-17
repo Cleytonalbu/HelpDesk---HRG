@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HelpDesk Pro — Entrar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&family=DM+Mono&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#080c14;
+  --card:#0e1520;
+  --border:rgba(255,255,255,0.06);
+  --border2:rgba(255,255,255,0.12);
+  --text:#e8edf5;
+  --muted:#6b7a94;
+  --accent:#3b82f6;
+  --accent2:#2563eb;
+  --green:#10b981;
+  --red:#ef4444;
+}
+html,body{height:100%}
+/* Logos */
+.logo-bar{display:flex;align-items:center;justify-content:center;gap:18px;padding:14px 20px;background:rgba(255,255,255,0.03);border-bottom:1px solid var(--border)}
+.logo-bar img{height:44px;object-fit:contain;filter:brightness(0) invert(1);opacity:0.85}
+.logo-sep{width:1px;height:36px;background:var(--border)}
+
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);display:flex;align-items:stretch}
+
+/* LEFT PANEL */
+.left{flex:1;position:relative;display:flex;flex-direction:column;justify-content:flex-end;padding:48px;overflow:hidden;min-width:0}
+.left-bg{position:absolute;inset:0;background:linear-gradient(135deg,#0a0f1e 0%,#0d1528 40%,#091220 100%)}
+.grid-lines{position:absolute;inset:0;opacity:0.07;background-image:linear-gradient(rgba(59,130,246,0.5) 1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,0.5) 1px,transparent 1px);background-size:48px 48px}
+.glow-orb{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none}
+.orb1{width:400px;height:400px;background:rgba(59,130,246,0.12);top:-80px;left:-80px}
+.orb2{width:300px;height:300px;background:rgba(16,185,129,0.07);bottom:100px;right:-50px}
+.left-content{position:relative;z-index:1}
+.brand{display:flex;align-items:center;gap:12px;position:absolute;top:48px;left:48px}
+.brand-icon{width:38px;height:38px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.brand-name{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;letter-spacing:-0.3px}
+.hero-title{font-family:'Syne',sans-serif;font-size:clamp(32px,4vw,52px);font-weight:800;line-height:1.05;letter-spacing:-2px;margin-bottom:20px}
+.hero-title span{color:var(--accent)}
+.hero-sub{font-size:15px;color:var(--muted);line-height:1.7;max-width:380px;margin-bottom:40px}
+.stats-row{display:flex;gap:28px}
+.stat{display:flex;flex-direction:column;gap:4px}
+.stat-val{font-family:'Syne',sans-serif;font-size:26px;font-weight:700;letter-spacing:-1px}
+.stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px}
+.ticker{position:absolute;top:48px;right:48px;z-index:1}
+.ticker-badge{background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2);border-radius:20px;padding:5px 12px;font-size:11px;color:var(--green);display:flex;align-items:center;gap:6px}
+.ticker-dot{width:6px;height:6px;background:var(--green);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+
+/* RIGHT PANEL */
+.right{width:460px;flex-shrink:0;background:var(--card);border-left:1px solid var(--border);display:flex;flex-direction:column;justify-content:center;padding:56px 48px;overflow-y:auto}
+.tab-toggle{display:flex;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;padding:3px;margin-bottom:36px}
+.tab-btn{flex:1;padding:9px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;color:var(--muted);background:none;transition:all .2s}
+.tab-btn.active{background:var(--accent);color:#fff}
+.form-title{font-family:'Syne',sans-serif;font-size:24px;font-weight:700;letter-spacing:-0.5px;margin-bottom:6px}
+.form-sub{font-size:13px;color:var(--muted);margin-bottom:32px;line-height:1.6}
+.form-group{margin-bottom:18px;position:relative}
+.form-label{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;font-weight:500;display:block;margin-bottom:8px}
+.form-input{width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:9px;padding:12px 14px 12px 42px;color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;transition:all .2s}
+.form-input:focus{border-color:var(--accent);background:rgba(59,130,246,0.04)}
+.form-input.no-icon{padding-left:14px}
+.input-icon{position:absolute;bottom:12px;left:14px;color:var(--muted);font-size:14px;transition:color .2s;pointer-events:none}
+.form-group:focus-within .input-icon{color:var(--accent)}
+.form-input::placeholder{color:var(--muted)}
+.forgot{display:block;text-align:right;font-size:12px;color:var(--accent);cursor:pointer;margin-top:-10px;margin-bottom:20px;text-decoration:none}
+.submit-btn{width:100%;background:var(--accent);color:#fff;border:none;border-radius:9px;padding:13px;font-size:14px;font-weight:600;font-family:'Syne',sans-serif;cursor:pointer;letter-spacing:0.2px;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:4px}
+.submit-btn:hover{background:var(--accent2);transform:translateY(-1px)}
+.submit-btn:active{transform:translateY(0)}
+.submit-btn:disabled{opacity:0.6;cursor:not-allowed;transform:none}
+.divider{display:flex;align-items:center;gap:12px;margin:24px 0;color:var(--muted);font-size:12px}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.alt-link{text-align:center;font-size:13px;color:var(--muted)}
+.alt-link a{color:var(--accent);cursor:pointer;text-decoration:none;font-weight:500}
+.error-msg{background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--red);margin-bottom:16px;display:none;align-items:center;gap:8px}
+.success-msg{background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--green);margin-bottom:16px;display:none;align-items:center;gap:8px}
+.role-select{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px}
+.role-opt{border:1px solid var(--border);border-radius:9px;padding:11px 14px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)}
+.role-opt:hover{border-color:var(--border2)}
+.role-opt.selected{border-color:var(--accent);background:rgba(59,130,246,0.07);color:var(--text)}
+.role-opt .role-icon{font-size:16px;width:20px;text-align:center}
+.spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+.view{display:none}.view.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.view.active{animation:fadeIn .25s ease}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-row .form-group{margin-bottom:0}
+select.form-input{appearance:none;cursor:pointer}
+
+/* ── RESPONSIVE ──────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  html, body { overflow: auto; height: auto; }
+  .wrap { flex-direction: column; min-height: 100vh; }
+
+  /* Hide decorative left panel on mobile */
+  .left { display: none; }
+
+  /* Right panel fills screen */
+  .right {
+    width: 100%; border-left: none;
+    padding: 28px 24px 40px;
+    justify-content: flex-start;
+  }
+
+  .logo-bar { padding: 12px 16px; }
+  .logo-bar img { height: 36px; }
+
+  .ft { font-size: 20px; }
+  .seg { margin-bottom: 24px; }
+
+  .form-row { grid-template-columns: 1fr !important; }
+}
+
+@media (max-width: 400px) {
+  .right { padding: 20px 16px 32px; }
+}
+</style>
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/img/icon-192.png">
+<meta name="theme-color" content="#2563eb">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+</head>
+<body>
+
+<!-- LEFT PANEL -->
+<div class="left">
+  <div class="left-bg"></div>
+  <div class="grid-lines"></div>
+  <div class="glow-orb orb1"></div>
+  <div class="glow-orb orb2"></div>
+
+  <div class="brand">
+    <div class="brand-icon">🎧</div>
+    <div class="brand-name">HelpDesk Pro</div>
+  </div>
+
+  <div class="ticker" style="position:absolute;top:48px;right:48px">
+    <div class="ticker-badge">
+      <span class="ticker-dot"></span>
+      Sistema Online
+    </div>
+  </div>
+
+  <div class="left-content">
+    <div class="hero-title">
+      Suporte de TI<br>inteligente e<br><span>sem fricção.</span>
+    </div>
+    <p class="hero-sub">
+      Gerencie chamados, SLAs e ativos em uma plataforma unificada. 
+      IA integrada para triagem automática e resolução mais rápida.
+    </p>
+    <div class="stats-row">
+      <div class="stat">
+        <span class="stat-val" style="color:var(--accent)">94%</span>
+        <span class="stat-label">SLA cumprido</span>
+      </div>
+      <div class="stat">
+        <span class="stat-val" style="color:var(--green)">3.2h</span>
+        <span class="stat-label">TMA resolução</span>
+      </div>
+      <div class="stat">
+        <span class="stat-val" style="color:#a78bfa">4.6★</span>
+        <span class="stat-label">Satisfação</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RIGHT PANEL -->
+<div class="right">
+  <div class="logo-bar">
+    <img src="/img/hospital-regional.jpg" alt="Hospital Regional" style="height:42px;object-fit:contain">
+    <div class="logo-sep"></div>
+    <img src="/img/pb-saude.jpg" alt="PB Saúde" style="height:38px;object-fit:contain">
+  </div>
+  <div style="height:20px"></div>
+  <div class="tab-toggle">
+    <button class="tab-btn active" onclick="switchTab('agent')">Sou Agente / TI</button>
+    <button class="tab-btn" onclick="switchTab('client')">Sou Cliente</button>
+  </div>
+
+  <!-- AGENT LOGIN -->
+  <div class="view active" id="view-agent">
+    <div class="form-title">Bem-vindo de volta</div>
+    <p class="form-sub">Acesse o painel de gerenciamento de chamados.</p>
+
+    <div class="error-msg" id="agent-error">
+      <span>⚠</span> <span id="agent-error-text">Credenciais inválidas</span>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">E-mail</label>
+      <span class="input-icon">✉</span>
+      <input class="form-input" type="email" id="agent-email" placeholder="seu@helpdesk.com" autocomplete="email">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Senha</label>
+      <span class="input-icon">🔒</span>
+      <input class="form-input" type="password" id="agent-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <a class="forgot" href="#" onclick="showForgot()">Esqueceu a senha?</a>
+
+    <button class="submit-btn" id="login-btn" onclick="doLogin()">
+      <div class="spinner" id="login-spinner"></div>
+      <span id="login-label">Entrar no Painel</span>
+    </button>
+
+    <div class="divider">ou</div>
+    <div class="alt-link">
+      É cliente? <a onclick="switchTab('client')">Abra um chamado aqui</a>
+    </div>
+
+
+  </div>
+
+  <!-- CLIENT VIEW -->
+  <div class="view" id="view-client">
+    <div class="tab-toggle" style="margin-bottom:24px">
+      <button class="tab-btn active" onclick="switchClient('login')">Já tenho conta</button>
+      <button class="tab-btn" onclick="switchClient('register')">Criar conta</button>
+    </div>
+
+    <!-- CLIENT LOGIN -->
+    <div id="client-login">
+      <div class="form-title">Acessar Portal</div>
+      <p class="form-sub">Entre para acompanhar seus chamados e abrir novas solicitações.</p>
+
+      <div class="error-msg" id="client-error">
+        <span>⚠</span> <span id="client-error-text">Credenciais inválidas</span>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">E-mail</label>
+        <span class="input-icon">✉</span>
+        <input class="form-input" type="email" id="client-email" placeholder="seu@email.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Senha</label>
+        <span class="input-icon">🔒</span>
+        <input class="form-input" type="password" id="client-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doClientLogin()">
+      </div>
+      <button class="submit-btn" onclick="doClientLogin()">Entrar no Portal</button>
+      <div style="margin-top:14px;text-align:center;font-size:13px;color:var(--muted)">
+        Não tem conta? <a style="color:var(--accent);cursor:pointer" onclick="switchClient('register')">Cadastre-se grátis</a>
+      </div>
+    </div>
+
+    <!-- CLIENT REGISTER -->
+    <div id="client-register" style="display:none">
+      <div class="form-title">Criar sua conta</div>
+      <p class="form-sub">Cadastre-se para abrir chamados e acompanhar o atendimento.</p>
+
+      <div class="success-msg" id="reg-success">
+        <span>✓</span> Conta criada! Redirecionando…
+      </div>
+      <div class="error-msg" id="reg-error">
+        <span>⚠</span> <span id="reg-error-text">Erro ao criar conta</span>
+      </div>
+
+      <div class="form-row" style="margin-bottom:18px">
+        <div class="form-group">
+          <label class="form-label">Nome</label>
+          <input class="form-input no-icon" type="text" id="reg-name" placeholder="Seu nome">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Sobrenome</label>
+          <input class="form-input no-icon" type="text" id="reg-lastname" placeholder="Sobrenome">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">E-mail corporativo</label>
+        <span class="input-icon">✉</span>
+        <input class="form-input" type="email" id="reg-email" placeholder="voce@empresa.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Departamento</label>
+        <span class="input-icon">🏢</span>
+          <select class="form-input" id="reg-dept">
+            <option value="">Selecione seu setor…</option>
+
+            <option>Almoxarifado</option>
+            <option>Ambulatorio</option>
+            <option>Alojamento Conjunto</option>
+            <option>Assessoria de Pele</option>
+            <option>Auditoria</option>
+            <option>Bloco Cirúrgico</option>
+            <option>Bloco Cirúrgico Obstétrico</option>
+            <option>CAF</option>
+            <option>CME</option>
+            <option>Clinica Cirúrgica</option>
+            <option>Clinica Médica</option>
+            <option>Consultório Cirurgião Geral</option>
+            <option>Consultório Clinico Geral</option>
+            <option>Consultório Obstétrico</option>
+            <option>Consultório Ortopedia</option>
+            <option>Direção Administrativa</option>
+            <option>Direção Geral</option>
+            <option>Direção Técnica</option>
+            <option>Enfermaria Pediátrica</option>
+            <option>Farmácia</option>
+            <option>Farmácia Satélite 01</option>
+            <option>Faturamento</option>
+            <option>Fisioterapia</option>
+            <option>Fonoaudiologia</option>
+            <option>GAF</option>
+            <option>GSL</option>
+            <option>Humanização</option>
+            <option>Lavanderia</option>
+            <option>NAE</option>
+            <option>NIR</option>
+            <option>NSP</option>
+            <option>Nutrição</option>
+            <option>Odontologia</option>
+            <option>Ouvidoria</option>
+            <option>Posto de Enf. CDI</option>
+            <option>Pré-Parto</option>
+            <option>Raio X</option>
+            <option>Recepção Ambulatório</option>
+            <option>Recepção CDI</option>
+            <option>Recepção Maternidade</option>
+            <option>Recepção Urgência/Emergência</option>
+            <option>RH</option>
+            <option>Sala Amarela</option>
+            <option>Sala Verde</option>
+            <option>Sala Vermelha</option>
+            <option>SAME</option>
+            <option>SCIH</option>
+            <option>Segurança do Trabalho</option>
+            <option>Serviço Social</option>
+            <option>TI</option>
+            <option>Tomografia</option>
+            <option>Triagem Obstetrícia</option>
+            <option>Triagem Urgência/Emergência</option>
+            <option>UCIN</option>
+            <option>Urgência/Emergência</option>
+            <option>UTI</option>
+            <option>UTIN</option>
+          </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Senha</label>
+        <span class="input-icon">🔒</span>
+        <input class="form-input" type="password" id="reg-pass" placeholder="Mín. 8 caracteres">
+      </div>
+      <div class="form-group" style="margin-bottom:22px">
+        <label class="form-label">Confirmar senha</label>
+        <span class="input-icon">🔒</span>
+        <input class="form-input" type="password" id="reg-pass2" placeholder="Repita a senha">
+      </div>
+      <button class="submit-btn" id="reg-btn" onclick="doRegister()">
+        <div class="spinner" id="reg-spinner"></div>
+        <span id="reg-label">Criar minha conta</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '/api';
+
+
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-toggle .tab-btn')[0].classList.toggle('active', tab==='agent');
+  document.querySelectorAll('.tab-toggle .tab-btn')[1].classList.toggle('active', tab==='client');
+  document.getElementById('view-agent').classList.toggle('active', tab==='agent');
+  document.getElementById('view-client').classList.toggle('active', tab==='client');
+}
+
+function switchClient(mode) {
+  const btns = document.querySelectorAll('#view-client .tab-toggle .tab-btn');
+  btns[0].classList.toggle('active', mode==='login');
+  btns[1].classList.toggle('active', mode==='register');
+  document.getElementById('client-login').style.display = mode==='login' ? 'block' : 'none';
+  document.getElementById('client-register').style.display = mode==='register' ? 'block' : 'none';
+}
+
+function setLoading(btnId, spinnerId, labelId, loading, labelText) {
+  document.getElementById(btnId).disabled = loading;
+  document.getElementById(spinnerId).style.display = loading ? 'block' : 'none';
+  document.getElementById(labelId).style.display = loading ? 'none' : 'inline';
+}
+
+function showError(id, textId, msg) {
+  const el = document.getElementById(id);
+  document.getElementById(textId).textContent = msg;
+  el.style.display = 'flex';
+  setTimeout(() => el.style.display = 'none', 5000);
+}
+
+async function doLogin() {
+  const email = document.getElementById('agent-email').value.trim();
+  const pass  = document.getElementById('agent-pass').value;
+  if (!email || !pass) return showError('agent-error','agent-error-text','Preencha e-mail e senha.');
+  setLoading('login-btn','login-spinner','login-label', true);
+  try {
+    const r = await fetch(API+'/auth/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email, password:pass}) });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Erro desconhecido');
+    localStorage.setItem('hd_token', d.token);
+    localStorage.setItem('hd_agent', JSON.stringify(d.agent));
+    window.location.href = 'dashboard.html';
+  } catch(e) {
+    setLoading('login-btn','login-spinner','login-label', false);
+    showError('agent-error','agent-error-text', e.message);
+  }
+}
+
+function quickLogin(email, pass) {
+  document.getElementById('agent-email').value = email;
+  document.getElementById('agent-pass').value = pass;
+  doLogin();
+}
+
+async function doClientLogin() {
+  const email = document.getElementById('client-email').value.trim();
+  const pass  = document.getElementById('client-pass').value;
+  if (!email || !pass) return showError('client-error','client-error-text','Preencha e-mail e senha.');
+  try {
+    const r = await fetch(API+'/auth/client-login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email, password:pass}) });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Credenciais inválidas');
+    localStorage.setItem('hd_client_token', d.token);
+    localStorage.setItem('hd_client', JSON.stringify(d.client));
+    window.location.href = window.innerWidth<=768 ? 'mobile.html' : 'portal.html';
+  } catch(e) {
+    showError('client-error','client-error-text', e.message);
+  }
+}
+
+async function doRegister() {
+  const name  = document.getElementById('reg-name').value.trim();
+  const last  = document.getElementById('reg-lastname').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const dept  = document.getElementById('reg-dept').value;
+  const pass  = document.getElementById('reg-pass').value;
+  const pass2 = document.getElementById('reg-pass2').value;
+  if (!name||!last||!email||!dept||!pass) return showError('reg-error','reg-error-text','Preencha todos os campos.');
+  if (pass !== pass2) return showError('reg-error','reg-error-text','As senhas não coincidem.');
+  if (pass.length < 8) return showError('reg-error','reg-error-text','Senha deve ter ao menos 8 caracteres.');
+  setLoading('reg-btn','reg-spinner','reg-label', true);
+  try {
+    const r = await fetch(API+'/auth/client-register', { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ name: name+' '+last, email, password: pass, department: dept }) });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Erro ao criar conta');
+    document.getElementById('reg-success').style.display = 'flex';
+    localStorage.setItem('hd_client_token', d.token);
+    localStorage.setItem('hd_client', JSON.stringify(d.client));
+    setTimeout(() => { window.location.href = window.innerWidth<=768 ? 'mobile.html' : 'portal.html'; }, 1500);
+  } catch(e) {
+    setLoading('reg-btn','reg-spinner','reg-label', false);
+    showError('reg-error','reg-error-text', e.message);
+  }
+}
+
+function showForgot() { alert('Entre em contato com o administrador do sistema para redefinir sua senha.'); }
+
+// Auto-redirect if already logged in
+if (localStorage.getItem('hd_token')) window.location.href = 'dashboard.html';
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>

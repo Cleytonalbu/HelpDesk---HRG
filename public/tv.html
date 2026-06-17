@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>HelpDesk Pro — Painel TV</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#050810;--bg2:#0a0f1c;--bg3:#0f1625;--bg4:#161f32;
+  --border:rgba(255,255,255,0.06);--text:#e8edf5;--muted:#6b7a94;
+  --accent:#3b82f6;--green:#10b981;--orange:#f59e0b;--red:#ef4444;
+  --purple:#8b5cf6;--cyan:#06b6d4;
+}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif}
+body{display:flex;flex-direction:column}
+
+/* HEADER */
+.tv-header{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;border-bottom:1px solid var(--border);background:var(--bg2);flex-shrink:0}
+.tv-brand{display:flex;align-items:center;gap:14px}
+.tv-logo-img{height:38px;filter:brightness(0) invert(1);opacity:0.85}
+.tv-logo-sep{width:1px;height:32px;background:var(--border)}
+.tv-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.5px}
+.tv-subtitle{font-size:11px;color:var(--muted);margin-top:2px;letter-spacing:0.5px;text-transform:uppercase}
+.tv-clock{font-family:'DM Mono',monospace;font-size:22px;font-weight:500;color:var(--accent)}
+.tv-date{font-size:12px;color:var(--muted);text-align:right;margin-top:3px}
+.live-pill{background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);border-radius:20px;padding:4px 12px;font-size:11px;color:var(--red);display:flex;align-items:center;gap:6px;font-weight:600}
+.live-dot{width:7px;height:7px;background:var(--red);border-radius:50%;animation:pulse2 1.5s infinite}
+@keyframes pulse2{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(0.8)}}
+
+/* GRID */
+.tv-grid{flex:1;display:grid;grid-template-columns:repeat(12,1fr);grid-template-rows:repeat(10,1fr);gap:10px;padding:12px 18px;overflow:hidden;min-height:0}
+
+/* CARD */
+.tv-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px;display:flex;flex-direction:column;overflow:hidden;position:relative}
+.tv-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:12px 12px 0 0}
+.tv-card.accent::before{background:var(--accent)}
+.tv-card.green::before{background:var(--green)}
+.tv-card.orange::before{background:var(--orange)}
+.tv-card.red::before{background:var(--red)}
+.tv-card.purple::before{background:var(--purple)}
+.tv-card.cyan::before{background:var(--cyan)}
+.tv-card-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;font-weight:500}
+.tv-card-val{font-family:'Syne',sans-serif;font-size:clamp(28px,4vw,52px);font-weight:800;letter-spacing:-2px;line-height:1}
+.tv-card-sub{font-size:11px;color:var(--muted);margin-top:6px}
+.tv-card-title{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;margin-bottom:10px;letter-spacing:-0.2px;color:var(--muted2,#8a97b0)}
+
+/* GRID PLACEMENT */
+.area-open     {grid-column:1/3;  grid-row:1/4}
+.area-resolved {grid-column:3/5;  grid-row:1/4}
+.area-sla      {grid-column:5/7;  grid-row:1/4}
+.area-tma      {grid-column:7/9;  grid-row:1/4}
+.area-breached {grid-column:9/11; grid-row:1/4}
+.area-today    {grid-column:11/13;grid-row:1/4}
+.area-cat      {grid-column:1/5;  grid-row:4/8}
+.area-vol      {grid-column:5/9;  grid-row:4/8}
+.area-sla-prio {grid-column:9/13; grid-row:4/8}
+.area-last     {grid-column:1/13; grid-row:8/11}
+
+/* BAR CHART */
+.tv-bars{display:flex;gap:6px;align-items:flex-end;height:calc(100% - 30px);margin-top:auto}
+.tv-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;justify-content:flex-end;height:100%}
+.tv-bar{border-radius:4px 4px 0 0;width:100%;min-height:3px;transition:height .8s ease}
+.tv-bar-lbl{font-size:9px;color:var(--muted);white-space:nowrap}
+.tv-bar-num{font-size:10px;font-weight:600}
+
+/* PBAR */
+.tv-pbar-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.tv-pbar-name{font-size:11px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tv-pbar{flex:2;height:8px;background:var(--bg3);border-radius:4px;overflow:hidden}
+.tv-pbar-fill{height:100%;border-radius:4px;transition:width .8s ease}
+.tv-pbar-val{font-size:11px;font-weight:600;min-width:38px;text-align:right}
+
+/* LAST TICKETS TABLE */
+.tv-table{width:100%;border-collapse:collapse;font-size:11.5px;margin-top:4px}
+.tv-table th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:0.5px;padding:4px 8px;font-weight:500;border-bottom:1px solid var(--border);text-align:left}
+.tv-table td{padding:6px 8px;border-bottom:1px solid var(--border)}
+.tv-table tr:last-child td{border-bottom:none}
+.tv-table tr{animation:fadeRow .4s ease}
+@keyframes fadeRow{from{opacity:0;transform:translateX(-4px)}to{opacity:1;transform:translateX(0)}}
+
+/* BADGES */
+.tv-badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600}
+.tv-badge.open{background:rgba(6,182,212,.15);color:var(--cyan)}
+.tv-badge.progress{background:rgba(245,158,11,.15);color:var(--orange)}
+.tv-badge.resolved{background:rgba(16,185,129,.15);color:var(--green)}
+.tv-badge.escalated{background:rgba(239,68,68,.15);color:var(--red)}
+.tv-badge.waiting{background:rgba(139,92,246,.15);color:var(--purple)}
+.tv-badge.closed{background:rgba(255,255,255,.06);color:var(--muted)}
+
+.prio-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px}
+.prio-dot.critical{background:var(--red)}.prio-dot.high{background:var(--orange)}.prio-dot.medium{background:var(--cyan)}.prio-dot.low{background:var(--muted)}
+
+/* SLA RING */
+.sla-ring-wrap{display:flex;align-items:center;gap:16px;height:calc(100% - 28px)}
+.sla-ring-svg{flex-shrink:0}
+.sla-ring-info{flex:1}
+.sla-ring-pct{font-family:'Syne',sans-serif;font-size:clamp(22px,3vw,40px);font-weight:800;letter-spacing:-1.5px;line-height:1}
+.sla-ring-label{font-size:11px;color:var(--muted);margin-top:4px}
+
+/* SCROLLING ticker */
+.ticker-bar{height:32px;background:var(--bg2);border-top:1px solid var(--border);display:flex;align-items:center;overflow:hidden;flex-shrink:0}
+.ticker-inner{display:flex;gap:40px;white-space:nowrap;animation:ticker linear infinite;font-size:12px;color:var(--muted)}
+.ticker-item{display:flex;align-items:center;gap:8px}
+.ticker-item strong{color:var(--text)}
+@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* UPDATED indicator */
+.updated{font-size:10px;color:var(--muted);position:absolute;bottom:8px;right:10px}
+</style>
+</head>
+<body>
+
+<div class="tv-header">
+  <div class="tv-brand">
+    <img src="/img/hospital-regional.jpg" alt="Hospital Regional" style="height:42px;object-fit:contain;background:#fff;border-radius:6px;padding:4px 6px">
+    <div class="tv-logo-sep"></div>
+    <img src="/img/pb-saude.jpg" alt="PB Saúde" style="height:38px;object-fit:contain;background:#fff;border-radius:6px;padding:4px 10px">
+    <div class="tv-logo-sep"></div>
+    <div>
+      <div class="tv-title">Central de TI — HelpDesk Pro</div>
+      <div class="tv-subtitle">Painel de Operações em Tempo Real</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:20px">
+    <div class="live-pill"><span class="live-dot"></span>AO VIVO</div>
+    <div style="text-align:right">
+      <div class="tv-clock" id="tv-clock">00:00:00</div>
+      <div class="tv-date" id="tv-date"></div>
+    </div>
+  </div>
+</div>
+
+<div class="tv-grid">
+  <!-- KPI CARDS -->
+  <div class="tv-card accent area-open">
+    <div class="tv-card-label">🎫 Chamados Abertos</div>
+    <div class="tv-card-val" id="tv-open" style="color:var(--accent)">—</div>
+    <div class="tv-card-sub" id="tv-open-sub">aguardando atendimento</div>
+  </div>
+  <div class="tv-card green area-resolved">
+    <div class="tv-card-label">✅ Resolvidos Hoje</div>
+    <div class="tv-card-val" id="tv-today" style="color:var(--green)">—</div>
+    <div class="tv-card-sub" id="tv-total-sub">—</div>
+  </div>
+  <div class="tv-card area-sla" id="tv-sla-card">
+    <div class="tv-card-label">📊 SLA Global</div>
+    <div class="tv-card-val" id="tv-sla-pct" style="color:var(--green)">—</div>
+    <div class="tv-card-sub">chamados dentro do prazo</div>
+  </div>
+  <div class="tv-card purple area-tma">
+    <div class="tv-card-label">⏱ TMA Resolução</div>
+    <div class="tv-card-val" id="tv-tma" style="color:var(--purple)">—</div>
+    <div class="tv-card-sub">tempo médio (horas)</div>
+  </div>
+  <div class="tv-card orange area-breached">
+    <div class="tv-card-label">🚨 Breaches SLA</div>
+    <div class="tv-card-val" id="tv-breach" style="color:var(--orange)">—</div>
+    <div class="tv-card-sub">violações ativas</div>
+  </div>
+  <div class="tv-card cyan area-today">
+    <div class="tv-card-label">📈 Total Geral</div>
+    <div class="tv-card-val" id="tv-all" style="color:var(--cyan)">—</div>
+    <div class="tv-card-sub">todos os chamados</div>
+  </div>
+
+  <!-- CATEGORIES -->
+  <div class="tv-card accent area-cat">
+    <div class="tv-card-title">📁 CHAMADOS POR CATEGORIA</div>
+    <div id="tv-cats" style="flex:1;display:flex;flex-direction:column;gap:6px;overflow:hidden"></div>
+    <div class="updated" id="tv-updated-cats"></div>
+  </div>
+
+  <!-- VOLUME WEEKLY -->
+  <div class="tv-card area-vol" style="border-color:rgba(59,130,246,0.15)">
+    <div class="tv-card-title">📅 VOLUME DE CHAMADOS — ÚLTIMA SEMANA</div>
+    <div class="tv-bars" id="tv-bars"></div>
+    <div style="display:flex;gap:14px;margin-top:8px">
+      <div style="display:flex;align-items:center;gap:5px;font-size:10.5px;color:var(--muted)"><div style="width:8px;height:8px;border-radius:2px;background:var(--accent)"></div>Abertos</div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:10.5px;color:var(--muted)"><div style="width:8px;height:8px;border-radius:2px;background:var(--green)"></div>Resolvidos</div>
+    </div>
+  </div>
+
+  <!-- SLA BY PRIORITY -->
+  <div class="tv-card purple area-sla-prio">
+    <div class="tv-card-title">🚦 SLA POR PRIORIDADE</div>
+    <div id="tv-sla-prio" style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:10px"></div>
+  </div>
+
+  <!-- LAST TICKETS -->
+  <div class="tv-card area-last">
+    <div class="tv-card-title">🕐 ÚLTIMOS CHAMADOS</div>
+    <div style="flex:1;overflow:hidden">
+      <table class="tv-table">
+        <thead><tr><th>#</th><th>Assunto</th><th>Solicitante</th><th>Categoria</th><th>Prioridade</th><th>Status</th><th>Aberto em</th></tr></thead>
+        <tbody id="tv-last"></tbody>
+      </table>
+    </div>
+    <div class="updated" id="tv-ts"></div>
+  </div>
+</div>
+
+<div class="ticker-bar">
+  <div style="flex-shrink:0;padding:0 16px;font-size:11px;color:var(--accent);font-weight:600;white-space:nowrap">📢 CHAMADOS EM ANDAMENTO</div>
+  <div style="flex:1;overflow:hidden"><div class="ticker-inner" id="tv-ticker"></div></div>
+</div>
+
+<script>
+const API = '/api';
+const statusLabel = {open:'Aberto',progress:'Em Andamento',resolved:'Resolvido',closed:'Fechado',escalated:'Escalado',waiting:'Aguardando'};
+const prioLabel   = {critical:'Crítica',high:'Alta',medium:'Média',low:'Baixa'};
+const prioColors  = {critical:'var(--red)',high:'var(--orange)',medium:'var(--cyan)',low:'var(--muted)'};
+const catEmoji    = {hardware:'💻',software:'⚙',rede:'🌐',acesso:'🔑',impressora:'🖨',outros:'📋'};
+const dayNames    = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+function fmtDate(iso) {
+  if(!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}) + ' ' +
+    d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
+
+// Clock
+function updateClock() {
+  const now = new Date();
+  document.getElementById('tv-clock').textContent = now.toLocaleTimeString('pt-BR');
+  document.getElementById('tv-date').textContent = now.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// Fetch and render
+async function fetchData() {
+  try {
+    const r = await fetch(`${API}/reports/tv`);  // API = '/api', full path = /api/reports/tv
+    const d = await r.json();
+    render(d);
+  } catch(e) { console.error('TV fetch error', e); }
+}
+
+function render(d) {
+  const t = d.totals || {};
+
+  // KPIs
+  document.getElementById('tv-open').textContent    = (t.open||0) + (d.totals?.progress||0) + (d.totals?.waiting||0) + (d.totals?.escalated||0);
+  document.getElementById('tv-today').textContent   = t.resolvedToday || 0;
+  document.getElementById('tv-total-sub').textContent = `total: ${t.all||0} chamados`;
+  const slaEl = document.getElementById('tv-sla-pct');
+  slaEl.textContent = (t.slaPct||100) + '%';
+  slaEl.style.color = t.slaPct >= 90 ? 'var(--green)' : t.slaPct >= 75 ? 'var(--orange)' : 'var(--red)';
+  document.getElementById('tv-tma').textContent     = t.avgResolveHours || '0';
+  document.getElementById('tv-breach').textContent  = t.breached || 0;
+  document.getElementById('tv-all').textContent     = t.all || 0;
+
+  // Categories
+  const cats = Object.entries(d.byCategory||{}).sort((a,b)=>b[1]-a[1]);
+  const catMax = cats[0]?.[1]||1;
+  document.getElementById('tv-cats').innerHTML = cats.slice(0,6).map(([k,v])=>`
+    <div class="tv-pbar-row">
+      <div class="tv-pbar-name">${catEmoji[k]||'📋'} ${k}</div>
+      <div class="tv-pbar"><div class="tv-pbar-fill" style="width:${(v/catMax)*100}%;background:var(--accent)"></div></div>
+      <div class="tv-pbar-val" style="color:var(--accent)">${v}</div>
+    </div>`).join('');
+
+  // Weekly bars
+  const daily = d.daily || [];
+  const barMax = Math.max(...daily.map(x=>Math.max(x.opened||0,x.resolved||0)),1);
+  const barH   = 100; // % height available
+  document.getElementById('tv-bars').innerHTML = daily.map(day=>`
+    <div class="tv-bar-col">
+      <div class="tv-bar-num" style="font-size:9px;color:var(--accent)">${day.opened}</div>
+      <div style="display:flex;gap:2px;align-items:flex-end;width:100%;flex:1">
+        <div class="tv-bar" style="height:${((day.opened||0)/barMax)*100}%;background:var(--accent);opacity:0.85;flex:1"></div>
+        <div class="tv-bar" style="height:${((day.resolved||0)/barMax)*100}%;background:var(--green);opacity:0.85;flex:1"></div>
+      </div>
+      <div class="tv-bar-lbl">${dayNames[new Date(day.date+'T12:00').getDay()]}</div>
+    </div>`).join('');
+
+  // SLA by priority
+  const slap = d.slaByPriority || {};
+  const prioOrder = ['critical','high','medium','low'];
+  document.getElementById('tv-sla-prio').innerHTML = prioOrder.map(p=>{
+    const pct = slap[p]||100;
+    const c = pct>=90?'var(--green)':pct>=75?'var(--orange)':'var(--red)';
+    return `<div class="tv-pbar-row">
+      <div class="tv-pbar-name"><span class="prio-dot ${p}"></span>${prioLabel[p]}</div>
+      <div class="tv-pbar"><div class="tv-pbar-fill" style="width:${pct}%;background:${c}"></div></div>
+      <div class="tv-pbar-val" style="color:${c}">${pct}%</div>
+    </div>`;
+  }).join('');
+
+  // Last tickets
+  const last = d.lastTickets || [];
+  document.getElementById('tv-last').innerHTML = last.map(t=>`
+    <tr>
+      <td><span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--accent)">#${t.number}</span></td>
+      <td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.title}</td>
+      <td style="color:var(--muted)">${t.requester_name}</td>
+      <td><span style="font-size:10.5px;color:var(--muted)">${catEmoji[t.category]||'📋'} ${t.category}</span></td>
+      <td><span class="prio-dot ${t.priority}"></span>${prioLabel[t.priority]||t.priority}</td>
+      <td><span class="tv-badge ${t.status}">${statusLabel[t.status]||t.status}</span></td>
+      <td style="color:var(--muted)">${fmtDate(t.created_at)}</td>
+    </tr>`).join('');
+
+  // Ticker
+  const openItems = last.filter(t=>['open','progress','escalated'].includes(t.status));
+  const ticker = [...openItems,...openItems].map(t=>
+    `<span class="ticker-item"><span class="tv-badge ${t.status}">#${t.number}</span><strong>${t.title.slice(0,40)}</strong> — ${t.requester_name}</span>`
+  ).join('');
+  const tickerEl = document.getElementById('tv-ticker');
+  if (ticker) {
+    tickerEl.innerHTML = ticker;
+    const duration = Math.max(openItems.length * 4, 20);
+    tickerEl.style.animationDuration = duration + 's';
+  }
+
+  // Updated timestamps
+  const now = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('tv-ts').textContent = `Atualizado às ${now}`;
+  document.getElementById('tv-updated-cats').textContent = `Atualizado às ${now}`;
+}
+
+// Initial fetch + auto-refresh every 30s
+fetchData();
+setInterval(fetchData, 30000);
+</script>
+</body>
+</html>

@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HelpDesk Pro — Portal do Cliente</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&family=DM+Mono&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#f8f9fc; --bg2:#fff; --bg3:#f1f3f8; --bg4:#e8ecf5;
+  --card:#fff; --border:rgba(0,0,0,0.07); --border2:rgba(0,0,0,0.12);
+  --text:#0f1520; --muted:#6b7a94; --muted2:#8a97b0;
+  --accent:#2563eb; --accent2:#1d4ed8; --accent-bg:rgba(37,99,235,0.06);
+  --green:#059669; --green-bg:rgba(5,150,105,0.08);
+  --orange:#d97706; --orange-bg:rgba(217,119,6,0.08);
+  --red:#dc2626; --red-bg:rgba(220,38,38,0.08);
+  --purple:#7c3aed; --purple-bg:rgba(124,58,237,0.08);
+  --cyan:#0891b2; --cyan-bg:rgba(8,145,178,0.08);
+  --radius:10px; --radius-lg:14px;
+  --shadow:0 1px 4px rgba(0,0,0,0.08),0 4px 20px rgba(0,0,0,0.04);
+}
+html,body{min-height:100%}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text)}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:4px}
+
+/* TOPBAR */
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 32px;height:60px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:50;box-shadow:0 1px 8px rgba(0,0,0,0.05)}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-icon{width:32px;height:32px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff}
+.logo-text{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--text)}
+.topbar-nav{display:flex;gap:4px;margin-left:24px}
+.topbar-nav a{padding:6px 14px;border-radius:8px;font-size:13.5px;cursor:pointer;color:var(--muted);transition:all .15s;text-decoration:none}
+.topbar-nav a:hover{color:var(--text);background:var(--bg3)}
+.topbar-nav a.active{color:var(--accent);background:var(--accent-bg);font-weight:500}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.user-pill{display:flex;align-items:center;gap:8px;cursor:pointer;padding:6px 12px 6px 6px;border-radius:20px;transition:background .15s}
+.user-pill:hover{background:var(--bg3)}
+.user-av{width:30px;height:30px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff}
+.user-nm{font-size:13px;font-weight:500}
+.logout-btn{padding:6px 14px;border-radius:8px;font-size:13px;color:var(--muted);cursor:pointer;border:1px solid var(--border);background:none;font-family:'DM Sans',sans-serif;transition:all .15s}
+.logout-btn:hover{color:var(--red);border-color:var(--red)}
+
+/* LAYOUT */
+.container{max-width:1100px;margin:0 auto;padding:32px 24px}
+.view{display:none}.view.active{display:block;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,var(--accent) 0%,#1e40af 100%);border-radius:var(--radius-lg);padding:36px 40px;color:#fff;margin-bottom:28px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-60px;right:-60px;width:220px;height:220px;background:rgba(255,255,255,0.06);border-radius:50%}
+.hero::after{content:'';position:absolute;bottom:-40px;right:60px;width:140px;height:140px;background:rgba(255,255,255,0.04);border-radius:50%}
+.hero-greeting{font-size:13px;opacity:0.75;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.8px}
+.hero-title{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;margin-bottom:6px;letter-spacing:-0.5px}
+.hero-sub{font-size:14px;opacity:0.75;margin-bottom:24px}
+.hero-actions{display:flex;gap:10px;position:relative;z-index:1}
+.hero-btn{padding:10px 20px;border-radius:9px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:'Syne',sans-serif;border:none;transition:all .15s;letter-spacing:-0.1px}
+.hero-btn.primary{background:#fff;color:var(--accent)}
+.hero-btn.primary:hover{background:#f0f4ff}
+.hero-btn.ghost{background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3)}
+.hero-btn.ghost:hover{background:rgba(255,255,255,0.25)}
+
+/* KPI */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
+.kpi-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;box-shadow:var(--shadow)}
+.kpi-card .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:7px;display:flex;align-items:center;gap:6px}
+.kpi-card .val{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;letter-spacing:-1px;line-height:1}
+.kpi-card .sub{font-size:11.5px;color:var(--muted);margin-top:4px}
+.kpi-ic{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px}
+
+/* GRID */
+.two-col{display:grid;grid-template-columns:1fr 340px;gap:20px}
+.section-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:14px;color:var(--text);letter-spacing:-0.2px}
+
+/* CARD */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow)}
+.card-hdr{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.card-ttl{font-family:'Syne',sans-serif;font-size:13.5px;font-weight:700}
+.card-body{padding:20px}
+
+/* TICKETS LIST */
+.ticket-item{padding:14px 20px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;display:flex;align-items:flex-start;gap:14px}
+.ticket-item:last-child{border-bottom:none}
+.ticket-item:hover{background:var(--bg3)}
+.ticket-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.ticket-icon.open{background:var(--cyan-bg)}
+.ticket-icon.progress{background:var(--orange-bg)}
+.ticket-icon.resolved{background:var(--green-bg)}
+.ticket-icon.escalated{background:var(--red-bg)}
+.ticket-icon.waiting{background:var(--purple-bg)}
+.ticket-num{font-family:'DM Mono',monospace;font-size:11.5px;color:var(--accent);margin-bottom:3px}
+.ticket-ttl{font-size:13.5px;font-weight:500;margin-bottom:4px}
+.ticket-info{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ticket-right{margin-left:auto;text-align:right;flex-shrink:0}
+.sla-time{font-family:'DM Mono',monospace;font-size:11.5px}
+.sla-ok{color:var(--green)}.sla-warn{color:var(--orange)}.sla-breach{color:var(--red)}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:500;white-space:nowrap}
+.badge.open{background:var(--cyan-bg);color:var(--cyan)}
+.badge.progress{background:var(--orange-bg);color:var(--orange)}
+.badge.resolved{background:var(--green-bg);color:var(--green)}
+.badge.closed{background:var(--bg3);color:var(--muted)}
+.badge.escalated{background:var(--red-bg);color:var(--red)}
+.badge.waiting{background:var(--purple-bg);color:var(--purple)}
+.prio-dot{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:4px}
+.prio.critical .prio-dot{background:var(--red)}.prio.high .prio-dot{background:var(--orange)}
+.prio.medium .prio-dot{background:var(--cyan)}.prio.low .prio-dot{background:var(--muted)}
+.prio.critical{color:var(--red)}.prio.high{color:var(--orange)}.prio.medium{color:var(--cyan)}.prio.low{color:var(--muted)}
+.prio{font-size:12px;font-weight:500;display:inline-flex;align-items:center}
+
+/* SIDEBAR QUICK */
+.quick-link{display:flex;align-items:center;gap:12px;padding:12px;border-radius:var(--radius);cursor:pointer;transition:all .15s;border:1px solid var(--border);margin-bottom:8px;background:var(--bg2)}
+.quick-link:hover{border-color:var(--accent);background:var(--accent-bg)}
+.quick-link .ql-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.quick-link .ql-title{font-size:13.5px;font-weight:500;margin-bottom:2px}
+.quick-link .ql-desc{font-size:11.5px;color:var(--muted)}
+
+/* NEW TICKET FORM */
+.form-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px;box-shadow:var(--shadow)}
+.fg{margin-bottom:18px}
+.fl{font-size:12px;color:var(--muted);font-weight:500;display:block;margin-bottom:7px;text-transform:uppercase;letter-spacing:0.3px}
+.fi{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:11px 13px;color:var(--text);font-size:13.5px;font-family:'DM Sans',sans-serif;outline:none;transition:border .15s}
+.fi:focus{border-color:var(--accent);background:#fff}
+.fi::placeholder{color:var(--muted)}
+textarea.fi{resize:vertical;min-height:120px;line-height:1.6}
+select.fi{cursor:pointer;appearance:none}
+.form-row2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.upload-zone{border:1.5px dashed var(--border2);border-radius:9px;padding:28px;text-align:center;cursor:pointer;transition:all .15s;background:var(--bg3)}
+.upload-zone:hover{border-color:var(--accent);background:var(--accent-bg)}
+.ai-hint{background:var(--accent-bg);border:1px solid rgba(37,99,235,0.18);border-radius:9px;padding:12px 14px;margin-bottom:18px}
+.ai-hint-label{font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:5px;display:flex;align-items:center;gap:5px}
+.ai-hint p{font-size:13px;color:var(--text);line-height:1.6;opacity:0.75}
+.ai-hint a{color:var(--accent);cursor:pointer}
+
+/* KB */
+.kb-search{background:var(--bg2);border:1px solid var(--border);border-radius:11px;padding:13px 18px;display:flex;align-items:center;gap:12px;margin-bottom:22px;box-shadow:var(--shadow)}
+.kb-search input{flex:1;background:none;border:none;outline:none;color:var(--text);font-size:15px;font-family:'DM Sans',sans-serif}
+.kb-cats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:22px}
+.kb-cat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;cursor:pointer;transition:all .15s;box-shadow:var(--shadow)}
+.kb-cat-card:hover{border-color:var(--accent);background:var(--accent-bg)}
+.kb-cat-icon{font-size:20px;margin-bottom:8px}
+.kb-cat-name{font-size:13px;font-weight:600;margin-bottom:2px}
+.kb-cat-count{font-size:11.5px;color:var(--muted)}
+.kb-art{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:13px 16px;cursor:pointer;display:flex;align-items:center;gap:12px;margin-bottom:8px;box-shadow:var(--shadow);transition:all .15s}
+.kb-art:hover{border-color:var(--accent)}
+.helpful{background:var(--green-bg);color:var(--green);font-size:10.5px;padding:2px 7px;border-radius:10px}
+
+/* BTN */
+.btn{padding:10px 20px;border-radius:9px;font-size:13.5px;font-weight:600;cursor:pointer;border:none;font-family:'Syne',sans-serif;transition:all .15s;letter-spacing:-0.1px}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:var(--accent2)}
+.btn-ghost{background:var(--bg3);color:var(--muted);border:1px solid var(--border)}.btn-ghost:hover{color:var(--text)}
+.btn-sm{padding:7px 14px;font-size:12px;border-radius:8px}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);z-index:100;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);width:700px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,0.15);transform:translateY(12px);transition:transform .2s;overflow:hidden}
+.modal-overlay.open .modal{transform:translateY(0)}
+.modal-hdr{display:flex;align-items:flex-start;gap:14px;padding:22px 24px;border-bottom:1px solid var(--border)}
+.modal-ttl{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;margin-bottom:6px;letter-spacing:-0.3px}
+.modal-meta{display:flex;gap:8px;flex-wrap:wrap}
+.close-btn{width:28px;height:28px;background:var(--bg3);border:1px solid var(--border);border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);font-size:12px;flex-shrink:0;margin-top:2px;transition:all .15s}
+.close-btn:hover{background:var(--red-bg);color:var(--red)}
+.modal-body{display:flex;flex:1;overflow:hidden;min-height:0}
+.modal-main{flex:1;overflow-y:auto;padding:22px 24px}
+.modal-side{width:200px;border-left:1px solid var(--border);padding:16px;display:flex;flex-direction:column;gap:14px;background:var(--bg3)}
+.ms-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px}
+.ms-val{font-size:13px;font-weight:500}
+.modal-footer{padding:14px 24px;border-top:1px solid var(--border);background:var(--bg)}
+.reply-area{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;resize:none;outline:none;transition:border .15s}
+.reply-area:focus{border-color:var(--accent)}
+
+/* TIMELINE */
+.tl-item{display:flex;gap:12px;padding-bottom:18px}
+.tl-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.tl-dot.blue{background:var(--accent-bg);color:var(--accent)}
+.tl-dot.gray{background:var(--bg3);color:var(--muted)}
+.tl-dot.orange{background:var(--orange-bg);color:var(--orange)}
+.tl-dot.green{background:var(--green-bg);color:var(--green)}
+.tl-l{display:flex;flex-direction:column;align-items:center}
+.tl-line{flex:1;width:1px;background:var(--border);margin:4px 0}
+.tl-actor{font-size:12.5px;font-weight:600}
+.tl-time{font-size:11px;color:var(--muted);margin-left:6px}
+.tl-msg{font-size:13px;color:var(--muted);margin-top:4px;line-height:1.6}
+.tl-system-msg{background:var(--bg3);border-radius:6px;padding:7px 10px;font-size:12px;color:var(--muted);margin-top:4px}
+
+/* RATING */
+.star-row{display:flex;gap:4px;cursor:pointer}
+.star{font-size:24px;color:var(--border2);transition:color .1s}
+.star.active,.star:hover~.star,.star:hover{color:var(--orange)}
+.star-row:hover .star{color:var(--orange)}
+.star-row .star:hover~.star{color:var(--border2)}
+
+/* PROFILE */
+.profile-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px;max-width:580px;box-shadow:var(--shadow)}
+
+/* EMPTY */
+.empty{text-align:center;padding:48px 24px;color:var(--muted)}
+.empty-icon{font-size:40px;margin-bottom:12px}
+.empty-title{font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px}
+.empty-desc{font-size:13.5px;line-height:1.6}
+
+/* DATASHOW */
+.ds-status-confirmed{background:var(--green-bg);color:var(--green)}
+.ds-status-cancelled{background:var(--red-bg);color:var(--red)}
+.ds-status-pending{background:var(--orange-bg);color:var(--orange)}
+.ds-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;margin-bottom:20px}
+.ds-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;box-shadow:var(--shadow);transition:border .15s}
+.ds-card:hover{border-color:var(--accent)}
+.ds-card-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px}
+.ds-card-date{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;letter-spacing:-1px;color:var(--accent)}
+.ds-card-day{font-size:11px;color:var(--muted);margin-top:2px}
+.ds-card-time{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px}
+.ds-card-loc{font-size:12px;color:var(--muted);margin-bottom:6px}
+.ds-card-purpose{font-size:13.5px;font-weight:500;margin-bottom:6px}
+.ds-card-requester{font-size:12px;color:var(--muted)}
+.ds-empty{text-align:center;padding:48px 24px;color:var(--muted)}
+
+/* ── NOTIFICAÇÕES ──────────────────────────────────────────── */
+.ticket-item.has-update {
+  background: rgba(59,130,246,.04);
+  border-left: 3px solid var(--accent);
+}
+.update-dot {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--accent); flex-shrink: 0;
+  box-shadow: 0 0 0 3px rgba(59,130,246,.2);
+  animation: pulse-dot 2s infinite;
+}
+@keyframes pulse-dot {
+  0%,100% { box-shadow: 0 0 0 3px rgba(59,130,246,.2); }
+  50%      { box-shadow: 0 0 0 6px rgba(59,130,246,.05); }
+}
+.notif-toast {
+  position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+  background: var(--card); border: 1px solid var(--accent);
+  border-radius: 14px; padding: 14px 18px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.18);
+  display: flex; align-items: flex-start; gap: 12px;
+  max-width: 340px; animation: toastIn .3s ease; cursor: pointer;
+}
+@keyframes toastIn {
+  from { opacity:0; transform: translateY(12px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+.notif-toast-icon  { font-size: 22px; flex-shrink: 0; margin-top: 1px; }
+.notif-toast-title { font-weight: 700; font-size: 13.5px; margin-bottom: 3px; color: var(--text); }
+.notif-toast-body  { font-size: 12.5px; color: var(--muted); line-height: 1.4; }
+#portal-notif-btn  { position:relative; cursor:pointer; font-size:18px; padding:4px 8px; border-radius:8px; transition:background .15s; }
+#portal-notif-btn:hover { background: var(--bg3); }
+#portal-notif-dot  { position:absolute; top:2px; right:4px; width:8px; height:8px; border-radius:50%; background:var(--red); border:2px solid var(--bg); display:none; }
+.notif-badge       { display:inline-flex; align-items:center; justify-content:center; background:var(--accent); color:#fff; font-size:10px; font-weight:700; min-width:18px; height:18px; border-radius:9px; padding:0 5px; margin-left:6px; vertical-align:middle; }
+
+/* ── RESPONSIVE ──────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Topbar: stack or compress */
+  .topbar { padding: 0 12px; height: auto; min-height: 54px; flex-wrap: wrap; gap: 4px; }
+  .topbar-nav {
+    order: 3; width: 100%; overflow-x: auto; padding: 0 0 8px; gap: 2px;
+    scrollbar-width: none; margin-left: 0;
+  }
+  .topbar-nav::-webkit-scrollbar { display: none; }
+  .topbar-nav a { padding: 5px 11px; font-size: 12.5px; white-space: nowrap; }
+  .topbar img { height: 22px; }
+  .topbar .logo { flex-shrink: 0; }
+  .topbar-right { margin-left: auto; }
+  .user-nm { display: none; }
+
+  /* Container */
+  .container { padding: 14px 12px; }
+
+  /* Hero */
+  .hero { padding: 22px 20px; }
+  .hero-title { font-size: 20px; }
+  .hero-sub { font-size: 13px; margin-bottom: 16px; }
+  .hero-actions { flex-direction: column; gap: 8px; }
+  .hero-btn { text-align: center; }
+
+  /* KPI row: 2 columns */
+  .kpi-row { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .kpi-card .val { font-size: 24px; }
+
+  /* Two-col layout: single column */
+  .two-col { grid-template-columns: 1fr !important; }
+  .form-row2 { grid-template-columns: 1fr !important; }
+
+  /* Quick links: remove right arrow margin */
+  .quick-link { padding: 11px 12px; }
+
+  /* Ticket items */
+  .ticket-item { flex-wrap: wrap; gap: 8px; }
+  .ticket-right { margin-left: 0; width: 100%; text-align: left; }
+
+  /* Modals: bottom sheet */
+  .modal-overlay { align-items: flex-end; }
+  .modal { width: 100% !important; max-height: 92vh; border-radius: 14px 14px 0 0; }
+
+  /* Form card */
+  .form-card { padding: 18px 14px; }
+
+  /* Profile card */
+  .profile-card { padding: 18px 14px; }
+  .profile-card > div:first-child { flex-direction: column; gap: 12px; }
+
+  /* KB categories: 2 col */
+  .kb-cats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+
+  /* Datashow cards: 1 col */
+  .ds-grid { grid-template-columns: 1fr !important; }
+}
+
+@media (max-width: 480px) {
+  .kpi-row { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .kpi-card .val { font-size: 20px; }
+  .container { padding: 10px 8px; }
+  .hero-title { font-size: 18px; }
+  .kb-cats-grid { grid-template-columns: 1fr 1fr !important; }
+}
+</style>
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/img/icon-192.png">
+<meta name="theme-color" content="#2563eb">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <a class="logo" href="#">
+    <div class="logo-icon">🎧</div>
+    <div class="logo-text">HelpDesk Pro</div>
+  </a>
+  <div style="display:flex;align-items:center;gap:10px;margin-left:8px">
+    <div style="width:1px;height:24px;background:var(--border)"></div>
+    <img src="/img/hospital-regional.jpg" alt="Hospital Regional" style="height:28px;object-fit:contain">
+    <img src="/img/pb-saude.jpg" alt="PB Saúde" style="height:24px;object-fit:contain">
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;margin-left:auto;margin-right:12px">
+    <a href="/mobile.html" style="display:flex;align-items:center;gap:5px;background:var(--accent-bg);border:1.5px solid rgba(37,99,235,.2);color:var(--accent);padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;white-space:nowrap">📱 App Mobile</a>
+  </div>
+  <nav class="topbar-nav">
+    <a class="active" data-view="home" onclick="show('home',this)">🏠 Início</a>
+    <a data-view="my-tickets" onclick="show('my-tickets',this)">🎫 Meus Chamados</a>
+    <a data-view="new-ticket" onclick="show('new-ticket',this)">➕ Novo Chamado</a>
+    <a data-view="datashow" onclick="show('datashow',this)">📽 Datashow</a>
+    <a data-view="kb" onclick="show('kb',this)">📚 Ajuda</a>
+    <a data-view="profile" onclick="show('profile',this)">👤 Meu Perfil</a>
+  </nav>
+  <div class="topbar-right">
+    <div id="portal-notif-btn" onclick="openNotifPanel()" title="Notificações" style="position:relative;cursor:pointer;font-size:20px;padding:4px 6px;border-radius:8px;transition:background .15s;user-select:none" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''">
+      🔔<span id="portal-notif-dot" style="position:absolute;top:2px;right:2px;width:9px;height:9px;border-radius:50%;background:var(--red);border:2px solid var(--bg);display:none"></span>
+    </div>
+    <div class="user-pill">
+      <div class="user-av" id="client-av">?</div>
+      <span class="user-nm" id="client-name">—</span>
+    </div>
+    <a href="/mobile.html" style="font-size:12px;color:var(--accent);padding:6px 10px;border:1px solid var(--border);border-radius:8px;text-decoration:none;white-space:nowrap">📱 App</a><button class="logout-btn" onclick="logout()">Sair</button>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- HOME -->
+  <div class="view active" id="v-home">
+    <div class="hero">
+      <div class="hero-greeting">Portal do Cliente</div>
+      <div class="hero-title" id="hero-greeting">Olá, bem-vindo! 👋</div>
+      <div class="hero-sub">Abra chamados, acompanhe o atendimento e encontre respostas na base de conhecimento.</div>
+      <div class="hero-actions">
+        <button class="hero-btn primary" onclick="show('new-ticket',document.querySelector('[data-view=new-ticket]'))">➕ Novo Chamado</button>
+        <button class="hero-btn ghost" onclick="show('kb',document.querySelector('[data-view=kb]'))">📚 Base de Conhecimento</button>
+      </div>
+    </div>
+
+    <div class="kpi-row" id="client-kpis">
+      <div class="kpi-card"><div class="lbl"><div class="kpi-ic" style="background:var(--cyan-bg)">🎫</div>Abertos</div><div class="val" id="ck-open" style="color:var(--cyan)">—</div><div class="sub">aguardando atendimento</div></div>
+      <div class="kpi-card"><div class="lbl"><div class="kpi-ic" style="background:var(--orange-bg)">⚙</div>Em Andamento</div><div class="val" id="ck-prog" style="color:var(--orange)">—</div><div class="sub">sendo trabalhados</div></div>
+      <div class="kpi-card"><div class="lbl"><div class="kpi-ic" style="background:var(--green-bg)">✅</div>Resolvidos</div><div class="val" id="ck-res" style="color:var(--green)">—</div><div class="sub">chamados encerrados</div></div>
+      <div class="kpi-card"><div class="lbl"><div class="kpi-ic" style="background:var(--accent-bg)">📊</div>Total</div><div class="val" id="ck-total" style="color:var(--accent)">—</div><div class="sub">todos os chamados</div></div>
+    </div>
+
+    <div class="two-col">
+      <div>
+        <div class="section-title">Chamados Recentes</div>
+        <div class="card" id="recent-tickets-card">
+          <div style="padding:32px;text-align:center;color:var(--muted)">Carregando…</div>
+        </div>
+      </div>
+      <div>
+        <div class="section-title">Resolva Agora</div>
+        <div class="quick-link" onclick="show('new-ticket',document.querySelector('[data-view=new-ticket]'))">
+          <div class="ql-icon" style="background:var(--accent-bg)">🎫</div>
+          <div><div class="ql-title">Abrir Chamado</div><div class="ql-desc">Reporte um problema ou solicitação</div></div>
+          <span style="color:var(--muted);margin-left:auto">›</span>
+        </div>
+        <div class="quick-link" onclick="show('datashow',document.querySelector('[data-view=datashow]'))">
+          <div class="ql-icon" style="background:var(--purple-bg)">📽</div>
+          <div><div class="ql-title">Agendar Datashow</div><div class="ql-desc">Reserve o projetor / auditório</div></div>
+          <span style="color:var(--muted);margin-left:auto">›</span>
+        </div>
+        <div class="quick-link" onclick="show('kb',document.querySelector('[data-view=kb]'))">
+          <div class="ql-icon" style="background:var(--green-bg)">📚</div>
+          <div><div class="ql-title">Base de Conhecimento</div><div class="ql-desc">Artigos e tutoriais de autoatendimento</div></div>
+          <span style="color:var(--muted);margin-left:auto">›</span>
+        </div>
+        <div class="quick-link" onclick="show('kb',document.querySelector('[data-view=kb]'))">
+          <div class="ql-icon" style="background:var(--orange-bg)">🔑</div>
+          <div><div class="ql-title">Redefinir Senha</div><div class="ql-desc">Sem precisar abrir chamado</div></div>
+          <span style="color:var(--muted);margin-left:auto">›</span>
+        </div>
+        <div class="quick-link" onclick="show('kb',document.querySelector('[data-view=kb]'))">
+          <div class="ql-icon" style="background:var(--purple-bg)">🛡</div>
+          <div><div class="ql-title">Problemas de VPN</div><div class="ql-desc">Guia passo a passo</div></div>
+          <span style="color:var(--muted);margin-left:auto">›</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MY TICKETS -->
+  <div class="view" id="v-my-tickets">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:4px">Meus Chamados</div>
+        <div style="font-size:13px;color:var(--muted)">Acompanhe o status e histórico dos seus chamados</div>
+      </div>
+      <button class="btn btn-primary" onclick="show('new-ticket',document.querySelector('[data-view=new-ticket]'))">➕ Novo Chamado</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <div style="display:flex;gap:3px;background:var(--bg3);border-radius:8px;padding:3px;border:1px solid var(--border)">
+        <div style="padding:5px 12px;border-radius:6px;font-size:12.5px;cursor:pointer;background:var(--accent);color:#fff" id="tab-all" onclick="filterMyTickets('all',this)">Todos</div>
+        <div style="padding:5px 12px;border-radius:6px;font-size:12.5px;cursor:pointer;color:var(--muted)" id="tab-open" onclick="filterMyTickets('open',this)">Abertos</div>
+        <div style="padding:5px 12px;border-radius:6px;font-size:12.5px;cursor:pointer;color:var(--muted)" id="tab-progress" onclick="filterMyTickets('progress',this)">Em Andamento</div>
+        <div style="padding:5px 12px;border-radius:6px;font-size:12.5px;cursor:pointer;color:var(--muted)" id="tab-resolved" onclick="filterMyTickets('resolved',this)">Resolvidos</div>
+      </div>
+    </div>
+    <div class="card" id="my-tickets-list"></div>
+  </div>
+
+  <!-- NEW TICKET -->
+  <div class="view" id="v-new-ticket">
+    <div style="max-width:700px">
+      <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:4px">Novo Chamado</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:24px">Descreva o problema com o máximo de detalhes para agilizar o atendimento.</div>
+
+      <div class="ai-hint">
+        <div class="ai-hint-label">✨ Dica</div>
+        <p>Antes de abrir um chamado, tente resolver na <a onclick="show('kb',document.querySelector('[data-view=kb]'))">Base de Conhecimento</a> — problemas como redefinição de senha e configuração de VPN têm soluções em 2 minutos.</p>
+      </div>
+
+      <div class="form-card">
+        <div class="form-row2">
+          <div class="fg"><label class="fl">Seu Nome</label><input class="fi" id="nt-name" placeholder="Nome completo"></div>
+          <div class="fg"><label class="fl">E-mail</label><input class="fi" type="email" id="nt-email" placeholder="seu@empresa.com"></div>
+        </div>
+        <div class="fg"><label class="fl">Seu Setor / Departamento <span style="color:var(--red)">*</span></label>
+            <select class="fi" id="nt-dept">
+              <option>Almoxarifado</option>
+              <option>Alojamento Conjunto</option>
+              <option>Assessoria de Pele</option>
+              <option>Auditoria</option>
+              <option>Bloco Cirúrgico</option>
+              <option>Bloco Cirúrgico Obstétrico</option>
+              <option>CAF</option>
+              <option>CME</option>
+              <option>Clinica Cirúrgica</option>
+              <option>Clinica Médica</option>
+              <option>Consultório Cirurgião Geral</option>
+              <option>Consultório Clinico Geral</option>
+              <option>Consultório Obstétrico</option>
+              <option>Consultório Ortopedia</option>
+              <option>Direção Administrativa</option>
+              <option>Direção Geral</option>
+              <option>Direção Técnica</option>
+              <option>Enfermaria Pediátrica</option>
+              <option>Farmácia</option>
+              <option>Farmácia Satélite 01</option>
+              <option>Faturamento</option>
+              <option>Fisioterapia</option>
+              <option>Fonoaudiologia</option>
+              <option>GAF</option>
+              <option>GSL</option>
+              <option>Humanização</option>
+              <option>Lavanderia</option>
+              <option>NAE</option>
+              <option>NIR</option>
+              <option>NSP</option>
+              <option>Nutrição</option>
+              <option>Odontologia</option>
+              <option>Ouvidoria</option>
+              <option>Posto de Enf. CDI</option>
+              <option>Pré-Parto</option>
+              <option>Raio X</option>
+              <option>Recepção Ambulatório</option>
+              <option>Recepção CDI</option>
+              <option>Recepção Maternidade</option>
+              <option>Recepção Urgência/Emergência</option>
+              <option>RH</option>
+              <option>Sala Amarela</option>
+              <option>Sala Verde</option>
+              <option>Sala Vermelha</option>
+              <option>SAME</option>
+              <option>SCIH</option>
+              <option>Segurança do Trabalho</option>
+              <option>Serviço Social</option>
+              <option>TI</option>
+              <option>Tomografia</option>
+              <option>Triagem Obstetrícia</option>
+              <option>Triagem Urgência/Emergência</option>
+              <option>UCIN</option>
+              <option>Urgência/Emergência</option>
+              <option>UTI</option>
+              <option>UTIN</option>
+            </select>
+          </div>
+        <div class="fg"><label class="fl">Assunto</label><input class="fi" id="nt-title" placeholder="Descreva o problema brevemente"></div>
+        <div class="form-row2">
+          <div class="fg"><label class="fl">Categoria</label>
+            <select class="fi" id="nt-cat">
+              <option value="hardware">💻 Hardware / Equipamento</option>
+              <option value="software">⚙ Software / Sistema</option>
+              <option value="rede">🌐 Rede / Conectividade</option>
+              <option value="acesso">🔑 Acesso / Senha</option>
+              <option value="impressora">🖨 Impressora</option>
+              <option value="outros">📋 Outros</option>
+            </select>
+          </div>
+          <div class="fg"><label class="fl">Urgência</label>
+            <select class="fi" id="nt-prio">
+              <option value="low">⚪ Baixa — não urgente</option>
+              <option value="medium" selected>🟡 Média — impacto parcial</option>
+              <option value="high">🟠 Alta — impacto total</option>
+              <option value="critical">🔴 Crítica — produção parada</option>
+            </select>
+          </div>
+        </div>
+        <div class="fg"><label class="fl">Descrição Detalhada</label><textarea class="fi" id="nt-desc" placeholder="Descreva o problema: o que ocorre, mensagens de erro, desde quando, quantas pessoas afetadas…"></textarea></div>
+        <div class="fg">
+          <label class="fl">Anexos (opcional)</label>
+          <div class="upload-zone">
+            <div style="font-size:28px;margin-bottom:8px">📎</div>
+            <div style="font-size:13.5px;color:var(--text);font-weight:500">Arraste arquivos aqui ou <span style="color:var(--accent)">clique para selecionar</span></div>
+            <div style="font-size:11.5px;color:var(--muted);margin-top:4px">PNG, JPG, PDF, DOCX — máx. 10 MB</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-primary" onclick="submitTicket()">📨 Enviar Chamado</button>
+          <button class="btn btn-ghost" onclick="show('kb',document.querySelector('[data-view=kb]'))">📚 Ver Base de Conhecimento</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KB -->
+  <div class="view" id="v-kb">
+    <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:4px">Central de Ajuda</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:24px">Resolva problemas comuns sem precisar abrir um chamado.</div>
+    <div class="kb-search">
+      <span style="color:var(--muted);font-size:16px">🔍</span>
+      <input type="text" id="kb-search-inp" placeholder="Buscar tutoriais, guias, soluções…" oninput="searchKB(this.value)">
+    </div>
+    <div style="font-family:'Syne',sans-serif;font-size:12.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:12px">CATEGORIAS</div>
+    <div class="kb-cats-grid" id="kb-cats"></div>
+    <div style="font-family:'Syne',sans-serif;font-size:12.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:12px">ARTIGOS POPULARES</div>
+    <div id="kb-arts"></div>
+  </div>
+
+  <!-- PROFILE -->
+  <div class="view" id="v-profile">
+    <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:4px">Meu Perfil</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:24px">Gerencie suas informações pessoais e preferências.</div>
+    <div class="profile-card">
+      <div style="display:flex;align-items:center;gap:18px;margin-bottom:24px;padding-bottom:24px;border-bottom:1px solid var(--border)">
+        <div id="profile-av" style="width:64px;height:64px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#fff"></div>
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700" id="profile-name"></div>
+          <div style="font-size:13px;color:var(--muted)" id="profile-dept"></div>
+          <div style="font-size:13px;color:var(--muted)" id="profile-email"></div>
+        </div>
+      </div>
+      <div class="form-row2">
+        <div class="fg"><label class="fl">Nome completo</label><input class="fi" id="pf-name" placeholder="Seu nome"></div>
+        <div class="fg"><label class="fl">Departamento</label>
+          <select class="fi" id="pf-dept">
+            <option value="">Selecione…</option>
+            <option>Administrativo</option><option>Almoxarifado</option>
+            <option>Centro Cirúrgico</option><option>Enfermagem</option>
+            <option>Farmácia</option><option>Financeiro</option>
+            <option>Internação</option><option>Jurídico</option>
+            <option>Laboratório</option><option>Manutenção</option>
+            <option>Nutrição</option><option>Radiologia</option>
+            <option>Recepção</option><option>RH</option>
+            <option>TI</option><option>UTI</option><option>Outro</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg"><label class="fl">E-mail</label><input class="fi" id="pf-email" type="email" readonly style="opacity:0.6"></div>
+      <div style="border-top:1px solid var(--border);padding-top:20px;margin-top:4px;margin-bottom:20px">
+        <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:6px">Alterar senha</div>
+        <div style="font-size:12.5px;color:var(--muted);margin-bottom:14px">Preencha abaixo apenas se quiser trocar sua senha atual.</div>
+        <div id="pass-ok"  style="background:rgba(5,150,105,.08);border:1px solid rgba(5,150,105,.2);border-radius:8px;padding:9px 13px;font-size:13px;color:var(--green);margin-bottom:12px;display:none">✓ Senha alterada com sucesso!</div>
+        <div id="pass-err" style="background:rgba(220,38,38,.08);border:1px solid rgba(220,38,38,.2);border-radius:8px;padding:9px 13px;font-size:13px;color:var(--red);margin-bottom:12px;display:none"></div>
+        <div class="form-row2">
+          <div class="fg"><label class="fl">Senha atual</label><input class="fi" type="password" id="pf-pass-old" placeholder="Sua senha atual"></div>
+          <div class="fg"><label class="fl">Nova senha</label><input class="fi" type="password" id="pf-pass-new" placeholder="Mín. 8 caracteres"></div>
+        </div>
+        <div class="fg"><label class="fl">Confirmar nova senha</label><input class="fi" type="password" id="pf-pass-confirm" placeholder="Repita a nova senha"></div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-primary" onclick="saveProfile()">💾 Salvar Alterações</button>
+        <button class="btn btn-ghost" onclick="logout()">Sair da conta</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+  <!-- DATASHOW VIEW -->
+  <div class="view" id="v-datashow">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:4px">📽 Agendamento de Datashow</div>
+        <div style="font-size:13px;color:var(--muted)">Reserve o projetor com antecedência. Conflitos de horário são verificados automaticamente.</div>
+      </div>
+      <button class="btn btn-primary" onclick="openDsForm(null)">📅 Nova Reserva</button>
+    </div>
+
+    <!-- Week nav -->
+    <div style="display:flex;align-items:center;gap:10px;margin:16px 0;flex-wrap:wrap">
+      <button class="btn btn-ghost btn-sm" onclick="changeDsWeek(-7)">‹ Semana anterior</button>
+      <span style="font-size:13.5px;font-weight:600;font-family:'Syne',sans-serif" id="ds-week-label">—</span>
+      <button class="btn btn-ghost btn-sm" onclick="changeDsWeek(7)">Próxima semana ›</button>
+      <button class="btn btn-ghost btn-sm" onclick="initDs()">Hoje</button>
+      <span style="font-size:12px;color:var(--muted);margin-left:auto" id="ds-count-label"></span>
+    </div>
+
+    <!-- Reservations list -->
+    <div id="ds-list"></div>
+
+    <!-- My reservations -->
+    <div style="margin-top:24px">
+      <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px">Minhas Reservas</div>
+      <div id="ds-my-list"></div>
+    </div>
+  </div>
+
+
+<!-- DATASHOW FORM MODAL -->
+<div class="modal-overlay" id="ds-form-modal" onclick="if(event.target===this)closeModal2('ds-form-modal')">
+  <div class="modal" style="width:560px;max-height:88vh" onclick="event.stopPropagation()">
+    <div class="modal-hdr">
+      <div style="flex:1">
+        <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:700;margin-bottom:4px" id="dsf-title">Nova Reserva de Datashow</div>
+        <div style="font-size:12.5px;color:var(--muted)">Preencha os dados da solicitação. Conflitos serão avisados automaticamente.</div>
+      </div>
+      <div class="close-btn" onclick="closeModal2('ds-form-modal')">✕</div>
+    </div>
+    <div style="padding:20px 24px;overflow-y:auto;max-height:60vh">
+      <div id="dsf-err" style="background:var(--red-bg);border:1px solid rgba(220,38,38,.2);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--red);margin-bottom:14px;display:none"></div>
+      <div id="dsf-ok"  style="background:var(--green-bg);border:1px solid rgba(5,150,105,.2);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--green);margin-bottom:14px;display:none"></div>
+      <div class="form-row2">
+        <div class="fg"><label class="fl">Data <span style="color:var(--red)">*</span></label>
+          <input class="fi" type="date" id="dsf-date"></div>
+        <div class="fg"><label class="fl">Horário <span style="color:var(--red)">*</span></label>
+          <input class="fi" type="time" id="dsf-time" value="08:00" step="1800"></div>
+      </div>
+      <div class="form-row2">
+        <div class="fg"><label class="fl">Duração</label>
+          <select class="fi" id="dsf-duration">
+            <option value="30">30 minutos</option>
+            <option value="60" selected>1 hora</option>
+            <option value="90">1h 30min</option>
+            <option value="120">2 horas</option>
+            <option value="180">3 horas</option>
+            <option value="240">4 horas</option>
+          </select></div>
+        <div class="fg"><label class="fl">Local / Sala <span style="color:var(--red)">*</span></label>
+          <input class="fi" id="dsf-location" placeholder="Ex: Auditório Principal, Sala 2…"></div>
+      </div>
+      <div class="fg"><label class="fl">Finalidade / Objetivo <span style="color:var(--red)">*</span></label>
+        <input class="fi" id="dsf-purpose" placeholder="Ex: Treinamento de equipe, Reunião com diretores…"></div>
+      <div class="form-row2">
+        <div class="fg"><label class="fl">Seu nome <span style="color:var(--red)">*</span></label>
+          <input class="fi" id="dsf-rname" placeholder="Nome completo"></div>
+        <div class="fg"><label class="fl">Seu setor</label>
+          <select class="fi" id="dsf-rdept">
+            <option value="">— Selecione —</option>
+            <option>Administrativo</option><option>Almoxarifado</option><option>Centro Cirúrgico</option>
+            <option>Enfermagem</option><option>Farmácia</option><option>Financeiro</option>
+            <option>Internação</option><option>Jurídico</option><option>Laboratório</option>
+            <option>Manutenção</option><option>Nutrição</option><option>Radiologia</option>
+            <option>Recepção</option><option>RH</option><option>TI</option>
+            <option>UTI</option><option>Outro</option>
+          </select></div>
+      </div>
+      <div class="fg" style="margin-bottom:0"><label class="fl">Observações</label>
+        <textarea class="fi" id="dsf-notes" rows="2" placeholder="Equipamentos extras, número de participantes, etc…"></textarea></div>
+    </div>
+    <div style="padding:14px 24px;border-top:1px solid var(--border);display:flex;gap:10px">
+      <button class="btn btn-primary" style="flex:1" onclick="saveDs()">📽 Confirmar Reserva</button>
+      <button class="btn btn-ghost" onclick="closeModal2('ds-form-modal')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TICKET DETAIL MODAL -->
+<div class="modal-overlay" id="ticket-modal" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-hdr">
+      <div style="flex:1">
+        <div style="font-family:'DM Mono',monospace;font-size:11.5px;color:var(--accent);margin-bottom:4px" id="m-num"></div>
+        <div class="modal-ttl" id="m-title"></div>
+        <div class="modal-meta" id="m-meta"></div>
+      </div>
+      <div class="close-btn" onclick="closeModal()">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="modal-main">
+        <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:14px">Histórico</div>
+        <div id="m-tl"></div>
+      </div>
+      <div class="modal-side">
+        <div><div class="ms-label">Status</div><div class="ms-val" id="ms-status"></div></div>
+        <div><div class="ms-label">Prioridade</div><div class="ms-val" id="ms-prio"></div></div>
+        <div><div class="ms-label">Agente</div><div class="ms-val" id="ms-agent"></div></div>
+        <div><div class="ms-label">Nível</div><div class="ms-val" id="ms-tier"></div></div>
+        <div><div class="ms-label">Aberto em</div><div class="ms-val" id="ms-date" style="font-size:12px"></div></div>
+        <div id="rating-section" style="display:none">
+          <div class="ms-label">Avaliar Atendimento</div>
+          <div class="star-row" id="stars">
+            <span class="star" onclick="rate(1)">★</span><span class="star" onclick="rate(2)">★</span>
+            <span class="star" onclick="rate(3)">★</span><span class="star" onclick="rate(4)">★</span>
+            <span class="star" onclick="rate(5)">★</span>
+          </div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px">Clique para avaliar</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <textarea class="reply-area" id="reply-body" placeholder="Adicionar informação ou responder ao agente…" rows="2"></textarea>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn btn-primary btn-sm" onclick="sendReply()">📨 Enviar Mensagem</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '/api';
+let TOKEN = localStorage.getItem('hd_client_token') || localStorage.getItem('hd_token');
+let CLIENT = JSON.parse(localStorage.getItem('hd_client') || localStorage.getItem('hd_agent') || 'null');
+let myTickets = [], allKBCats = [], allKBArts = [], currentId = null, myFilter = 'all';
+
+// Demo: use agent token if no client token
+if (!TOKEN) { window.location.href = '/'; }
+if (!CLIENT) CLIENT = { name: 'Visitante', email: 'demo@helpdesk.com', department: 'TI' };
+
+const api = (m, p, b) => fetch(API+p, {
+  method:m, headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+  body: b ? JSON.stringify(b) : undefined
+}).then(r=>r.json());
+
+const fmtDate = iso => iso ? new Date(iso).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—';
+const statusLabel = {open:'Aberto',progress:'Em Andamento',resolved:'Resolvido',closed:'Fechado',escalated:'Escalado',waiting:'Aguardando'};
+const prioLabel = {critical:'🔴 Crítica',high:'🟠 Alta',medium:'🟡 Média',low:'⚪ Baixa'};
+const slaRem = d => { const diff = new Date(d)-new Date(); if(diff<0) return {t:'Vencido',c:'sla-breach'}; const h=Math.floor(diff/3600000),m=Math.floor((diff%3600000)/60000); return {t:h+'h '+m+'m',c:diff<3600000?'sla-warn':'sla-ok'}; };
+
+async function init() {
+  const init2 = CLIENT.name.split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('client-av').textContent = init2;
+  document.getElementById('client-name').textContent = CLIENT.name.split(' ')[0];
+  document.getElementById('hero-greeting').textContent = 'Olá, '+(CLIENT.name.split(' ')[0])+'! 👋';
+  document.getElementById('profile-av').textContent = init2;
+  document.getElementById('profile-name').textContent = CLIENT.name;
+  document.getElementById('profile-dept').textContent = CLIENT.department||CLIENT.role||'';
+  document.getElementById('profile-email').textContent = CLIENT.email;
+  document.getElementById('pf-name').value = CLIENT.name;
+  document.getElementById('pf-email').value = CLIENT.email;
+  if (CLIENT.department) document.getElementById('pf-dept').value = CLIENT.department;
+
+  // Pre-fill new ticket form
+  document.getElementById('nt-name').value  = CLIENT.name;
+  document.getElementById('nt-email').value = CLIENT.email;
+  // Auto-fill setor from client profile
+  if (CLIENT.department) {
+    const deptEl = document.getElementById('nt-dept');
+    if (deptEl) {
+      // Match option by text
+      for (let opt of deptEl.options) {
+        if (opt.value === CLIENT.department || opt.text === CLIENT.department) {
+          deptEl.value = opt.value; break;
+        }
+      }
+    }
+  }
+
+  try {
+    const [tickets, kbCats, kbArts] = await Promise.all([
+      api('GET','/tickets'), api('GET','/kb/categories'), api('GET','/kb/articles')
+    ]);
+    myTickets = Array.isArray(tickets) ? tickets : [];
+    allKBCats = Array.isArray(kbCats) ? kbCats : [];
+    allKBArts = Array.isArray(kbArts) ? kbArts : [];
+
+    // KPIs
+    document.getElementById('ck-open').textContent    = myTickets.filter(t=>t.status==='open').length;
+    document.getElementById('ck-prog').textContent    = myTickets.filter(t=>t.status==='progress').length;
+    document.getElementById('ck-res').textContent     = myTickets.filter(t=>t.status==='resolved').length;
+    document.getElementById('ck-total').textContent   = myTickets.length;
+
+    renderRecentTickets();
+    renderMyTickets();
+    buildKB();
+  } catch(e) { console.error(e); }
+}
+
+function renderRecentTickets() {
+  const recent = [...myTickets].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).slice(0,5);
+  if (!recent.length) {
+    document.getElementById('recent-tickets-card').innerHTML = `<div class="empty"><div class="empty-icon">📭</div><div class="empty-title">Nenhum chamado ainda</div><div class="empty-desc">Você não tem chamados abertos. Clique em "Novo Chamado" para solicitar suporte.</div></div>`;
+    return;
+  }
+  document.getElementById('recent-tickets-card').innerHTML = recent.map(t=>ticketRow(t)).join('');
+}
+
+function renderMyTickets() {
+  const filtered = myFilter === 'all' ? myTickets : myTickets.filter(t=>t.status===myFilter);
+  if (!filtered.length) {
+    document.getElementById('my-tickets-list').innerHTML = `<div class="empty"><div class="empty-icon">🔍</div><div class="empty-title">Nenhum chamado nesta categoria</div></div>`;
+    return;
+  }
+  document.getElementById('my-tickets-list').innerHTML = filtered.map(t=>ticketRow(t)).join('');
+}
+
+function ticketRow(t) {
+  const sla = slaRem(t.sla_resolve_deadline);
+  const icons = {open:'🔵',progress:'⚙',resolved:'✅',escalated:'🔴',waiting:'⏳',closed:'🔒'};
+  const hasUpdate = updatedTicketIds.has(t._id);
+  return `<div class="ticket-item${hasUpdate?' has-update':''}" onclick="openTicket('${t._id}');markSeen('${t._id}')">
+    <div class="ticket-icon ${t.status}">${icons[t.status]||'🎫'}</div>
+    <div style="flex:1;min-width:0">
+      <div class="ticket-num">#${t.number}${hasUpdate?'<span class="notif-badge">Novo</span>':''}</div>
+      <div class="ticket-ttl">${t.title}</div>
+      <div class="ticket-info">
+        <span class="badge ${t.status}">${statusLabel[t.status]||t.status}</span>
+        <span style="font-size:11.5px;color:var(--muted)">${fmtDate(t.created_at)}</span>
+      </div>
+    </div>
+    <div class="ticket-right" style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+      ${hasUpdate?'<div class="update-dot"></div>':''}
+      <div class="sla-time ${t.status==='resolved'||t.status==='closed'?'sla-ok':sla.c}">${t.status==='resolved'||t.status==='closed'?'✓ Encerrado':sla.t}</div>
+      <div style="font-size:11px;color:var(--muted)">${t.tier}</div>
+    </div>
+  </div>`;
+}
+
+function filterMyTickets(status, el) {
+  myFilter = status;
+  document.querySelectorAll('[id^="tab-"]').forEach(t=>{ t.style.background=''; t.style.color='var(--muted)'; });
+  el.style.background='var(--accent)'; el.style.color='#fff';
+  renderMyTickets();
+}
+
+async function openTicket(id) {
+  currentId = id;
+  const t = await api('GET','/tickets/'+id);
+  document.getElementById('m-num').textContent = '#'+t.number;
+  document.getElementById('m-title').textContent = t.title;
+  document.getElementById('m-meta').innerHTML = `<span class="badge ${t.status}">${statusLabel[t.status]}</span><span class="prio ${t.priority}"><span class="prio-dot"></span>${prioLabel[t.priority]}</span>`;
+  document.getElementById('ms-status').innerHTML = `<span class="badge ${t.status}">${statusLabel[t.status]}</span>`;
+  document.getElementById('ms-prio').textContent = prioLabel[t.priority]||t.priority;
+  document.getElementById('ms-tier').innerHTML = `<span style="background:var(--bg3);border:1px solid var(--border);padding:2px 8px;border-radius:5px;font-size:12px">${t.tier}</span>`;
+  document.getElementById('ms-date').textContent = fmtDate(t.created_at);
+  const tlColors = {system:'gray',reply:'blue',note:'orange',escalation:'red'};
+  document.getElementById('m-tl').innerHTML = (t.comments||[]).map((c,i,arr)=>`
+    <div class="tl-item">
+      <div class="tl-l"><div class="tl-dot ${tlColors[c.type]||'gray'}">${c.type==='note'?'📝':c.type==='system'?'⚙':'💬'}</div>${i<arr.length-1?'<div class="tl-line"></div>':''}</div>
+      <div style="flex:1;padding-top:4px">
+        <span class="tl-actor">${c.author_name}</span><span class="tl-time">${fmtDate(c.created_at)}</span>
+        <div class="${c.type==='system'?'tl-system-msg':'tl-msg'}">${c.body}</div>
+      </div>
+    </div>`).join('') || '<div style="color:var(--muted);font-size:13px;padding:16px">Nenhuma interação registrada.</div>';
+  if (t.status==='resolved'||t.status==='closed') document.getElementById('rating-section').style.display='block';
+  else document.getElementById('rating-section').style.display='none';
+  document.getElementById('ticket-modal').classList.add('open');
+}
+
+async function sendReply() {
+  const body = document.getElementById('reply-body').value.trim();
+  if (!body) return;
+  await api('POST','/tickets/'+currentId+'/comments',{body,type:'reply'});
+  document.getElementById('reply-body').value='';
+  openTicket(currentId);
+}
+
+function rate(n) {
+  document.querySelectorAll('.star').forEach((s,i)=>s.classList.toggle('active',i<n));
+  setTimeout(()=>alert('Obrigado pela avaliação! '+['','😞','😐','🙂','😊','😍'][n]),300);
+}
+
+async function submitTicket() {
+  const title    = document.getElementById('nt-title').value.trim();
+  const desc     = document.getElementById('nt-desc').value.trim();
+  const name     = document.getElementById('nt-name').value.trim();
+  const email    = document.getElementById('nt-email').value.trim();
+  const dept = document.getElementById('nt-dept').value;
+  if (!title||!desc||!name||!email)
+    return alert('Preencha todos os campos obrigatórios.');
+  if (!dept)
+    return alert('Informe o seu setor / departamento antes de enviar.');
+  const r = await api('POST','/tickets',{
+    title, description:desc, requester_name:name, requester_email:email,
+    requester_dept: dept,
+    priority: document.getElementById('nt-prio').value,
+    category: document.getElementById('nt-cat').value,
+    channel: 'portal',
+  });
+  if (r._id) {
+    alert('Chamado #'+r.number+' criado! Em breve um agente entrará em contato.');
+    document.getElementById('nt-title').value='';
+    document.getElementById('nt-desc').value='';
+    myTickets.unshift(r);
+    renderRecentTickets(); renderMyTickets();
+    document.getElementById('ck-total').textContent = myTickets.length;
+    document.getElementById('ck-open').textContent  = myTickets.filter(t=>t.status==='open').length;
+    show('my-tickets', document.querySelector('[data-view="my-tickets"]'));
+  } else alert('Erro: '+(r.error||'Falha'));
+}
+
+function buildKB() {
+  document.getElementById('kb-cats').innerHTML = allKBCats.map(c =>
+    `<div class="kb-cat-card"><div class="kb-cat-icon">📁</div><div class="kb-cat-name">${c.name}</div><div class="kb-cat-count">${c.article_count||0} artigos</div></div>`
+  ).join('');
+  renderKBArts(allKBArts);
+}
+
+function renderKBArts(arts) {
+  const sorted = [...arts].sort((a,b)=>(b.views||0)-(a.views||0));
+  document.getElementById('kb-arts').innerHTML = sorted.slice(0,8).map(a =>
+    `<div class="kb-art">
+      <span style="font-size:16px;width:24px;text-align:center;flex-shrink:0">📄</span>
+      <div style="flex:1"><div style="font-size:13.5px;font-weight:500;margin-bottom:3px">${a.title}</div>
+      <div style="font-size:11.5px;color:var(--muted)">${fmtDate(a.updated_at)} · <span class="helpful">${a.helpful_pct||0}% útil</span> · ${a.views||0} visualizações</div></div>
+      <span style="color:var(--muted);font-size:13px">›</span>
+    </div>`
+  ).join('');
+}
+
+function searchKB(val) {
+  const q = val.toLowerCase();
+  const filtered = allKBArts.filter(a => a.title.toLowerCase().includes(q)||a.body.toLowerCase().includes(q));
+  renderKBArts(filtered);
+}
+
+async function saveProfile() {
+  const passOld     = document.getElementById('pf-pass-old').value;
+  const passNew     = document.getElementById('pf-pass-new').value;
+  const passConfirm = document.getElementById('pf-pass-confirm').value;
+  const okEl  = document.getElementById('pass-ok');
+  const errEl = document.getElementById('pass-err');
+  okEl.style.display='none'; errEl.style.display='none';
+
+  // Password change requested?
+  if (passOld || passNew || passConfirm) {
+    if (!passOld)    { errEl.textContent='Informe sua senha atual.'; errEl.style.display='block'; return; }
+    if (!passNew)    { errEl.textContent='Informe a nova senha.'; errEl.style.display='block'; return; }
+    if (passNew !== passConfirm) { errEl.textContent='Nova senha e confirmação não coincidem.'; errEl.style.display='block'; return; }
+    if (passNew.length < 8) { errEl.textContent='Nova senha deve ter mínimo 8 caracteres.'; errEl.style.display='block'; return; }
+
+    const r = await api('PUT', '/clients/me/password', { current_password: passOld, new_password: passNew });
+    if (r.error) { errEl.textContent = r.error; errEl.style.display='block'; return; }
+    okEl.style.display='block';
+    document.getElementById('pf-pass-old').value='';
+    document.getElementById('pf-pass-new').value='';
+    document.getElementById('pf-pass-confirm').value='';
+  } else {
+    okEl.textContent='✓ Nenhuma alteração de senha solicitada.';
+    okEl.style.display='block';
+    setTimeout(()=>okEl.style.display='none',2500);
+  }
+}
+
+function show(view, el) {
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.topbar-nav a').forEach(a=>a.classList.remove('active'));
+  const v = document.getElementById('v-'+view); if(v) v.classList.add('active');
+  if(el) el.classList.add('active');
+  if(view === 'datashow') { if(typeof dsOffset==='undefined'||dsOffset===null){ dsOffset=0; } loadDs(); }
+}
+
+function closeModal(e) { if (!e||e.target===document.getElementById('ticket-modal')) document.getElementById('ticket-modal').classList.remove('open'); }
+function logout() { localStorage.removeItem('hd_client_token'); localStorage.removeItem('hd_client'); window.location.href='/'; }
+
+init();
+
+// ── DATASHOW ─────────────────────────────────────────────────────────────────
+let dsOffset = 0;
+let dsAllReservations = [];
+let dsEditId = null;
+const dsDayNames = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+const dsMonthNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+function initDs() { dsOffset = 0; loadDs(); }
+function changeDsWeek(d) { dsOffset += d; loadDs(); }
+
+async function loadDs() {
+  const base = new Date(); base.setDate(base.getDate() + dsOffset);
+  // Show full week (Mon-Sun)
+  const dow = base.getDay(); // 0=Sun
+  const mon = new Date(base); mon.setDate(base.getDate() - (dow === 0 ? 6 : dow - 1));
+  const sun = new Date(mon);  sun.setDate(mon.getDate() + 6);
+  const fmt = d => d.toISOString().slice(0,10);
+  const fromStr = fmt(mon), toStr = fmt(sun);
+
+  document.getElementById('ds-week-label').textContent =
+    `${mon.getDate()} ${dsMonthNames[mon.getMonth()]} – ${sun.getDate()} ${dsMonthNames[sun.getMonth()]} ${sun.getFullYear()}`;
+
+  dsAllReservations = await api('GET', `/datashow?date_from=${fromStr}&date_to=${toStr}`);
+  renderDs();
+
+  // My reservations (all, not limited to week)
+  const myAll = await api('GET', '/datashow');
+  renderMyDs(myAll || []);
+}
+
+function renderDs() {
+  const items = dsAllReservations || [];
+  const label = document.getElementById('ds-count-label');
+  if (label) label.textContent = items.length ? `${items.length} reserva${items.length>1?'s':''} nesta semana` : 'Nenhuma reserva nesta semana';
+
+  if (!items.length) {
+    document.getElementById('ds-list').innerHTML =
+      '<div class="ds-empty"><div style="font-size:36px;margin-bottom:10px">📅</div><div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px">Semana livre</div><div style="font-size:13px">Nenhum agendamento nesta semana. Clique em "Nova Reserva" para agendar.</div></div>';
+    return;
+  }
+
+  // Group by date
+  const byDate = {};
+  items.forEach(r => { if (!byDate[r.date]) byDate[r.date] = []; byDate[r.date].push(r); });
+
+  document.getElementById('ds-list').innerHTML = Object.entries(byDate)
+    .sort(([a],[b]) => a.localeCompare(b))
+    .map(([date, reservations]) => {
+      const d = new Date(date + 'T12:00');
+      const dayLabel = dsDayNames[d.getDay()] + ', ' + d.getDate() + ' de ' + dsMonthNames[d.getMonth()];
+      return `<div style="margin-bottom:16px">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);font-weight:600;margin-bottom:8px;padding-left:2px">${dayLabel}</div>
+        <div class="ds-grid">
+          ${reservations.map(r => {
+            const isOwn = r.requester_email === CLIENT.email || r.requester_name === CLIENT.name;
+            const statusCls = r.status === 'confirmed' ? 'ds-status-confirmed' : r.status === 'cancelled' ? 'ds-status-cancelled' : 'ds-status-pending';
+            const statusLbl = {confirmed:'Confirmado', cancelled:'Cancelado', pending:'Pendente'}[r.status] || r.status;
+            const endH = Math.floor((parseInt(r.time.split(':')[0])*60 + parseInt(r.time.split(':')[1]) + (parseInt(r.duration)||60)) / 60);
+            const endM = ((parseInt(r.time.split(':')[0])*60 + parseInt(r.time.split(':')[1]) + (parseInt(r.duration)||60)) % 60).toString().padStart(2,'0');
+            return `<div class="ds-card" style="${isOwn?'border-color:var(--accent);background:var(--accent-bg)':''}">
+              <div class="ds-card-hdr">
+                <div>
+                  <div class="ds-card-time">🕐 ${r.time} – ${endH}:${endM}</div>
+                  <div class="ds-card-loc">📍 ${r.location}</div>
+                </div>
+                <span class="badge ${statusCls}" style="font-size:10px">${statusLbl}</span>
+              </div>
+              <div class="ds-card-purpose">${r.purpose}</div>
+              <div class="ds-card-requester">👤 ${r.requester_name}${r.requester_dept?' · '+r.requester_dept:''}</div>
+              ${isOwn && r.status !== 'cancelled' ? `<div style="display:flex;gap:6px;margin-top:10px">
+                <button class="btn btn-ghost btn-sm" onclick="openDsForm('${r._id}')">✏ Editar</button>
+                <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="cancelDs('${r._id}')">✕ Cancelar</button>
+              </div>` : ''}
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+    }).join('');
+}
+
+function renderMyDs(all) {
+  const my = (all||[]).filter(r =>
+    r.requester_email === CLIENT.email || r.requester_name === CLIENT.name
+  ).sort((a,b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
+
+  if (!my.length) {
+    document.getElementById('ds-my-list').innerHTML =
+      '<div style="font-size:13px;color:var(--muted);padding:12px 0">Você ainda não tem reservas.</div>';
+    return;
+  }
+
+  document.getElementById('ds-my-list').innerHTML = '<div class="ds-grid">' +
+    my.slice(0, 6).map(r => {
+      const d = new Date(r.date + 'T12:00');
+      const statusCls = r.status === 'confirmed' ? 'ds-status-confirmed' : r.status === 'cancelled' ? 'ds-status-cancelled' : 'ds-status-pending';
+      const statusLbl = {confirmed:'Confirmado', cancelled:'Cancelado', pending:'Pendente'}[r.status] || r.status;
+      return `<div class="ds-card">
+        <div class="ds-card-hdr">
+          <div>
+            <div class="ds-card-date">${d.getDate()}</div>
+            <div class="ds-card-day">${dsDayNames[d.getDay()]} ${dsMonthNames[d.getMonth()]} ${d.getFullYear()}</div>
+          </div>
+          <span class="badge ${statusCls}" style="font-size:10px">${statusLbl}</span>
+        </div>
+        <div class="ds-card-time">🕐 ${r.time} · ${r.duration||60}min</div>
+        <div class="ds-card-loc">📍 ${r.location}</div>
+        <div class="ds-card-purpose">${r.purpose}</div>
+        ${r.status !== 'cancelled' ? `<div style="display:flex;gap:6px;margin-top:10px">
+          <button class="btn btn-ghost btn-sm" onclick="openDsForm('${r._id}')">✏ Editar</button>
+          <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="cancelDs('${r._id}')">✕ Cancelar</button>
+        </div>` : ''}
+      </div>`;
+    }).join('') + '</div>';
+}
+
+function openDsForm(id) {
+  dsEditId = id;
+  const r = id ? (dsAllReservations||[]).find(x=>x._id===id) : null;
+  document.getElementById('dsf-title').textContent = id ? 'Editar Reserva' : 'Nova Reserva de Datashow';
+  document.getElementById('dsf-err').style.display = 'none';
+  document.getElementById('dsf-ok').style.display  = 'none';
+  document.getElementById('dsf-date').value     = r?.date || new Date().toISOString().slice(0,10);
+  document.getElementById('dsf-time').value     = r?.time || '08:00';
+  document.getElementById('dsf-duration').value = r?.duration?.toString() || '60';
+  document.getElementById('dsf-location').value = r?.location || '';
+  document.getElementById('dsf-purpose').value  = r?.purpose  || '';
+  document.getElementById('dsf-rname').value    = r?.requester_name  || CLIENT.name || '';
+  document.getElementById('dsf-notes').value    = r?.notes || '';
+  // Auto-fill dept
+  const rdept = document.getElementById('dsf-rdept');
+  const dept = r?.requester_dept || CLIENT.department || '';
+  for (let opt of rdept.options) { if (opt.value === dept || opt.text === dept) { rdept.value = opt.value; break; } }
+  document.getElementById('ds-form-modal').classList.add('open');
+}
+
+async function saveDs() {
+  const date    = document.getElementById('dsf-date').value;
+  const time    = document.getElementById('dsf-time').value;
+  const dur     = document.getElementById('dsf-duration').value;
+  const loc     = document.getElementById('dsf-location').value.trim();
+  const purpose = document.getElementById('dsf-purpose').value.trim();
+  const rname   = document.getElementById('dsf-rname').value.trim();
+  const rdept   = document.getElementById('dsf-rdept').value;
+  const notes   = document.getElementById('dsf-notes').value.trim();
+  const errEl   = document.getElementById('dsf-err');
+  const okEl    = document.getElementById('dsf-ok');
+  errEl.style.display = 'none'; okEl.style.display = 'none';
+
+  if (!date||!time||!loc||!purpose||!rname) {
+    errEl.textContent = '⚠ Preencha os campos obrigatórios: data, horário, local, finalidade e nome.';
+    errEl.style.display = 'block'; return;
+  }
+
+  const body = {
+    date, time, duration: parseInt(dur)||60, location: loc, purpose,
+    requester_name: rname, requester_email: CLIENT.email || '',
+    requester_dept: rdept, notes
+  };
+
+  const r = dsEditId
+    ? await api('PATCH', `/datashow/${dsEditId}`, body)
+    : await api('POST', '/datashow', body);
+
+  if (r.error) {
+    // 409 conflict — make the message clear
+    errEl.innerHTML = `⚠ <strong>Horário indisponível.</strong><br>${r.error}`;
+    errEl.style.display = 'block';
+  } else {
+    okEl.textContent = dsEditId ? '✓ Reserva atualizada com sucesso!' : '✓ Reserva confirmada! Até lá 📽';
+    okEl.style.display = 'block';
+    setTimeout(() => {
+      closeModal2('ds-form-modal');
+      loadDs();
+    }, 1600);
+  }
+}
+
+async function cancelDs(id) {
+  if (!confirm('Tem certeza que deseja CANCELAR esta reserva?\nEsta ação não pode ser desfeita.')) return;
+  await api('DELETE', `/datashow/${id}`);
+  loadDs();
+}
+
+function closeModal2(id) {
+  document.getElementById(id).classList.remove('open');
+}
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+
+// ── NOTIFICAÇÕES EM TEMPO REAL (SSE) ─────────────────────────────────────────
+
+// Set of ticket IDs that have unread updates
+let updatedTicketIds = new Set();
+let notifHistory     = []; // { id, title, msg, time }
+let sseConn          = null;
+let sseReconnTimer   = null;
+
+function initSSE() {
+  if (sseConn) { sseConn.abort(); sseConn = null; }
+  const ctrl = new AbortController();
+  sseConn = ctrl;
+
+  fetch('/api/tickets/client-stream', {
+    headers: { 'Authorization': 'Bearer ' + TOKEN },
+    signal: ctrl.signal,
+  }).then(async res => {
+    if (!res.ok) { scheduleReconn(); return; }
+    const reader  = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const lines = buf.split('\n');
+      buf = lines.pop();
+      let evt = '', dat = '';
+      for (const line of lines) {
+        if (line.startsWith('event:')) evt = line.slice(6).trim();
+        else if (line.startsWith('data:')) dat = line.slice(5).trim();
+        else if (line === '' && dat) {
+          if (evt === 'update') handleClientUpdate(JSON.parse(dat));
+          evt = ''; dat = '';
+        }
+      }
+    }
+    scheduleReconn();
+  }).catch(e => { if (e.name !== 'AbortError') scheduleReconn(); });
+}
+
+function scheduleReconn() {
+  clearTimeout(sseReconnTimer);
+  sseReconnTimer = setTimeout(initSSE, 12000);
+}
+
+function handleClientUpdate(data) {
+  const updated = data.updated || [];
+  if (!updated.length) return;
+
+  updated.forEach(t => {
+    // Mark ticket as having new update
+    updatedTicketIds.add(t._id);
+
+    // Build notification message
+    const statusMsg = {
+      progress: 'está sendo atendido',
+      resolved: 'foi resolvido ✅',
+      closed:   'foi encerrado',
+      escalated:'foi escalado para um especialista',
+      waiting:  'aguarda sua resposta',
+      open:     'foi reaberto',
+    };
+    const msg = statusMsg[t.status] || 'foi atualizado';
+
+    // Add to history
+    notifHistory.unshift({ _id: t._id, number: t.number, title: t.title, msg, time: new Date() });
+    if (notifHistory.length > 20) notifHistory.pop();
+
+    // Show toast
+    showNotifToast(t);
+  });
+
+  // Update local ticket data silently
+  api('GET', '/tickets').then(tickets => {
+    if (!Array.isArray(tickets)) return;
+    myTickets = tickets.filter(t => t.requester_email === CLIENT.email);
+    renderRecentTickets();
+    renderMyTickets();
+    updateKPIs();
+  });
+
+  // Pulse notification bell
+  document.getElementById('portal-notif-dot').style.display = 'block';
+}
+
+function showNotifToast(t) {
+  // Remove existing toast
+  document.querySelectorAll('.notif-toast').forEach(el => el.remove());
+
+  const statusMsg = {
+    progress: 'Um agente está atendendo seu chamado',
+    resolved: 'Seu chamado foi resolvido!',
+    closed:   'Seu chamado foi encerrado',
+    escalated:'Seu chamado foi escalado para especialista',
+    waiting:  'O agente aguarda sua resposta',
+  };
+  const icons = { progress:'⚙️', resolved:'✅', closed:'🔒', escalated:'🔴', waiting:'⏳' };
+  const msg   = statusMsg[t.status] || 'Seu chamado foi atualizado';
+  const icon  = icons[t.status] || '🔔';
+
+  const toast = document.createElement('div');
+  toast.className = 'notif-toast';
+  toast.innerHTML = `
+    <div class="notif-toast-icon">${icon}</div>
+    <div style="flex:1">
+      <div class="notif-toast-title">${msg}</div>
+      <div class="notif-toast-body">Chamado #${t.number}: ${t.title?.slice(0,60)}${t.title?.length>60?'…':''}</div>
+    </div>
+    <span onclick="this.parentElement.remove()" style="color:var(--muted);font-size:16px;cursor:pointer;padding:0 4px;align-self:flex-start">✕</span>`;
+  toast.onclick = (e) => {
+    if (e.target.tagName === 'SPAN') return;
+    toast.remove();
+    markSeen(t._id);
+    openTicket(t._id);
+    show('my-tickets', document.querySelector('[data-view="my-tickets"]'));
+  };
+  document.body.appendChild(toast);
+
+  // Auto-dismiss after 8s
+  setTimeout(() => {
+    if (toast.parentElement) {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateY(8px)';
+      toast.style.transition = 'all .3s';
+      setTimeout(() => toast.remove(), 300);
+    }
+  }, 8000);
+}
+
+function markSeen(ticketId) {
+  updatedTicketIds.delete(ticketId);
+  // Re-render to remove badge
+  renderMyTickets();
+  renderRecentTickets();
+  // Hide bell dot if no more updates
+  if (updatedTicketIds.size === 0) {
+    document.getElementById('portal-notif-dot').style.display = 'none';
+  }
+}
+
+function openNotifPanel() {
+  // Remove existing panel
+  const existing = document.getElementById('notif-panel');
+  if (existing) { existing.remove(); return; }
+
+  const panel = document.createElement('div');
+  panel.id = 'notif-panel';
+  panel.style.cssText = `
+    position:fixed; top:60px; right:16px; z-index:500;
+    background:var(--card); border:1px solid var(--border);
+    border-radius:14px; width:320px; max-height:400px;
+    box-shadow:0 8px 32px rgba(0,0,0,.15); overflow:hidden;
+    animation:toastIn .2s ease;
+  `;
+
+  const count = updatedTicketIds.size;
+  panel.innerHTML = `
+    <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+      <div style="font-weight:700;font-size:14px">🔔 Notificações${count?` <span class="notif-badge">${count}</span>`:''}</div>
+      ${count ? `<span onclick="clearAllNotifs()" style="font-size:12px;color:var(--accent);cursor:pointer">Limpar tudo</span>` : ''}
+    </div>
+    <div style="overflow-y:auto;max-height:330px">
+      ${notifHistory.length ? notifHistory.map(n => `
+        <div onclick="document.getElementById('notif-panel').remove();markSeen('${n._id}');openTicket('${n._id}');show('my-tickets',document.querySelector('[data-view=my-tickets]'))"
+          style="padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;display:flex;gap:10px;align-items:flex-start"
+          onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''">
+          <div style="font-size:18px;flex-shrink:0">🎫</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:12.5px;font-weight:600;margin-bottom:2px">Chamado #${n.number} ${n.msg}</div>
+            <div style="font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${n.title}</div>
+            <div style="font-size:11px;color:var(--muted2);margin-top:3px">${fmtDate(n.time.toISOString())}</div>
+          </div>
+          ${updatedTicketIds.has(n._id)?'<div class="update-dot" style="margin-top:4px"></div>':''}
+        </div>`).join('')
+      : '<div style="padding:24px;text-align:center;color:var(--muted);font-size:13px">Nenhuma notificação ainda.<br><span style="font-size:12px">Você será avisado quando um agente interagir com seu chamado.</span></div>'}
+    </div>`;
+
+  document.body.appendChild(panel);
+
+  // Close on click outside
+  setTimeout(() => {
+    document.addEventListener('click', function closeFn(e) {
+      if (!panel.contains(e.target) && e.target.id !== 'portal-notif-btn') {
+        panel.remove();
+        document.removeEventListener('click', closeFn);
+      }
+    });
+  }, 100);
+}
+
+function clearAllNotifs() {
+  notifHistory = [];
+  updatedTicketIds.clear();
+  document.getElementById('portal-notif-dot').style.display = 'none';
+  document.getElementById('notif-panel')?.remove();
+  renderMyTickets();
+  renderRecentTickets();
+}
+
+function updateKPIs() {
+  document.getElementById('ck-open').textContent  = myTickets.filter(t=>t.status==='open').length;
+  document.getElementById('ck-prog').textContent  = myTickets.filter(t=>t.status==='progress').length;
+  document.getElementById('ck-res').textContent   = myTickets.filter(t=>t.status==='resolved').length;
+  document.getElementById('ck-total').textContent = myTickets.length;
+}
+
+// Start SSE after page loads
+initSSE();
+</script>
+</body>
+</html>

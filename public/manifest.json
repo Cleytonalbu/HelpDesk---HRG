@@ -1,0 +1,49 @@
+{
+  "name": "HelpDesk Pro — Hospital Regional de Guarabira",
+  "short_name": "HelpDesk",
+  "description": "Abertura e acompanhamento de chamados de TI",
+  "start_url": "/mobile.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f0f4ff",
+  "theme_color": "#2563eb",
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "/img/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/img/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/img/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "categories": [
+    "utilities",
+    "productivity"
+  ],
+  "shortcuts": [
+    {
+      "name": "Novo Chamado",
+      "url": "/mobile.html#new-ticket",
+      "description": "Abrir um chamado de TI"
+    },
+    {
+      "name": "Datashow",
+      "url": "/mobile.html#datashow",
+      "description": "Agendar projetor"
+    }
+  ]
+}

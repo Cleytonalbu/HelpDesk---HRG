@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="HelpDesk">
+<meta name="theme-color" content="#2563eb">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/img/icon-192.png">
+<title>HelpDesk Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#f0f4ff;--card:#fff;--border:#e2e8f0;--text:#0f172a;--muted:#64748b;--muted2:#94a3b8;
+  --accent:#2563eb;--a2:#1d4ed8;--green:#059669;--green-bg:#f0fdf4;
+  --orange:#d97706;--orange-bg:#fffbeb;
+  --red:#dc2626;--red-bg:#fef2f2;
+  --purple:#7c3aed;--purple-bg:#faf5ff;
+  --safe-t:env(safe-area-inset-top,0px);
+  --safe-b:env(safe-area-inset-bottom,0px);
+}
+html,body{height:100%;background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);overflow:hidden}
+body{display:flex;flex-direction:column}
+
+/* ── TOPBAR ─────────────────────────────────── */
+.topbar{
+  background:var(--accent);
+  padding:14px 16px;
+  padding-top:calc(14px + var(--safe-t));
+  display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;position:relative;z-index:10;
+  box-shadow:0 2px 12px rgba(37,99,235,.3)
+}
+.topbar-logos{display:flex;align-items:center;gap:7px}
+.topbar-logos img{height:26px;object-fit:contain;background:#fff;border-radius:4px;padding:2px 4px}
+.topbar-logos .sep{width:1px;height:20px;background:rgba(255,255,255,.3)}
+.topbar-title{position:absolute;left:50%;transform:translateX(-50%);font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:#fff;white-space:nowrap;pointer-events:none}
+.topbar-av{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;cursor:pointer;border:2px solid rgba(255,255,255,.3)}
+
+/* ── SCROLL AREA ─────────────────────────────── */
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(76px + var(--safe-b))}
+
+/* ── VIEWS ───────────────────────────────────── */
+.view{display:none;padding:16px;animation:fadeUp .22s ease}
+.view.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── BOTTOM NAV ──────────────────────────────── */
+.bnav{
+  position:fixed;bottom:0;left:0;right:0;
+  background:#fff;border-top:1px solid var(--border);
+  display:flex;padding-bottom:var(--safe-b);z-index:50;
+  box-shadow:0 -4px 24px rgba(0,0,0,.1)
+}
+.bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 4px;gap:3px;cursor:pointer;border:none;background:none;color:var(--muted);font-family:'DM Sans',sans-serif;transition:color .15s;min-height:56px}
+.bnav-btn.active{color:var(--accent)}
+.bnav-btn .ico{font-size:22px;line-height:1}
+.bnav-btn .lbl{font-size:10px;font-weight:500;white-space:nowrap}
+.bnav-btn.center-btn{background:var(--accent);margin:6px 4px 0;border-radius:16px;color:#fff;flex:1.2}
+.bnav-btn.center-btn .ico{font-size:24px}
+
+/* ── CARDS ───────────────────────────────────── */
+.card{background:var(--card);border-radius:14px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.06);margin-bottom:12px}
+.card-sm{background:var(--card);border-radius:12px;padding:14px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+
+/* ── KPI GRID ────────────────────────────────── */
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.kpi-card{background:var(--card);border-radius:14px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:4px}
+.kpi-val{font-family:'Syne',sans-serif;font-size:30px;font-weight:800;line-height:1}
+.kpi-lbl{font-size:11px;color:var(--muted);font-weight:500}
+
+/* ── SECTION TITLE ───────────────────────────── */
+.sec-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.sec-more{font-size:12px;color:var(--accent);font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer}
+
+/* ── TICKET ITEMS ────────────────────────────── */
+.ticket-item{display:flex;align-items:flex-start;gap:12px;padding:14px;background:var(--card);border-radius:12px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.05);cursor:pointer;transition:box-shadow .15s;border-left:3px solid transparent}
+.ticket-item:active{box-shadow:0 3px 12px rgba(0,0,0,.1)}
+.ticket-item.open{border-left-color:var(--accent)}
+.ticket-item.progress{border-left-color:var(--orange)}
+.ticket-item.resolved{border-left-color:var(--green)}
+.ticket-item.escalated{border-left-color:var(--red)}
+.ticket-item.waiting{border-left-color:var(--purple)}
+.ti-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.ti-info{flex:1;min-width:0}
+.ti-title{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px}
+.ti-sub{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ti-meta{display:flex;align-items:center;gap:6px;margin-top:5px;flex-wrap:wrap}
+
+/* ── BADGES ──────────────────────────────────── */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:600;white-space:nowrap}
+.badge.open{background:rgba(37,99,235,.1);color:var(--accent)}
+.badge.progress{background:var(--orange-bg);color:var(--orange)}
+.badge.resolved{background:var(--green-bg);color:var(--green)}
+.badge.escalated{background:var(--red-bg);color:var(--red)}
+.badge.waiting{background:var(--purple-bg);color:var(--purple)}
+.badge.closed{background:#f1f5f9;color:var(--muted)}
+.prio{font-size:10px;color:var(--muted2);background:#f8fafc;border:1px solid var(--border);padding:2px 7px;border-radius:10px}
+
+/* ── FORMS ───────────────────────────────────── */
+.fg{margin-bottom:14px}
+.fl{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;display:block;margin-bottom:5px}
+.fi{width:100%;background:#f8fafc;border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;transition:border .15s;-webkit-appearance:none}
+.fi:focus{border-color:var(--accent);background:#fff}
+select.fi{cursor:pointer}
+textarea.fi{resize:none;line-height:1.5}
+
+/* ── BUTTONS ─────────────────────────────────── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:13px 20px;border-radius:12px;font-size:15px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;border:none;transition:all .15s;width:100%}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:active{background:var(--a2)}
+.btn-ghost{background:#f1f5f9;color:var(--text)}
+.btn-ghost:active{background:#e2e8f0}
+.btn-danger{background:var(--red-bg);color:var(--red);border:1.5px solid rgba(220,38,38,.2)}
+.btn-sm{padding:9px 16px;font-size:13px;border-radius:9px;width:auto}
+
+/* ── TOAST / ALERTS ──────────────────────────── */
+.alert{border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:12px;display:none}
+.alert-ok{background:var(--green-bg);border:1px solid rgba(5,150,105,.2);color:var(--green)}
+.alert-err{background:var(--red-bg);border:1px solid rgba(220,38,38,.2);color:var(--red)}
+
+/* ── BOTTOM SHEET ────────────────────────────── */
+.sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;display:none;align-items:flex-end}
+.sheet-overlay.open{display:flex}
+.sheet{background:#fff;border-radius:20px 20px 0 0;width:100%;max-height:92vh;overflow-y:auto;padding:0 0 calc(20px + var(--safe-b));animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sheet-handle{width:40px;height:4px;background:#e2e8f0;border-radius:2px;margin:12px auto 16px}
+.sheet-hdr{padding:0 20px 16px;border-bottom:1px solid var(--border);margin-bottom:16px}
+.sheet-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:800}
+.sheet-sub{font-size:12.5px;color:var(--muted);margin-top:3px}
+.sheet-body{padding:0 20px}
+
+/* ── DATASHOW CARDS ──────────────────────────── */
+.ds-day-group{margin-bottom:18px}
+.ds-day-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:8px;padding-left:4px}
+.ds-card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:8px;border-left:3px solid var(--accent);box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.ds-card.mine{border-left-color:var(--green);background:var(--green-bg)}
+.ds-card.cancelled{border-left-color:var(--muted2);opacity:.7}
+.ds-time{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--accent);margin-bottom:3px}
+.ds-loc{font-size:12px;color:var(--muted);margin-bottom:5px}
+.ds-purpose{font-size:13.5px;font-weight:600;margin-bottom:4px}
+.ds-requester{font-size:12px;color:var(--muted)}
+
+/* ── CHAT ─────────────────────────────────────── */
+.chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 200px)}
+.chat-msgs{flex:1;overflow-y:auto;padding:4px 0}
+.msg{display:flex;gap:8px;margin-bottom:12px;align-items:flex-end}
+.msg.user{flex-direction:row-reverse}
+.msg-bubble{max-width:80%;padding:11px 14px;border-radius:18px;font-size:14px;line-height:1.5;white-space:pre-wrap}
+.msg.bot  .msg-bubble{background:#fff;border-radius:4px 18px 18px 18px;box-shadow:0 1px 4px rgba(0,0,0,.07)}
+.msg.user .msg-bubble{background:var(--accent);color:#fff;border-radius:18px 18px 4px 18px}
+.msg-av{width:30px;height:30px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.chat-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.chip{background:var(--accent-bg,#eff6ff);border:1.5px solid rgba(37,99,235,.2);color:var(--accent);padding:6px 12px;border-radius:20px;font-size:12.5px;font-weight:500;cursor:pointer;white-space:nowrap}
+.chat-input-row{display:flex;gap:8px;padding:10px 0}
+.chat-input-row .fi{flex:1;padding:10px 14px;font-size:14px;margin:0}
+.send-btn{width:44px;height:44px;border-radius:12px;background:var(--accent);border:none;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;flex-shrink:0}
+
+/* ── KB ───────────────────────────────────────── */
+.kb-cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.kb-cat{background:var(--card);border-radius:12px;padding:14px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.05);cursor:pointer}
+.kb-cat-ico{font-size:26px;margin-bottom:5px}
+.kb-cat-name{font-size:12px;font-weight:600;color:var(--text)}
+.kb-cat-count{font-size:11px;color:var(--muted)}
+.kb-art{display:flex;align-items:center;gap:10px;padding:13px;background:var(--card);border-radius:12px;margin-bottom:8px;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.kb-art-title{font-size:13.5px;font-weight:600}
+.kb-art-meta{font-size:11px;color:var(--muted);margin-top:2px}
+
+/* ── PROFILE ──────────────────────────────────── */
+.profile-av-wrap{text-align:center;margin-bottom:20px;padding-top:8px}
+.profile-av{width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;color:#fff;margin:0 auto 10px}
+
+/* ── INSTALL BANNER ───────────────────────────── */
+#install-banner{display:none;position:fixed;top:calc(0px + var(--safe-t));left:0;right:0;background:var(--accent);color:#fff;padding:12px 16px;z-index:300;box-shadow:0 4px 12px rgba(37,99,235,.4)}
+#install-banner.show{display:flex;align-items:center;gap:10px}
+
+/* ── OFFLINE BANNER ───────────────────────────── */
+#offline-banner{display:none;position:fixed;top:0;left:0;right:0;background:#ef4444;color:#fff;padding:8px 16px;text-align:center;font-size:13px;font-weight:600;z-index:400}
+
+/* NOTIFICATIONS */
+.update-dot-m { display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--accent);margin-left:6px;flex-shrink:0;animation:pulse-m 2s infinite }
+@keyframes pulse-m{0%,100%{opacity:1}50%{opacity:.3}}
+.ti-has-update { border-left:3px solid var(--accent)!important;background:rgba(37,99,235,.04)!important }
+#m-notif-badge{display:none;position:absolute;top:4px;right:4px;background:var(--red);color:#fff;font-size:9px;font-weight:700;border-radius:8px;padding:1px 4px;min-width:14px;text-align:center}
+.m-toast{position:fixed;bottom:calc(72px + var(--safe-b));left:12px;right:12px;background:#fff;border:1px solid var(--accent);border-radius:14px;padding:13px 16px;box-shadow:0 6px 24px rgba(0,0,0,.15);z-index:300;display:flex;align-items:flex-start;gap:10px;animation:slideUp .3s ease;cursor:pointer}
+.m-toast-icon{font-size:20px;flex-shrink:0}
+.m-toast-title{font-size:13.5px;font-weight:700;margin-bottom:2px}
+.m-toast-body{font-size:12px;color:var(--muted);line-height:1.4}
+</style>
+</head>
+<body>
+
+<!-- OFFLINE BANNER -->
+<div id="offline-banner">📡 Sem conexão — dados podem estar desatualizados</div>
+
+<!-- INSTALL BANNER -->
+<div id="install-banner">
+  <span style="font-size:22px">📲</span>
+  <div style="flex:1"><div style="font-weight:700;font-size:13px">Instalar HelpDesk Pro</div><div style="font-size:11px;opacity:.85">Adicione à tela inicial para acesso rápido</div></div>
+  <button onclick="doInstall()" style="background:#fff;color:var(--accent);border:none;padding:7px 14px;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer">Instalar</button>
+  <button onclick="document.getElementById('install-banner').classList.remove('show')" style="background:none;border:none;color:#fff;font-size:18px;cursor:pointer;padding:0 4px">✕</button>
+</div>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-logos">
+    <img src="/img/hospital-regional.jpg" alt="HRG">
+    <div class="sep"></div>
+    <img src="/img/pb-saude.jpg" alt="PBS">
+  </div>
+  <div class="topbar-title" id="top-title">HelpDesk Pro</div>
+  <div class="topbar-av" id="top-av" onclick="showView('profile')">?</div>
+</div>
+
+<!-- SCROLL AREA -->
+<div class="scroll" id="scroll-area">
+
+  <!-- ── HOME ─────────────────────────────────── -->
+  <div class="view active" id="v-home">
+    <div style="margin-bottom:16px">
+      <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:2px">Olá, <span id="home-name">—</span> 👋</div>
+      <div style="font-size:13px;color:var(--muted)" id="home-dept"></div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpi-grid" id="home-kpis">
+      <div class="kpi-card"><div class="kpi-val" id="kpi-open" style="color:var(--accent)">—</div><div class="kpi-lbl">Chamados Abertos</div></div>
+      <div class="kpi-card"><div class="kpi-val" id="kpi-resolved" style="color:var(--green)">—</div><div class="kpi-lbl">Resolvidos</div></div>
+    </div>
+
+    <!-- Quick actions -->
+    <div class="sec-title">Acesso Rápido</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">
+      <div class="card-sm" style="cursor:pointer;border:1.5px solid rgba(37,99,235,.15)" onclick="showView('new-ticket')">
+        <div style="font-size:28px;margin-bottom:6px">🎫</div>
+        <div style="font-size:13px;font-weight:700">Abrir Chamado</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Reporte um problema</div>
+      </div>
+      <div class="card-sm" style="cursor:pointer;border:1.5px solid rgba(124,58,237,.15)" onclick="showView('datashow')">
+        <div style="font-size:28px;margin-bottom:6px">📽</div>
+        <div style="font-size:13px;font-weight:700">Agendar Datashow</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Reservar projetor</div>
+      </div>
+      <div class="card-sm" style="cursor:pointer;border:1.5px solid rgba(5,150,105,.15)" onclick="showView('tickets')">
+        <div style="font-size:28px;margin-bottom:6px">📋</div>
+        <div style="font-size:13px;font-weight:700">Meus Chamados</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Ver andamento</div>
+      </div>
+      <div class="card-sm" style="cursor:pointer;border:1.5px solid rgba(217,119,6,.15)" onclick="showView('kb')">
+        <div style="font-size:28px;margin-bottom:6px">📚</div>
+        <div style="font-size:13px;font-weight:700">Base de Conhecimento</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Resolver sozinho</div>
+      </div>
+    </div>
+
+    <!-- Recent tickets -->
+    <div class="sec-title">
+      Chamados Recentes
+      <span class="sec-more" onclick="showView('tickets')">Ver todos ›</span>
+    </div>
+    <div id="home-recent"></div>
+  </div>
+
+  <!-- ── TICKETS ───────────────────────────────── -->
+  <div class="view" id="v-tickets">
+    <!-- Status filter chips -->
+    <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:10px;margin-bottom:12px;scrollbar-width:none">
+      <div class="chip active-chip" id="tf-all"      onclick="filterTickets('all',this)">Todos</div>
+      <div class="chip" id="tf-open"     onclick="filterTickets('open',this)">Abertos</div>
+      <div class="chip" id="tf-progress" onclick="filterTickets('progress',this)">Em Andamento</div>
+      <div class="chip" id="tf-waiting"  onclick="filterTickets('waiting',this)">Aguardando</div>
+      <div class="chip" id="tf-resolved" onclick="filterTickets('resolved',this)">Resolvidos</div>
+    </div>
+    <div id="tickets-list"></div>
+  </div>
+
+  <!-- ── NEW TICKET ─────────────────────────────── -->
+  <div class="view" id="v-new-ticket">
+    <div class="card">
+      <div id="nt-ok"  class="alert alert-ok">✓ Chamado aberto com sucesso!</div>
+      <div id="nt-err" class="alert alert-err"></div>
+      <div class="fg"><label class="fl">Seu nome <span style="color:var(--red)">*</span></label>
+        <input class="fi" id="nt-name" placeholder="Nome completo"></div>
+      <div class="fg"><label class="fl">Setor / Departamento <span style="color:var(--red)">*</span></label>
+        <select class="fi" id="nt-dept">
+          <option value="">— Selecione —</option>
+          <option>Administrativo</option><option>Almoxarifado</option><option>Centro Cirúrgico</option>
+          <option>Enfermagem</option><option>Farmácia</option><option>Financeiro</option>
+          <option>Internação</option><option>Jurídico</option><option>Laboratório</option>
+          <option>Manutenção</option><option>Nutrição</option><option>Radiologia</option>
+          <option>Recepção</option><option>RH</option><option>TI</option>
+          <option>UTI</option><option>Outro</option>
+        </select></div>
+      <div class="fg"><label class="fl">Categoria</label>
+        <select class="fi" id="nt-cat">
+          <option value="hardware">💻 Hardware / Equipamento</option>
+          <option value="software">⚙ Software / Sistema</option>
+          <option value="rede">🌐 Rede / Conectividade</option>
+          <option value="acesso">🔑 Acesso / Senha</option>
+          <option value="impressora">🖨 Impressora</option>
+          <option value="outros">📋 Outros</option>
+        </select></div>
+      <div class="fg"><label class="fl">Urgência</label>
+        <select class="fi" id="nt-prio">
+          <option value="low">⚪ Baixa</option>
+          <option value="medium" selected>🟡 Média</option>
+          <option value="high">🟠 Alta</option>
+          <option value="critical">🔴 Crítica — parado</option>
+        </select></div>
+      <div class="fg"><label class="fl">Assunto <span style="color:var(--red)">*</span></label>
+        <input class="fi" id="nt-title" placeholder="Descreva brevemente o problema"></div>
+      <div class="fg" style="margin-bottom:20px"><label class="fl">Descrição detalhada <span style="color:var(--red)">*</span></label>
+        <textarea class="fi" id="nt-desc" rows="4" placeholder="O que acontece? Desde quando? Mensagem de erro? Quantas pessoas afetadas?"></textarea></div>
+      <button class="btn btn-primary" onclick="submitTicket()">📨 Enviar Chamado</button>
+    </div>
+  </div>
+
+  <!-- ── DATASHOW ───────────────────────────────── -->
+  <div class="view" id="v-datashow">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800">📽 Datashow</div>
+      <button class="btn btn-primary btn-sm" onclick="openDsSheet(null)">+ Nova Reserva</button>
+    </div>
+    <!-- Week nav -->
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;background:#fff;border-radius:12px;padding:10px 14px;box-shadow:0 1px 3px rgba(0,0,0,.05)">
+      <button onclick="changeDsWeek(-7)" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--accent);padding:0 4px">‹</button>
+      <span style="flex:1;text-align:center;font-size:13px;font-weight:600" id="ds-week-lbl">—</span>
+      <button onclick="changeDsWeek(7)"  style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--accent);padding:0 4px">›</button>
+    </div>
+    <div id="ds-list"></div>
+  </div>
+
+  <!-- ── KB ─────────────────────────────────────── -->
+  <div class="view" id="v-kb">
+    <div style="position:relative;margin-bottom:16px">
+      <input class="fi" id="kb-search" placeholder="🔍  Pesquisar na base de conhecimento…" oninput="filterKB(this.value)">
+    </div>
+    <div class="sec-title">Categorias</div>
+    <div class="kb-cat-grid" id="kb-cats"></div>
+    <div class="sec-title">Artigos em Destaque</div>
+    <div id="kb-arts"></div>
+  </div>
+
+  <!-- ── PROFILE ────────────────────────────────── -->
+  <div class="view" id="v-profile">
+    <div class="card">
+      <div class="profile-av-wrap">
+        <div class="profile-av" id="pf-av" style="background:var(--accent)">?</div>
+        <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800" id="pf-name">—</div>
+        <div style="font-size:13px;color:var(--muted)" id="pf-dept">—</div>
+        <div style="font-size:12px;color:var(--muted2)" id="pf-email">—</div>
+      </div>
+
+      <div id="pf-ok"  class="alert alert-ok"></div>
+      <div id="pf-err" class="alert alert-err"></div>
+
+      <div style="border-top:1px solid var(--border);padding-top:16px;margin-top:4px">
+        <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:12px">Alterar Senha</div>
+        <div class="fg"><label class="fl">Senha atual</label><input class="fi" type="password" id="pf-old" placeholder="••••••••"></div>
+        <div class="fg"><label class="fl">Nova senha</label><input class="fi" type="password" id="pf-new" placeholder="Mín. 8 caracteres"></div>
+        <div class="fg" style="margin-bottom:16px"><label class="fl">Confirmar</label><input class="fi" type="password" id="pf-confirm" placeholder="Repita a nova senha"></div>
+        <button class="btn btn-ghost" onclick="savePassword()">🔑 Alterar Senha</button>
+      </div>
+
+      <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px">
+        <button class="btn btn-danger" onclick="logout()">⏏ Sair da Conta</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /scroll -->
+
+<!-- BOTTOM NAV -->
+<nav class="bnav">
+  <button class="bnav-btn active" id="nav-home"      onclick="showView('home')">      <span class="ico">🏠</span><span class="lbl">Início</span></button>
+  <button class="bnav-btn"        id="nav-tickets"   onclick="showView('tickets')" style="position:relative">   <span class="ico">🎫</span><span class="lbl">Chamados</span><span id="m-notif-badge"></span></button>
+  <button class="bnav-btn center-btn" id="nav-new"   onclick="showView('new-ticket')"><span class="ico">➕</span><span class="lbl">Novo</span></button>
+  <button class="bnav-btn"        id="nav-datashow"  onclick="showView('datashow')">  <span class="ico">📽</span><span class="lbl">Datashow</span></button>
+  <button class="bnav-btn"        id="nav-kb"        onclick="showView('kb')">        <span class="ico">📚</span><span class="lbl">Ajuda</span></button>
+</nav>
+
+<!-- ── TICKET DETAIL SHEET ──────────────────────── -->
+<div class="sheet-overlay" id="ticket-sheet" onclick="if(event.target===this)closeSheet('ticket-sheet')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-hdr">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-size:12px;color:var(--accent);font-weight:700;margin-bottom:2px" id="ts-num">#—</div>
+          <div class="sheet-title" id="ts-title">—</div>
+        </div>
+        <div id="ts-badge"></div>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap" id="ts-meta"></div>
+    </div>
+    <div class="sheet-body">
+      <div class="fg" style="margin-bottom:8px">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">Descrição</div>
+        <div style="font-size:14px;line-height:1.6;color:var(--text)" id="ts-desc"></div>
+      </div>
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px;margin-top:16px">Histórico</div>
+      <div id="ts-timeline"></div>
+      <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Adicionar comentário</div>
+        <textarea class="fi" id="ts-reply" rows="3" placeholder="Escreva uma atualização ou pergunta…"></textarea>
+        <button class="btn btn-primary" style="margin-top:8px" onclick="sendReply()">Enviar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── DATASHOW FORM SHEET ───────────────────────── -->
+<div class="sheet-overlay" id="ds-sheet" onclick="if(event.target===this)closeSheet('ds-sheet')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-hdr">
+      <div class="sheet-title" id="dsf-sheet-title">Nova Reserva de Datashow</div>
+      <div class="sheet-sub">Preencha os dados da solicitação</div>
+    </div>
+    <div class="sheet-body">
+      <div id="dsf-ok"  class="alert alert-ok"></div>
+      <div id="dsf-err" class="alert alert-err"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="fg"><label class="fl">Data *</label><input class="fi" type="date" id="dsf-date"></div>
+        <div class="fg"><label class="fl">Horário *</label><input class="fi" type="time" id="dsf-time" value="08:00" step="1800"></div>
+      </div>
+      <div class="fg"><label class="fl">Duração</label>
+        <select class="fi" id="dsf-dur">
+          <option value="30">30 min</option><option value="60" selected>1 hora</option>
+          <option value="90">1h 30min</option><option value="120">2 horas</option>
+          <option value="180">3 horas</option><option value="240">4 horas</option>
+        </select></div>
+      <div class="fg"><label class="fl">Local *</label><input class="fi" id="dsf-loc" placeholder="Auditório, Sala 1…"></div>
+      <div class="fg"><label class="fl">Finalidade *</label><input class="fi" id="dsf-purpose" placeholder="Treinamento, Reunião…"></div>
+      <div class="fg"><label class="fl">Seu nome *</label><input class="fi" id="dsf-rname" placeholder="Nome completo"></div>
+      <div class="fg" style="margin-bottom:20px"><label class="fl">Setor</label>
+        <select class="fi" id="dsf-rdept">
+          <option value="">— Selecione —</option>
+          <option>Administrativo</option><option>Almoxarifado</option><option>Centro Cirúrgico</option>
+          <option>Enfermagem</option><option>Farmácia</option><option>Financeiro</option>
+          <option>Internação</option><option>Laboratório</option><option>Manutenção</option>
+          <option>Nutrição</option><option>Radiologia</option><option>Recepção</option>
+          <option>RH</option><option>TI</option><option>UTI</option><option>Outro</option>
+        </select></div>
+      <button class="btn btn-primary" onclick="saveDs()">📽 Confirmar Reserva</button>
+      <button class="btn btn-ghost" style="margin-top:8px" onclick="closeSheet('ds-sheet')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────────────────────
+const API = '/api';
+let TOKEN   = localStorage.getItem('hd_token');
+let CLIENT  = JSON.parse(localStorage.getItem('hd_client') || 'null');
+let myTickets = [];
+let allKBCats = [], allKBArts = [];
+let dsReservations = [], dsOffset = 0;
+let currentTicketId = null, dsEditId = null;
+let activeTicketFilter = 'all';
+const dsMonths = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const dsDays   = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+// ── AUTH CHECK ────────────────────────────────────────────────────────────────
+if (!TOKEN || !CLIENT) {
+  window.location.href = '/';
+}
+
+// ── API HELPER ────────────────────────────────────────────────────────────────
+async function api(m, p, data) {
+  try {
+    const r = await fetch(API + p, {
+      method: m,
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN },
+      body: data ? JSON.stringify(data) : undefined,
+    });
+    return r.json();
+  } catch { return { error: 'Sem conexão com o servidor' }; }
+}
+
+// ── NAVIGATION ────────────────────────────────────────────────────────────────
+const viewTitles = {
+  home: 'HelpDesk Pro', tickets: 'Meus Chamados',
+  'new-ticket': 'Novo Chamado', datashow: 'Datashow',
+  kb: 'Base de Conhecimento', profile: 'Meu Perfil'
+};
+const navMap = {
+  home:'home', tickets:'tickets', 'new-ticket':'new',
+  datashow:'datashow', kb:'kb', profile:'home'
+};
+
+function showView(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('active'));
+  const v = document.getElementById('v-' + id);
+  if (v) { v.classList.add('active'); document.getElementById('scroll-area').scrollTop = 0; }
+  document.getElementById('top-title').textContent = viewTitles[id] || 'HelpDesk Pro';
+  const navBtn = document.getElementById('nav-' + (navMap[id] || id));
+  if (navBtn) navBtn.classList.add('active');
+  if (id === 'tickets')  loadTickets();
+  if (id === 'datashow') { dsOffset = 0; loadDs(); }
+  if (id === 'kb')       buildKB();
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+async function init() {
+  // Update header
+  document.getElementById('top-av').textContent =
+    CLIENT.name.split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('home-name').textContent = CLIENT.name.split(' ')[0];
+  document.getElementById('home-dept').textContent = CLIENT.department || '';
+
+  // Profile view
+  document.getElementById('pf-av').textContent =
+    CLIENT.name.split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('pf-name').textContent  = CLIENT.name;
+  document.getElementById('pf-dept').textContent  = CLIENT.department || 'Sem setor';
+  document.getElementById('pf-email').textContent = CLIENT.email;
+
+  // Pre-fill new ticket
+  document.getElementById('nt-name').value = CLIENT.name;
+  if (CLIENT.department) {
+    const sel = document.getElementById('nt-dept');
+    for (let o of sel.options) { if (o.value === CLIENT.department || o.text === CLIENT.department) { sel.value = o.value; break; } }
+  }
+  // Pre-fill datashow
+  document.getElementById('dsf-rname').value = CLIENT.name;
+  if (CLIENT.department) {
+    const sel = document.getElementById('dsf-rdept');
+    for (let o of sel.options) { if (o.value === CLIENT.department || o.text === CLIENT.department) { sel.value = o.value; break; } }
+  }
+
+  // Load data
+  const [tickets, kbCats, kbArts] = await Promise.all([
+    api('GET', '/tickets'),
+    api('GET', '/kb/categories'),
+    api('GET', '/kb/articles'),
+  ]);
+  myTickets = (Array.isArray(tickets) ? tickets : []).filter(t => t.requester_email === CLIENT.email);
+  allKBCats = Array.isArray(kbCats) ? kbCats : [];
+  allKBArts = Array.isArray(kbArts) ? kbArts : [];
+
+  // KPIs
+  document.getElementById('kpi-open').textContent =
+    myTickets.filter(t => ['open','progress','waiting','escalated'].includes(t.status)).length;
+  document.getElementById('kpi-resolved').textContent =
+    myTickets.filter(t => t.status === 'resolved' || t.status === 'closed').length;
+
+  // Recent tickets on home
+  renderRecentTickets();
+}
+
+// ── TICKETS ───────────────────────────────────────────────────────────────────
+const statusLabel = {open:'Aberto',progress:'Em Andamento',resolved:'Resolvido',closed:'Fechado',escalated:'Escalado',waiting:'Aguardando'};
+const statusIcon  = {open:'🔵',progress:'🟡',resolved:'✅',closed:'⬜',escalated:'🔴',waiting:'🟣'};
+const prioLabel   = {critical:'Crítica',high:'Alta',medium:'Média',low:'Baixa'};
+const catIcon     = {hardware:'💻',software:'⚙',rede:'🌐',acesso:'🔑',impressora:'🖨',outros:'📋'};
+
+function fmtDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'}) + ' ' +
+         d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
+
+function renderRecentTickets() {
+  const recent = myTickets.slice(0, 4);
+  document.getElementById('home-recent').innerHTML = recent.length
+    ? recent.map(t => ticketItemHTML(t)).join('')
+    : '<div class="card-sm" style="text-align:center;color:var(--muted);padding:24px">Nenhum chamado ainda.<br><span style="font-size:12px">Clique em Novo Chamado para começar.</span></div>';
+}
+
+function ticketItemHTML(t) {
+  return `<div class="ticket-item ${t.status}" onclick="openTicketSheet('${t._id}')">
+    <div class="ti-icon" style="background:${t.status==='open'?'#eff6ff':t.status==='resolved'?'#f0fdf4':t.status==='escalated'?'#fef2f2':'#fffbeb'}">
+      ${catIcon[t.category]||'📋'}
+    </div>
+    <div class="ti-info">
+      <div class="ti-title">${t.title}</div>
+      <div class="ti-sub">${t.description?.slice(0,60)}…</div>
+      <div class="ti-meta">
+        <span class="badge ${t.status}">${statusLabel[t.status]||t.status}</span>
+        <span class="prio">${prioLabel[t.priority]||t.priority}</span>
+        <span style="font-size:10.5px;color:var(--muted2)">#${t.number}</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+async function loadTickets() {
+  const tickets = await api('GET', '/tickets');
+  myTickets = (Array.isArray(tickets) ? tickets : []).filter(t => t.requester_email === CLIENT.email);
+  filterTickets(activeTicketFilter);
+}
+
+function filterTickets(status, el) {
+  activeTicketFilter = status;
+  document.querySelectorAll('[id^="tf-"]').forEach(c => c.style.background = '');
+  if (el) el.style.background = 'var(--accent)'; else {
+    const t = document.getElementById('tf-' + status);
+    if (t) t.style.background = 'var(--accent)';
+  }
+  const filtered = status === 'all' ? myTickets : myTickets.filter(t => t.status === status);
+  document.getElementById('tickets-list').innerHTML = filtered.length
+    ? filtered.map(t => ticketItemHTML(t)).join('')
+    : `<div class="card-sm" style="text-align:center;color:var(--muted);padding:24px">Nenhum chamado ${status==='all'?'':'com status "'+statusLabel[status]+'"'}</div>`;
+}
+
+async function openTicketSheet(id) {
+  currentTicketId = id;
+  const t = await api('GET', `/tickets/${id}`);
+  if (!t || t.error) return;
+  document.getElementById('ts-num').textContent   = '#' + t.number;
+  document.getElementById('ts-title').textContent = t.title;
+  document.getElementById('ts-badge').innerHTML   = `<span class="badge ${t.status}">${statusLabel[t.status]||t.status}</span>`;
+  document.getElementById('ts-meta').innerHTML    = `
+    <span class="prio">${prioLabel[t.priority]||t.priority}</span>
+    <span style="font-size:11px;color:var(--muted2)">${catIcon[t.category]||'📋'} ${t.category}</span>
+    <span style="font-size:11px;color:var(--muted2)">${fmtDate(t.created_at)}</span>`;
+  document.getElementById('ts-desc').textContent  = t.description || '—';
+  document.getElementById('ts-reply').value = '';
+
+  const tlColorCls = {system:'#94a3b8',reply:'#2563eb',note:'#d97706',escalation:'#ef4444'};
+  document.getElementById('ts-timeline').innerHTML = (t.comments||[]).length
+    ? (t.comments||[]).map(c => `
+        <div style="display:flex;gap:10px;margin-bottom:12px">
+          <div style="width:28px;height:28px;border-radius:50%;background:${tlColorCls[c.type]||'#94a3b8'}22;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">
+            ${c.type==='system'?'⚙':c.type==='note'?'📝':c.type==='escalation'?'⬆':'💬'}
+          </div>
+          <div style="flex:1">
+            <div style="font-size:12px;font-weight:600;color:var(--text)">${c.author_name}</div>
+            <div style="font-size:11px;color:var(--muted2);margin-bottom:4px">${fmtDate(c.created_at)}</div>
+            <div style="font-size:13.5px;line-height:1.5;background:${c.type==='note'?'#fffbeb':c.type==='system'?'#f8fafc':'#f0f4ff'};padding:10px 12px;border-radius:10px">${c.body}</div>
+          </div>
+        </div>`).join('')
+    : '<div style="text-align:center;color:var(--muted);font-size:13px;padding:16px">Nenhuma interação ainda.</div>';
+
+  openSheet('ticket-sheet');
+}
+
+async function sendReply() {
+  const body = document.getElementById('ts-reply').value.trim();
+  if (!body) return;
+  const r = await api('POST', `/tickets/${currentTicketId}/comments`, { body, type: 'reply' });
+  if (!r.error) {
+    document.getElementById('ts-reply').value = '';
+    openTicketSheet(currentTicketId);
+  }
+}
+
+// ── NEW TICKET ────────────────────────────────────────────────────────────────
+async function submitTicket() {
+  const name  = document.getElementById('nt-name').value.trim();
+  const dept  = document.getElementById('nt-dept').value;
+  const title = document.getElementById('nt-title').value.trim();
+  const desc  = document.getElementById('nt-desc').value.trim();
+  const okEl  = document.getElementById('nt-ok');
+  const errEl = document.getElementById('nt-err');
+  okEl.style.display = 'none'; errEl.style.display = 'none';
+
+  if (!name || !dept || !title || !desc) {
+    errEl.textContent = '⚠ Preencha todos os campos obrigatórios.';
+    errEl.style.display = 'block'; return;
+  }
+  const r = await api('POST', '/tickets', {
+    title, description: desc,
+    requester_name: name, requester_email: CLIENT.email,
+    requester_dept: dept,
+    priority: document.getElementById('nt-prio').value,
+    category: document.getElementById('nt-cat').value,
+    channel: 'mobile',
+  });
+  if (r._id) {
+    okEl.textContent = `✓ Chamado #${r.number} aberto! Um agente entrará em contato.`;
+    okEl.style.display = 'block';
+    document.getElementById('nt-title').value = '';
+    document.getElementById('nt-desc').value  = '';
+    myTickets.unshift(r);
+    document.getElementById('kpi-open').textContent =
+      myTickets.filter(t=>['open','progress','waiting','escalated'].includes(t.status)).length;
+    renderRecentTickets();
+    setTimeout(() => { okEl.style.display='none'; showView('tickets'); }, 2000);
+  } else {
+    errEl.textContent = '✗ ' + (r.error || 'Erro ao enviar. Tente novamente.');
+    errEl.style.display = 'block';
+  }
+}
+
+// ── DATASHOW ─────────────────────────────────────────────────────────────────
+function changeDsWeek(d) { dsOffset += d; loadDs(); }
+
+async function loadDs() {
+  const base = new Date(); base.setDate(base.getDate() + dsOffset);
+  const dow  = base.getDay();
+  const mon  = new Date(base); mon.setDate(base.getDate() - (dow===0?6:dow-1));
+  const sun  = new Date(mon);  sun.setDate(mon.getDate()+6);
+  const fmt  = d => d.toISOString().slice(0,10);
+  document.getElementById('ds-week-lbl').textContent =
+    `${mon.getDate()} ${dsMonths[mon.getMonth()]} – ${sun.getDate()} ${dsMonths[sun.getMonth()]} ${sun.getFullYear()}`;
+  dsReservations = await api('GET', `/datashow?date_from=${fmt(mon)}&date_to=${fmt(sun)}`);
+  renderDs();
+}
+
+function renderDs() {
+  if (!Array.isArray(dsReservations) || !dsReservations.length) {
+    document.getElementById('ds-list').innerHTML =
+      '<div class="card-sm" style="text-align:center;padding:28px;color:var(--muted)">📅 Semana livre — nenhum agendamento.<br><span style="font-size:12px">Clique em "+ Nova Reserva" para agendar.</span></div>';
+    return;
+  }
+  const byDate = {};
+  dsReservations.forEach(r => { if(!byDate[r.date]) byDate[r.date]=[]; byDate[r.date].push(r); });
+  document.getElementById('ds-list').innerHTML = Object.entries(byDate)
+    .sort(([a],[b])=>a.localeCompare(b))
+    .map(([date,items]) => {
+      const d = new Date(date+'T12:00');
+      return `<div class="ds-day-group">
+        <div class="ds-day-lbl">${dsDays[d.getDay()]}, ${d.getDate()} de ${dsMonths[d.getMonth()]}</div>
+        ${items.map(r => {
+          const mine = r.requester_email===CLIENT.email;
+          const endMin = parseInt(r.time.split(':')[0])*60+parseInt(r.time.split(':')[1])+(parseInt(r.duration)||60);
+          const endT = `${Math.floor(endMin/60).toString().padStart(2,'0')}:${(endMin%60).toString().padStart(2,'0')}`;
+          return `<div class="ds-card ${mine?'mine':''} ${r.status==='cancelled'?'cancelled':''}">
+            <div class="ds-time">${r.time} → ${endT}</div>
+            <div class="ds-loc">📍 ${r.location}</div>
+            <div class="ds-purpose">${r.purpose}</div>
+            <div class="ds-requester">👤 ${r.requester_name}${r.requester_dept?' · '+r.requester_dept:''}</div>
+            ${mine && r.status!=='cancelled' ? `<div style="display:flex;gap:8px;margin-top:10px">
+              <button class="btn btn-ghost btn-sm" onclick="openDsSheet('${r._id}')">✏ Editar</button>
+              <button class="btn btn-danger btn-sm" onclick="cancelDs('${r._id}')">✕ Cancelar</button>
+            </div>` : ''}
+          </div>`;
+        }).join('')}
+      </div>`;
+    }).join('');
+}
+
+function openDsSheet(id) {
+  dsEditId = id;
+  const r = id ? dsReservations.find(x=>x._id===id) : null;
+  document.getElementById('dsf-sheet-title').textContent = id ? 'Editar Reserva' : 'Nova Reserva de Datashow';
+  document.getElementById('dsf-ok').style.display  = 'none';
+  document.getElementById('dsf-err').style.display = 'none';
+  document.getElementById('dsf-date').value    = r?.date || new Date().toISOString().slice(0,10);
+  document.getElementById('dsf-time').value    = r?.time || '08:00';
+  document.getElementById('dsf-dur').value     = r?.duration?.toString() || '60';
+  document.getElementById('dsf-loc').value     = r?.location || '';
+  document.getElementById('dsf-purpose').value = r?.purpose  || '';
+  document.getElementById('dsf-rname').value   = r?.requester_name || CLIENT.name || '';
+  const sel = document.getElementById('dsf-rdept');
+  const dept = r?.requester_dept || CLIENT.department || '';
+  for (let o of sel.options) { if (o.value===dept||o.text===dept) { sel.value=o.value; break; } }
+  openSheet('ds-sheet');
+}
+
+async function saveDs() {
+  const date = document.getElementById('dsf-date').value;
+  const time = document.getElementById('dsf-time').value;
+  const dur  = document.getElementById('dsf-dur').value;
+  const loc  = document.getElementById('dsf-loc').value.trim();
+  const pur  = document.getElementById('dsf-purpose').value.trim();
+  const rn   = document.getElementById('dsf-rname').value.trim();
+  const rd   = document.getElementById('dsf-rdept').value;
+  const okEl  = document.getElementById('dsf-ok');
+  const errEl = document.getElementById('dsf-err');
+  okEl.style.display='none'; errEl.style.display='none';
+  if (!date||!time||!loc||!pur||!rn) { errEl.innerHTML='⚠ Preencha os campos obrigatórios.'; errEl.style.display='block'; return; }
+  const body = { date, time, duration:parseInt(dur)||60, location:loc, purpose:pur,
+    requester_name:rn, requester_email:CLIENT.email||'', requester_dept:rd };
+  const r = dsEditId ? await api('PATCH',`/datashow/${dsEditId}`,body) : await api('POST','/datashow',body);
+  if (r.error) { errEl.innerHTML=`⚠ ${r.error}`; errEl.style.display='block'; }
+  else {
+    okEl.textContent = dsEditId ? '✓ Reserva atualizada!' : '✓ Reserva confirmada! 📽';
+    okEl.style.display='block';
+    await loadDs();
+    setTimeout(()=>closeSheet('ds-sheet'), 1600);
+  }
+}
+
+async function cancelDs(id) {
+  if (!confirm('Tem certeza que deseja CANCELAR esta reserva?\nEsta ação não pode ser desfeita.')) return;
+  await api('DELETE',`/datashow/${id}`);
+  loadDs();
+}
+
+// ── KB ────────────────────────────────────────────────────────────────────────
+const catColors = {hardware:'#3b82f6',software:'#8b5cf6',rede:'#06b6d4',acesso:'#f59e0b',impressora:'#10b981',outros:'#6b7280'};
+const catIcons2 = {hardware:'💻',software:'⚙',rede:'🌐',acesso:'🔑',impressora:'🖨',outros:'📋'};
+
+function buildKB() {
+  document.getElementById('kb-cats').innerHTML = allKBCats.map(c =>
+    `<div class="kb-cat" style="border:1.5px solid ${c.color||'#e2e8f0'}22">
+      <div class="kb-cat-ico" style="color:${c.color||'var(--accent)'}">${c.icon||'📁'}</div>
+      <div class="kb-cat-name">${c.name}</div>
+      <div class="kb-cat-count">${c.article_count||0} artigos</div>
+    </div>`
+  ).join('');
+  const sorted = [...allKBArts].sort((a,b)=>(b.views||0)-(a.views||0));
+  document.getElementById('kb-arts').innerHTML = sorted.slice(0,8).map(a =>
+    `<div class="kb-art">
+      <span style="font-size:20px">📄</span>
+      <div class="ti-info">
+        <div class="kb-art-title">${a.title}</div>
+        <div class="kb-art-meta">${a.helpful_pct||0}% útil · ${a.views||0} visualizações</div>
+      </div>
+      <span style="color:var(--muted);font-size:16px">›</span>
+    </div>`
+  ).join('') || '<div style="text-align:center;color:var(--muted);padding:20px;font-size:13px">Nenhum artigo disponível ainda.</div>';
+}
+
+function filterKB(val) {
+  const q = val.toLowerCase();
+  document.querySelectorAll('.kb-art').forEach(el => {
+    el.style.display = el.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+
+// ── PROFILE / PASSWORD ────────────────────────────────────────────────────────
+async function savePassword() {
+  const old  = document.getElementById('pf-old').value;
+  const novo = document.getElementById('pf-new').value;
+  const conf = document.getElementById('pf-confirm').value;
+  const okEl  = document.getElementById('pf-ok');
+  const errEl = document.getElementById('pf-err');
+  okEl.style.display='none'; errEl.style.display='none';
+  if (!old||!novo) { errEl.textContent='Preencha a senha atual e a nova.'; errEl.style.display='block'; return; }
+  if (novo!==conf) { errEl.textContent='As senhas não coincidem.'; errEl.style.display='block'; return; }
+  if (novo.length<8){ errEl.textContent='Mínimo 8 caracteres.'; errEl.style.display='block'; return; }
+  const r = await api('PUT','/clients/me/password',{current_password:old,new_password:novo});
+  if (r.message) {
+    okEl.textContent='✓ Senha alterada com sucesso!'; okEl.style.display='block';
+    document.getElementById('pf-old').value='';
+    document.getElementById('pf-new').value='';
+    document.getElementById('pf-confirm').value='';
+    setTimeout(()=>okEl.style.display='none',3000);
+  } else { errEl.textContent=r.error||'Erro ao alterar senha.'; errEl.style.display='block'; }
+}
+
+function logout() {
+  if (!confirm('Sair da conta?')) return;
+  localStorage.removeItem('hd_token');
+  localStorage.removeItem('hd_client');
+  window.location.href = '/';
+}
+
+// ── SHEET HELPERS ─────────────────────────────────────────────────────────────
+function openSheet(id)  { document.getElementById(id).classList.add('open'); }
+function closeSheet(id) { document.getElementById(id).classList.remove('open'); }
+
+// ── PWA ───────────────────────────────────────────────────────────────────────
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault(); deferredPrompt = e;
+  document.getElementById('install-banner').classList.add('show');
+});
+function doInstall() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(() => {
+    document.getElementById('install-banner').classList.remove('show');
+    deferredPrompt = null;
+  });
+}
+
+// ── OFFLINE ───────────────────────────────────────────────────────────────────
+window.addEventListener('online',  () => document.getElementById('offline-banner').style.display='none');
+window.addEventListener('offline', () => document.getElementById('offline-banner').style.display='block');
+if (!navigator.onLine) document.getElementById('offline-banner').style.display='block';
+
+// ── SERVICE WORKER ────────────────────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+
+// ── START ─────────────────────────────────────────────────────────────────────
+init();
+
+// ── NOTIFICAÇÕES SSE (MOBILE) ──────────────────────────────────────────────
+let mUpdatedIds  = new Set();
+let mSseConn     = null;
+let mReconnTimer = null;
+
+function initMobileSSE() {
+  if (mSseConn) { mSseConn.abort(); mSseConn = null; }
+  const ctrl = new AbortController();
+  mSseConn = ctrl;
+  fetch('/api/tickets/client-stream', {
+    headers: { 'Authorization': 'Bearer ' + TOKEN },
+    signal: ctrl.signal,
+  }).then(async res => {
+    if (!res.ok) { scheduleMReconn(); return; }
+    const reader = res.body.getReader();
+    const dec    = new TextDecoder();
+    let buf = '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      const lines = buf.split('\n'); buf = lines.pop();
+      let evt='', dat='';
+      for (const l of lines) {
+        if (l.startsWith('event:')) evt = l.slice(6).trim();
+        else if (l.startsWith('data:')) dat = l.slice(5).trim();
+        else if (l==='' && dat) {
+          if (evt==='update') handleMobileUpdate(JSON.parse(dat));
+          evt=''; dat='';
+        }
+      }
+    }
+    scheduleMReconn();
+  }).catch(e => { if (e.name!=='AbortError') scheduleMReconn(); });
+}
+
+function scheduleMReconn() {
+  clearTimeout(mReconnTimer);
+  mReconnTimer = setTimeout(initMobileSSE, 12000);
+}
+
+function handleMobileUpdate(data) {
+  const updated = data.updated||[];
+  if (!updated.length) return;
+  updated.forEach(t => { mUpdatedIds.add(t._id); showMobileToast(t); });
+  // Update badge on nav
+  const badge = document.getElementById('m-notif-badge');
+  if (badge) { badge.textContent = mUpdatedIds.size; badge.style.display = 'block'; }
+  // Refresh tickets silently
+  api('GET','/tickets').then(tickets => {
+    if (!Array.isArray(tickets)) return;
+    myTickets = tickets.filter(t => t.requester_email === CLIENT.email);
+    // Re-render if on tickets or home view
+    const activeView = document.querySelector('.view.active')?.id;
+    if (activeView==='v-tickets') filterTickets(activeTicketFilter);
+    if (activeView==='v-home')    renderRecentTickets();
+    document.getElementById('kpi-open').textContent =
+      myTickets.filter(t=>['open','progress','waiting','escalated'].includes(t.status)).length;
+    document.getElementById('kpi-resolved').textContent =
+      myTickets.filter(t=>t.status==='resolved'||t.status==='closed').length;
+  });
+}
+
+function showMobileToast(t) {
+  document.querySelectorAll('.m-toast').forEach(el=>el.remove());
+  const statusMsg = {
+    progress:'Um agente está atendendo seu chamado',
+    resolved:'Seu chamado foi resolvido! ✅',
+    closed:'Seu chamado foi encerrado',
+    escalated:'Chamado escalado para especialista',
+    waiting:'O agente aguarda sua resposta',
+  };
+  const icons = {progress:'⚙️',resolved:'✅',closed:'🔒',escalated:'🔴',waiting:'⏳'};
+  const toast = document.createElement('div');
+  toast.className = 'm-toast';
+  toast.innerHTML = `
+    <div class="m-toast-icon">${icons[t.status]||'🔔'}</div>
+    <div style="flex:1">
+      <div class="m-toast-title">${statusMsg[t.status]||'Chamado atualizado'}</div>
+      <div class="m-toast-body">Chamado #${t.number}: ${(t.title||'').slice(0,50)}${(t.title||'').length>50?'…':''}</div>
+    </div>
+    <span onclick="this.parentElement.remove()" style="font-size:16px;color:var(--muted);padding:2px">✕</span>`;
+  toast.addEventListener('click', e => {
+    if (e.target.tagName==='SPAN') return;
+    toast.remove();
+    mUpdatedIds.delete(t._id);
+    openTicketSheet(t._id);
+    showView('tickets');
+    const b=document.getElementById('m-notif-badge');
+    if(b){ if(mUpdatedIds.size){b.textContent=mUpdatedIds.size;}else{b.style.display='none';} }
+  });
+  document.body.appendChild(toast);
+  setTimeout(()=>{ if(toast.parentElement){toast.style.opacity='0';toast.style.transition='opacity .3s';setTimeout(()=>toast.remove(),300);} },7000);
+}
+
+// Patch ticketItemHTML to show update indicator
+const _origTicketItemHTML = ticketItemHTML;
+ticketItemHTML = function(t) {
+  let html = _origTicketItemHTML(t);
+  if (mUpdatedIds.has(t._id)) {
+    // Add update dot and highlight class
+    html = html.replace('class="ticket-item', 'class="ticket-item ti-has-update');
+    html = html.replace('class="ti-info"', 'class="ti-info"><span class="update-dot-m"></span>'.replace('></span>','>') + '"');
+  }
+  return html;
+};
+
+// Start SSE
+initMobileSSE();
+</script>
+</body>
+</html>
