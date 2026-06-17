@@ -1,0 +1,4 @@
+{"_id":"69dfad0d-f74d-4962-af55-75149f790b19","priority":"low","response_hours":8,"resolve_hours":24}
+{"_id":"8e8d4e45-cea3-4300-9a0e-35870f0fa375","priority":"high","response_hours":1,"resolve_hours":4}
+{"_id":"aca98229-b9f3-4809-a21a-3af56fd18515","priority":"medium","response_hours":4,"resolve_hours":8}
+{"_id":"be8556d8-eaab-4c96-88e0-01cb0b7141e0","priority":"critical","response_hours":0.5,"resolve_hours":2}
