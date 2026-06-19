@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+npm <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -1581,7 +1581,18 @@ async function openTicket(id) {
   document.getElementById('m-status').value = t.status;
 
   const tlColors = {system:'gray',reply:'blue',note:'orange',escalation:'red'};
-  document.getElementById('m-timeline').innerHTML = (t.comments||[]).map((c,i,arr)=>`
+  const descBlock = t.description ? `
+  <div class="tl-item">
+    <div class="tl-l">
+      <div class="tl-dot blue">📋</div>
+      <div class="tl-line"></div>
+    </div>
+    <div class="tl-r">
+      <span class="tl-actor">Descrição do Chamado</span>
+      <div class="tl-msg" style="white-space:pre-wrap;word-break:break-word;margin-top:6px">${t.description}</div>
+    </div>
+  </div>` : '';
+  document.getElementById('m-timeline').innerHTML = descBlock + (t.comments||[]).map((c,i,arr)=>`
     <div class="tl-item">
       <div class="tl-l">
         <div class="tl-dot ${tlColors[c.type]||'gray'}">
@@ -1595,6 +1606,7 @@ async function openTicket(id) {
         <div class="${c.type==='note'?'tl-note':c.type==='system'?'tl-system':'tl-msg'}">${c.body}</div>
       </div>
     </div>`).join('') || '<div style="color:var(--muted);font-size:13px">Nenhuma interação ainda.</div>';
+
   document.getElementById('ticket-modal').classList.add('open');
 }
 
