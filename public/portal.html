@@ -223,6 +223,10 @@ select.fi{cursor:pointer;appearance:none}
   background: rgba(59,130,246,.04);
   border-left: 3px solid var(--accent);
 }
+.ticket-item.has-agent-reply {
+  background: rgba(16,185,129,.05);
+  border-left: 3px solid #10b981;
+}
 .update-dot {
   width: 9px; height: 9px; border-radius: 50%;
   background: var(--accent); flex-shrink: 0;
@@ -252,6 +256,8 @@ select.fi{cursor:pointer;appearance:none}
 #portal-notif-btn:hover { background: var(--bg3); }
 #portal-notif-dot  { position:absolute; top:2px; right:4px; width:8px; height:8px; border-radius:50%; background:var(--red); border:2px solid var(--bg); display:none; }
 .notif-badge       { display:inline-flex; align-items:center; justify-content:center; background:var(--accent); color:#fff; font-size:10px; font-weight:700; min-width:18px; height:18px; border-radius:9px; padding:0 5px; margin-left:6px; vertical-align:middle; }
+.reply-badge       { display:inline-flex; align-items:center; justify-content:center; background:#10b981; color:#fff; font-size:10px; font-weight:700; height:18px; border-radius:9px; padding:0 7px; margin-left:6px; vertical-align:middle; gap:3px; }
+.update-dot.reply  { background:#10b981; }
 
 /* ── RESPONSIVE ──────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
@@ -941,11 +947,13 @@ function renderMyTickets() {
 function ticketRow(t) {
   const sla = slaRem(t.sla_resolve_deadline);
   const icons = {open:'🔵',progress:'⚙',resolved:'✅',escalated:'🔴',waiting:'⏳',closed:'🔒'};
-  const hasUpdate = updatedTicketIds.has(t._id);
-  return `<div class="ticket-item${hasUpdate?' has-update':''}" onclick="openTicket('${t._id}');markSeen('${t._id}')">
+  const hasReply  = agentReplyTicketIds.has(t._id);
+  const hasUpdate = !hasReply && updatedTicketIds.has(t._id);
+  const itemClass = hasReply ? ' has-agent-reply' : (hasUpdate ? ' has-update' : '');
+  return `<div class="ticket-item${itemClass}" onclick="openTicket('${t._id}');markSeen('${t._id}')">
     <div class="ticket-icon ${t.status}">${icons[t.status]||'🎫'}</div>
     <div style="flex:1;min-width:0">
-      <div class="ticket-num">#${t.number}${hasUpdate?'<span class="notif-badge">Novo</span>':''}</div>
+      <div class="ticket-num">#${t.number}${hasReply?'<span class="reply-badge">&#128172; Resposta</span>':hasUpdate?'<span class="notif-badge">Novo</span>':''}</div>
       <div class="ticket-ttl">${t.title}</div>
       <div class="ticket-info">
         <span class="badge ${t.status}">${statusLabel[t.status]||t.status}</span>
@@ -953,7 +961,7 @@ function ticketRow(t) {
       </div>
     </div>
     <div class="ticket-right" style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
-      ${hasUpdate?'<div class="update-dot"></div>':''}
+      ${hasReply?'<div class="update-dot reply"></div>':hasUpdate?'<div class="update-dot"></div>':''}
       <div class="sla-time ${t.status==='resolved'||t.status==='closed'?'sla-ok':sla.c}">${t.status==='resolved'||t.status==='closed'?'✓ Encerrado':sla.t}</div>
       <div style="font-size:11px;color:var(--muted)">${t.tier}</div>
     </div>
@@ -1294,8 +1302,9 @@ if ('serviceWorker' in navigator) {
 // ── NOTIFICAÇÕES EM TEMPO REAL (SSE) ─────────────────────────────────────────
 
 // Set of ticket IDs that have unread updates
-let updatedTicketIds = new Set();
-let notifHistory     = []; // { id, title, msg, time }
+let updatedTicketIds   = new Set();
+let agentReplyTicketIds = new Set(); // tickets with unread agent replies specifically
+let notifHistory       = []; // { id, title, msg, time, isReply }
 let sseConn          = null;
 let sseReconnTimer   = null;
 
@@ -1344,6 +1353,7 @@ function handleClientUpdate(data) {
   updated.forEach(t => {
     // Mark ticket as having new update
     updatedTicketIds.add(t._id);
+    if (t.has_agent_reply) agentReplyTicketIds.add(t._id);
 
     // Build notification message
     const statusMsg = {
@@ -1354,10 +1364,10 @@ function handleClientUpdate(data) {
       waiting:  'aguarda sua resposta',
       open:     'foi reaberto',
     };
-    const msg = statusMsg[t.status] || 'foi atualizado';
+    const msg = t.has_agent_reply ? 'recebeu uma resposta do agente' : (statusMsg[t.status] || 'foi atualizado');
 
     // Add to history
-    notifHistory.unshift({ _id: t._id, number: t.number, title: t.title, msg, time: new Date() });
+    notifHistory.unshift({ _id: t._id, number: t.number, title: t.title, msg, time: new Date(), isReply: !!t.has_agent_reply });
     if (notifHistory.length > 20) notifHistory.pop();
 
     // Show toast
@@ -1389,8 +1399,8 @@ function showNotifToast(t) {
     waiting:  'O agente aguarda sua resposta',
   };
   const icons = { progress:'⚙️', resolved:'✅', closed:'🔒', escalated:'🔴', waiting:'⏳' };
-  const msg   = statusMsg[t.status] || 'Seu chamado foi atualizado';
-  const icon  = icons[t.status] || '🔔';
+  const msg   = t.has_agent_reply ? 'O agente respondeu ao seu chamado!' : (statusMsg[t.status] || 'Seu chamado foi atualizado');
+  const icon  = t.has_agent_reply ? '💬' : (icons[t.status] || '🔔');
 
   const toast = document.createElement('div');
   toast.className = 'notif-toast';
@@ -1423,11 +1433,12 @@ function showNotifToast(t) {
 
 function markSeen(ticketId) {
   updatedTicketIds.delete(ticketId);
+  agentReplyTicketIds.delete(ticketId);
   // Re-render to remove badge
   renderMyTickets();
   renderRecentTickets();
   // Hide bell dot if no more updates
-  if (updatedTicketIds.size === 0) {
+  if (updatedTicketIds.size === 0 && agentReplyTicketIds.size === 0) {
     document.getElementById('portal-notif-dot').style.display = 'none';
   }
 }
@@ -1447,7 +1458,7 @@ function openNotifPanel() {
     animation:toastIn .2s ease;
   `;
 
-  const count = updatedTicketIds.size;
+  const count = updatedTicketIds.size + agentReplyTicketIds.size;
   panel.innerHTML = `
     <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
       <div style="font-weight:700;font-size:14px">🔔 Notificações${count?` <span class="notif-badge">${count}</span>`:''}</div>
@@ -1458,13 +1469,13 @@ function openNotifPanel() {
         <div onclick="document.getElementById('notif-panel').remove();markSeen('${n._id}');openTicket('${n._id}');show('my-tickets',document.querySelector('[data-view=my-tickets]'))"
           style="padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;display:flex;gap:10px;align-items:flex-start"
           onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''">
-          <div style="font-size:18px;flex-shrink:0">🎫</div>
+          <div style="font-size:18px;flex-shrink:0">${n.isReply?'💬':'🎫'}</div>
           <div style="flex:1;min-width:0">
             <div style="font-size:12.5px;font-weight:600;margin-bottom:2px">Chamado #${n.number} ${n.msg}</div>
             <div style="font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${n.title}</div>
             <div style="font-size:11px;color:var(--muted2);margin-top:3px">${fmtDate(n.time.toISOString())}</div>
           </div>
-          ${updatedTicketIds.has(n._id)?'<div class="update-dot" style="margin-top:4px"></div>':''}
+          ${agentReplyTicketIds.has(n._id)?'<div class="update-dot reply" style="margin-top:4px"></div>':updatedTicketIds.has(n._id)?'<div class="update-dot" style="margin-top:4px"></div>':''}
         </div>`).join('')
       : '<div style="padding:24px;text-align:center;color:var(--muted);font-size:13px">Nenhuma notificação ainda.<br><span style="font-size:12px">Você será avisado quando um agente interagir com seu chamado.</span></div>'}
     </div>`;
@@ -1485,6 +1496,7 @@ function openNotifPanel() {
 function clearAllNotifs() {
   notifHistory = [];
   updatedTicketIds.clear();
+  agentReplyTicketIds.clear();
   document.getElementById('portal-notif-dot').style.display = 'none';
   document.getElementById('notif-panel')?.remove();
   renderMyTickets();

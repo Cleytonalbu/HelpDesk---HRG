@@ -56,18 +56,30 @@ router.get('/client-stream', (req, res) => {
 
   const interval = setInterval(() => {
     const now = new Date().toISOString();
+    const checkFrom = lastCheck;
     // Only check tickets belonging to this client that were updated since last check
-    db.tickets.find({ requester_email: clientEmail, updated_at: { $gt: lastCheck } }, (err, changed) => {
+    db.tickets.find({ requester_email: clientEmail, updated_at: { $gt: checkFrom } }, (err, changed) => {
       if ((changed||[]).length > 0) {
-        const payload = JSON.stringify({
-          updated: changed.map(t => ({
-            _id: t._id, number: t.number, title: t.title,
-            status: t.status, updated_at: t.updated_at,
-            comments_count: (t.comments||[]).length,
-          })),
-          ts: now,
+        const ticketIds = changed.map(t => t._id);
+        // Check if any of the changes are new agent replies
+        db.comments.find({
+          ticket_id: { $in: ticketIds },
+          type: 'reply',
+          agent_id: { $exists: true, $ne: null },
+          created_at: { $gt: checkFrom },
+        }, (err2, agentReplies) => {
+          const repliedIds = new Set((agentReplies||[]).map(c => c.ticket_id));
+          const payload = JSON.stringify({
+            updated: changed.map(t => ({
+              _id: t._id, number: t.number, title: t.title,
+              status: t.status, updated_at: t.updated_at,
+              comments_count: (t.comments||[]).length,
+              has_agent_reply: repliedIds.has(t._id),
+            })),
+            ts: now,
+          });
+          res.write(`event: update\ndata: ${payload}\n\n`);
         });
-        res.write(`event: update\ndata: ${payload}\n\n`);
       } else {
         res.write(`event: heartbeat\ndata: {"ts":"${now}"}\n\n`);
       }
