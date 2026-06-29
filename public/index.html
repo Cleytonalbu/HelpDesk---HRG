@@ -9,59 +9,59 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --bg:#080c14;
-  --card:#0e1520;
-  --border:rgba(255,255,255,0.06);
-  --border2:rgba(255,255,255,0.12);
-  --text:#e8edf5;
+  --bg:#eef2fb;
+  --card:#ffffff;
+  --border:rgba(0,0,0,0.08);
+  --border2:rgba(0,0,0,0.15);
+  --text:#0f1520;
   --muted:#6b7a94;
-  --accent:#3b82f6;
-  --accent2:#2563eb;
+  --accent:#2563eb;
+  --accent2:#1d4ed8;
   --green:#10b981;
   --red:#ef4444;
 }
 html,body{height:100%}
 /* Logos */
-.logo-bar{display:flex;align-items:center;justify-content:center;gap:18px;padding:14px 20px;background:#ffffff;border-radius:12px;margin-bottom:4px}
-.logo-bar img{height:44px;object-fit:contain}
-.logo-sep{width:1px;height:36px;background:var(--border)}
+.logo-bar{display:flex;align-items:center;justify-content:center;gap:18px;padding:24px 28px;background:#ffffff;border-radius:12px;margin-bottom:4px}
+.logo-bar img{height:192px;object-fit:contain}
+.logo-sep{width:1px;height:36px;background:rgba(0,0,0,0.12)}
 
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);display:flex;align-items:stretch}
 
 /* LEFT PANEL */
 .left{flex:1;position:relative;display:flex;flex-direction:column;justify-content:flex-end;padding:48px;overflow:hidden;min-width:0}
-.left-bg{position:absolute;inset:0;background:linear-gradient(135deg,#0a0f1e 0%,#0d1528 40%,#091220 100%)}
-.grid-lines{position:absolute;inset:0;opacity:0.07;background-image:linear-gradient(rgba(59,130,246,0.5) 1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,0.5) 1px,transparent 1px);background-size:48px 48px}
+.left-bg{position:absolute;inset:0;background:linear-gradient(135deg,#1a3a8f 0%,#2563eb 55%,#1d4ed8 100%)}
+.grid-lines{position:absolute;inset:0;opacity:0.09;background-image:linear-gradient(rgba(255,255,255,0.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.5) 1px,transparent 1px);background-size:48px 48px}
 .glow-orb{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none}
-.orb1{width:400px;height:400px;background:rgba(59,130,246,0.12);top:-80px;left:-80px}
-.orb2{width:300px;height:300px;background:rgba(16,185,129,0.07);bottom:100px;right:-50px}
+.orb1{width:400px;height:400px;background:rgba(255,255,255,0.08);top:-80px;left:-80px}
+.orb2{width:300px;height:300px;background:rgba(16,185,129,0.15);bottom:100px;right:-50px}
 .left-content{position:relative;z-index:1}
 .brand{display:flex;align-items:center;gap:12px;position:absolute;top:48px;left:48px}
-.brand-icon{width:38px;height:38px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px}
-.brand-name{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;letter-spacing:-0.3px}
-.hero-title{font-family:'Syne',sans-serif;font-size:clamp(32px,4vw,52px);font-weight:800;line-height:1.05;letter-spacing:-2px;margin-bottom:20px}
-.hero-title span{color:var(--accent)}
-.hero-sub{font-size:15px;color:var(--muted);line-height:1.7;max-width:380px;margin-bottom:40px}
+.brand-icon{width:38px;height:38px;background:rgba(255,255,255,0.2);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.brand-name{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;letter-spacing:-0.3px;color:#fff}
+.hero-title{font-family:'Syne',sans-serif;font-size:clamp(32px,4vw,52px);font-weight:800;line-height:1.05;letter-spacing:-2px;margin-bottom:20px;color:#fff}
+.hero-title span{color:#93c5fd}
+.hero-sub{font-size:15px;color:rgba(255,255,255,0.72);line-height:1.7;max-width:380px;margin-bottom:40px}
 .stats-row{display:flex;gap:28px}
 .stat{display:flex;flex-direction:column;gap:4px}
 .stat-val{font-family:'Syne',sans-serif;font-size:26px;font-weight:700;letter-spacing:-1px}
-.stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px}
+.stat-label{font-size:11px;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:0.8px}
 .ticker{position:absolute;top:48px;right:48px;z-index:1}
-.ticker-badge{background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2);border-radius:20px;padding:5px 12px;font-size:11px;color:var(--green);display:flex;align-items:center;gap:6px}
-.ticker-dot{width:6px;height:6px;background:var(--green);border-radius:50%;animation:pulse 2s infinite}
+.ticker-badge{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);border-radius:20px;padding:5px 12px;font-size:11px;color:#fff;display:flex;align-items:center;gap:6px}
+.ticker-dot{width:6px;height:6px;background:#4ade80;border-radius:50%;animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
 
 /* RIGHT PANEL */
-.right{width:460px;flex-shrink:0;background:var(--card);border-left:1px solid var(--border);display:flex;flex-direction:column;justify-content:center;padding:56px 48px;overflow-y:auto}
-.tab-toggle{display:flex;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;padding:3px;margin-bottom:36px}
+.right{width:560px;flex-shrink:0;background:var(--card);border-left:1px solid var(--border);display:flex;flex-direction:column;justify-content:center;padding:56px 48px;overflow-y:auto}
+.tab-toggle{display:flex;background:#f1f5fb;border:1px solid rgba(0,0,0,0.09);border-radius:10px;padding:3px;margin-bottom:36px}
 .tab-btn{flex:1;padding:9px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;color:var(--muted);background:none;transition:all .2s}
 .tab-btn.active{background:var(--accent);color:#fff}
 .form-title{font-family:'Syne',sans-serif;font-size:24px;font-weight:700;letter-spacing:-0.5px;margin-bottom:6px}
 .form-sub{font-size:13px;color:var(--muted);margin-bottom:32px;line-height:1.6}
 .form-group{margin-bottom:18px;position:relative}
 .form-label{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;font-weight:500;display:block;margin-bottom:8px}
-.form-input{width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:9px;padding:12px 14px 12px 42px;color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;transition:all .2s}
-.form-input:focus{border-color:var(--accent);background:rgba(59,130,246,0.04)}
+.form-input{width:100%;background:#f5f7fc;border:1px solid rgba(0,0,0,0.1);border-radius:9px;padding:12px 14px 12px 42px;color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;transition:all .2s}
+.form-input:focus{border-color:var(--accent);background:#fff}
 .form-input.no-icon{padding-left:14px}
 .input-icon{position:absolute;bottom:12px;left:14px;color:var(--muted);font-size:14px;transition:color .2s;pointer-events:none}
 .form-group:focus-within .input-icon{color:var(--accent)}
@@ -78,9 +78,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .error-msg{background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--red);margin-bottom:16px;display:none;align-items:center;gap:8px}
 .success-msg{background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--green);margin-bottom:16px;display:none;align-items:center;gap:8px}
 .role-select{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px}
-.role-opt{border:1px solid var(--border);border-radius:9px;padding:11px 14px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)}
-.role-opt:hover{border-color:var(--border2)}
-.role-opt.selected{border-color:var(--accent);background:rgba(59,130,246,0.07);color:var(--text)}
+.role-opt{border:1px solid rgba(0,0,0,0.1);border-radius:9px;padding:11px 14px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)}
+.role-opt:hover{border-color:rgba(0,0,0,0.18)}
+.role-opt.selected{border-color:var(--accent);background:rgba(37,99,235,0.07);color:var(--text)}
 .role-opt .role-icon{font-size:16px;width:20px;text-align:center}
 .spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -106,8 +106,8 @@ select.form-input{appearance:none;cursor:pointer}
     justify-content: flex-start;
   }
 
-  .logo-bar { padding: 12px 16px; }
-  .logo-bar img { height: 36px; }
+  .logo-bar { padding: 14px 18px; }
+  .logo-bar img { height: 52px; }
 
   .ft { font-size: 20px; }
   .seg { margin-bottom: 24px; }
@@ -148,13 +148,12 @@ select.form-input{appearance:none;cursor:pointer}
 
   <div class="left-content">
     <div class="hero-title">
-      Suporte de TI<br>inteligente e<br><span>sem fricção.</span>
+      Conectando<br>equipes.<br><span>Facilitando soluções.</span>
     </div>
     <p class="hero-sub">
-      Gerencie chamados, SLAs e ativos em uma plataforma unificada. 
-      IA integrada para triagem automática e resolução mais rápida.
+      Uma plataforma desenvolvida para tornar o suporte técnico mais rápido, organizado e eficiente.
     </p>
-    <div class="stats-row">
+ <!--    <div class="stats-row">
       <div class="stat">
         <span class="stat-val" style="color:var(--accent)">94%</span>
         <span class="stat-label">SLA cumprido</span>
@@ -165,7 +164,7 @@ select.form-input{appearance:none;cursor:pointer}
       </div>
       <div class="stat">
         <span class="stat-val" style="color:#a78bfa">4.6★</span>
-        <span class="stat-label">Satisfação</span>
+        <span class="stat-label">Satisfação</span> -->
       </div>
     </div>
   </div>
@@ -174,9 +173,9 @@ select.form-input{appearance:none;cursor:pointer}
 <!-- RIGHT PANEL -->
 <div class="right">
   <div class="logo-bar">
-    <img src="/img/hospital-regional.jpg" alt="Hospital Regional" style="height:42px;object-fit:contain">
+    <img src="/img/hospital-regional.png" alt="Hospital Regional" style="height:192px;object-fit:contain">
     <div class="logo-sep"></div>
-    <img src="/img/pb-saude.jpg" alt="PB Saúde" style="height:38px;object-fit:contain">
+    <img src="/img/pb-saude.png" alt="PB Saúde" style="height:174px;object-fit:contain">
   </div>
   <div style="height:20px"></div>
   <div class="tab-toggle">
