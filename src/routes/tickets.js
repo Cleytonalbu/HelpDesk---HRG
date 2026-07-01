@@ -226,6 +226,17 @@ router.patch('/:id', auth, (req, res) => {
   });
 });
 
+// DELETE /api/tickets/:id — agents only
+router.delete('/:id', auth, (req, res) => {
+  if (req.user.userType === 'client') return res.status(403).json({ error: 'Acesso negado' });
+  db.tickets.remove({ _id: req.params.id }, {}, (err, n) => {
+    if (!n) return res.status(404).json({ error: 'Não encontrado' });
+    db.comments.remove({ ticket_id: req.params.id }, { multi: true }, () => {});
+    db.attachments.remove({ ticket_id: req.params.id }, { multi: true }, () => {});
+    res.json({ message: 'Chamado excluído' });
+  });
+});
+
 // POST /api/tickets/:id/comments
 router.post('/:id/comments', auth, (req, res) => {
   const { body, type } = req.body;

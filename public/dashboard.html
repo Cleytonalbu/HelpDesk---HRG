@@ -1137,6 +1137,7 @@ select.fi{cursor:pointer;appearance:none}
           <button class="btn btn-ghost btn-sm" onclick="escalateTicket()">⬆ Escalar</button>
           <button class="btn btn-ghost btn-sm" onclick="alert('Iniciando acesso remoto…')">🖥 Acesso Remoto</button>
           <button class="btn btn-primary btn-sm" onclick="resolveTicket()">✅ Resolver</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteTicket()" style="margin-top:4px;border-top:1px solid var(--border);padding-top:10px">🗑 Excluir Chamado</button>
         </div>
       </div>
     </div>
@@ -1680,6 +1681,14 @@ async function resolveTicket() {
   await api('PATCH', '/tickets/'+currentTicketId, { status:'resolved' });
   document.getElementById('m-status').value = 'resolved';
   loadAll();
+}
+
+async function deleteTicket() {
+  if (!confirm(`Tem certeza que deseja excluir o chamado #${document.getElementById('m-num').textContent.replace('#','')}?\n\nEsta ação não pode ser desfeita.`)) return;
+  await api('DELETE', '/tickets/'+currentTicketId);
+  closeModal('ticket-modal');
+  loadAll();
+  showToast('Chamado excluído com sucesso.', 'accent');
 }
 
 async function escalateTicket() {
