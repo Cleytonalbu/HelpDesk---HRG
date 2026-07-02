@@ -179,12 +179,12 @@ select.form-input{appearance:none;cursor:pointer}
   </div>
   <div style="height:20px"></div>
   <div class="tab-toggle">
-    <button class="tab-btn active" onclick="switchTab('agent')">Sou Agente / TI</button>
-    <button class="tab-btn" onclick="switchTab('client')">Sou Cliente</button>
+    <button class="tab-btn active" onclick="switchTab('client')">Sou Cliente</button>
+    <button class="tab-btn" onclick="switchTab('agent')">Sou Agente / TI</button>
   </div>
 
   <!-- AGENT LOGIN -->
-  <div class="view active" id="view-agent">
+  <div class="view" id="view-agent">
     <div class="form-title">Bem-vindo de volta</div>
     <p class="form-sub">Acesse o painel de gerenciamento de chamados.</p>
 
@@ -218,7 +218,7 @@ select.form-input{appearance:none;cursor:pointer}
   </div>
 
   <!-- CLIENT VIEW -->
-  <div class="view" id="view-client">
+  <div class="view active" id="view-client">
     <div class="tab-toggle" style="margin-bottom:24px">
       <button class="tab-btn active" onclick="switchClient('login')">Já tenho conta</button>
       <button class="tab-btn" onclick="switchClient('register')">Criar conta</button>
@@ -246,6 +246,9 @@ select.form-input{appearance:none;cursor:pointer}
       <button class="submit-btn" onclick="doClientLogin()">Entrar no Portal</button>
       <div style="margin-top:14px;text-align:center;font-size:13px;color:var(--muted)">
         Não tem conta? <a style="color:var(--accent);cursor:pointer" onclick="switchClient('register')">Cadastre-se grátis</a>
+      </div>
+      <div style="margin-top:10px;text-align:center;font-size:12px;color:var(--muted)">
+        É da equipe de TI? <a style="color:var(--muted);text-decoration:underline;cursor:pointer" onclick="switchTab('agent')">Acesse o painel de agentes</a>
       </div>
     </div>
 
@@ -366,8 +369,8 @@ const API = '/api';
 
 
 function switchTab(tab) {
-  document.querySelectorAll('.tab-toggle .tab-btn')[0].classList.toggle('active', tab==='agent');
-  document.querySelectorAll('.tab-toggle .tab-btn')[1].classList.toggle('active', tab==='client');
+  document.querySelectorAll('.tab-toggle .tab-btn')[0].classList.toggle('active', tab==='client');
+  document.querySelectorAll('.tab-toggle .tab-btn')[1].classList.toggle('active', tab==='agent');
   document.getElementById('view-agent').classList.toggle('active', tab==='agent');
   document.getElementById('view-client').classList.toggle('active', tab==='client');
 }
