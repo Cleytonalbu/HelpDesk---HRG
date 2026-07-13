@@ -59,7 +59,7 @@ nav a .badge.red{background:var(--red)}
 .search-wrap input::placeholder{color:var(--muted)}
 .icon-btn{width:34px;height:34px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);font-size:13px;transition:all .15s;position:relative;flex-shrink:0}
 .icon-btn:hover{color:var(--text);border-color:var(--border2)}
-.notif-dot{position:absolute;top:7px;right:7px;width:6px;height:6px;background:var(--red);border-radius:50%;border:2px solid var(--bg2)}
+.notif-dot{position:absolute;top:7px;right:7px;width:6px;height:6px;background:var(--red);border-radius:50%;border:2px solid var(--bg2);display:none}
 .new-btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:7px;font-family:'Syne',sans-serif;transition:all .15s;white-space:nowrap;letter-spacing:-0.1px}
 .new-btn:hover{background:var(--accent2)}
 .content{flex:1;overflow-y:auto;padding:24px}
@@ -148,6 +148,8 @@ tr{cursor:pointer;transition:background .1s}
 .badge.closed{background:rgba(255,255,255,0.06);color:var(--muted)}
 .badge.escalated{background:var(--red-bg);color:var(--red)}
 .badge.waiting{background:var(--purple-bg);color:var(--purple)}
+.reply-badge{display:inline-flex;align-items:center;gap:3px;background:var(--green-bg);color:var(--green);font-size:10px;font-weight:700;height:18px;border-radius:9px;padding:0 7px;margin-left:6px;vertical-align:middle}
+.notif-unread.client-reply{background:var(--green)}
 .prio{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500}
 .prio.critical{color:var(--red)}.prio.high{color:var(--orange)}.prio.medium{color:var(--cyan)}.prio.low{color:var(--muted)}
 .prio-dot{width:6px;height:6px;border-radius:50%;background:currentColor}
@@ -1081,10 +1083,8 @@ select.fi{cursor:pointer;appearance:none}
 
 <!-- NOTIFICATION PANEL -->
 <div class="notif-panel" id="notif-panel">
-  <div class="notif-hdr"><span>Notificações</span><span style="font-size:11px;color:var(--accent);cursor:pointer">Marcar lidas</span></div>
-  <div class="notif-item"><div style="display:flex;gap:10px;align-items:flex-start"><div class="notif-unread"></div><div><div class="notif-title">SLA violado — VPN não conecta</div><div class="notif-desc">Chamado #1040 ultrapassou o prazo de resolução</div><div class="notif-time">há 5 minutos</div></div></div></div>
-  <div class="notif-item"><div style="display:flex;gap:10px;align-items:flex-start"><div class="notif-unread"></div><div><div class="notif-title">Novo chamado crítico</div><div class="notif-desc">Tela azul — Maria Silva aguarda atendimento</div><div class="notif-time">há 12 minutos</div></div></div></div>
-  <div class="notif-item"><div style="display:flex;gap:10px;align-items:flex-start"><div style="width:7px;flex-shrink:0"></div><div><div class="notif-title">Chamado #1042 resolvido</div><div class="notif-desc">Ana Torres resolveu o problema do Outlook</div><div class="notif-time">há 30 minutos</div></div></div></div>
+  <div class="notif-hdr"><span>Notificações</span><span id="notif-clear-btn" style="font-size:11px;color:var(--accent);cursor:pointer" onclick="clearAgentNotifs()">Marcar lidas</span></div>
+  <div id="notif-list"></div>
 </div>
 
 <!-- TICKET DETAIL MODAL -->
@@ -1639,7 +1639,7 @@ function renderTickets() {
     const descFull = t.description || '';
     const descShort = descFull.length > 80 ? descFull.slice(0,80)+'…' : descFull;
     return `<tr onclick="openTicket('${t._id}')">
-      <td><span class="tid">#${t.number}</span></td>
+      <td><span class="tid">#${t.number}</span>${clientReplyTicketIds.has(t._id)?'<span class="reply-badge">💬 Resposta</span>':''}</td>
       <td style="max-width:260px">
         <div class="ttitle">${t.title}</div>
         <div class="tdesc" title="${descFull.replace(/"/g,'&quot;')}" style="white-space:normal;line-height:1.4">${descShort}</div>
@@ -1671,6 +1671,7 @@ function filterTickets(status, el) {
 
 async function openTicket(id) {
   currentTicketId = id;
+  if (clientReplyTicketIds.has(id)) markSeenAgent(id);
   const t = await api('GET', '/tickets/'+id);
   document.getElementById('m-num').textContent = '#'+t.number;
   document.getElementById('m-title').textContent = t.title;
@@ -1871,6 +1872,10 @@ function scheduleSSEReconnect() {
   sseReconnectTimer = setTimeout(initSSE, 10000);
 }
 
+// Set of ticket IDs with an unread client reply — badge/dot persist until the agent opens the ticket
+let clientReplyTicketIds = new Set();
+let agentNotifHistory     = []; // { _id, number, title, requester_name, time }
+
 function handleSSEUpdate(data) {
   const newTickets = data.new_tickets || 0;
   const updated    = data.updated    || [];
@@ -1882,17 +1887,62 @@ function handleSSEUpdate(data) {
       if (wasOnTickets) renderTickets();
     });
 
-    // Show toast notification
-    if (newTickets > 0) {
+    const clientReplies = updated.filter(t => t.has_client_reply);
+    clientReplies.forEach(t => {
+      clientReplyTicketIds.add(t._id);
+      agentNotifHistory.unshift({ _id: t._id, number: t.number, title: t.title, requester_name: t.requester_name, time: new Date().toISOString() });
+      if (agentNotifHistory.length > 20) agentNotifHistory.pop();
+    });
+
+    // Show toast notification — client reply takes priority over generic updates
+    if (clientReplies.length > 0) {
+      const t = clientReplies[clientReplies.length - 1];
+      showToast(`💬 ${t.requester_name || 'Cliente'} respondeu ao chamado #${t.number}`, 'green');
+    } else if (newTickets > 0) {
       showToast(`🎫 ${newTickets} novo${newTickets>1?'s':''} chamado${newTickets>1?'s':''} aberto${newTickets>1?'s':''}!`, 'accent');
     } else if (updated.length > 0) {
       showToast(`🔄 ${updated.length} chamado${updated.length>1?'s':''} atualizado${updated.length>1?'s':''}`, 'muted');
     }
 
-    // Pulse notification bell
-    const dot = document.getElementById('notif-dot');
-    if (dot) { dot.style.display = ''; dot.style.animation = 'none'; void dot.offsetWidth; dot.style.animation = ''; }
+    renderNotifPanel();
+    updateNotifDot();
   }
+}
+
+function updateNotifDot() {
+  const dot = document.getElementById('notif-dot');
+  if (dot) dot.style.display = clientReplyTicketIds.size > 0 ? '' : 'none';
+}
+
+function renderNotifPanel() {
+  const list = document.getElementById('notif-list');
+  if (!list) return;
+  list.innerHTML = agentNotifHistory.length ? agentNotifHistory.map(n => `
+    <div class="notif-item" onclick="toggleNotifs();openTicket('${n._id}')">
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <div class="notif-unread client-reply" style="${clientReplyTicketIds.has(n._id)?'':'visibility:hidden'}"></div>
+        <div>
+          <div class="notif-title">💬 ${n.requester_name || 'Cliente'} respondeu</div>
+          <div class="notif-desc">Chamado #${n.number}: ${(n.title||'').slice(0,50)}${(n.title||'').length>50?'…':''}</div>
+          <div class="notif-time">${fmtDate(n.time)}</div>
+        </div>
+      </div>
+    </div>`).join('')
+    : '<div style="padding:24px;text-align:center;color:var(--muted);font-size:13px">Nenhuma notificação ainda.<br><span style="font-size:12px">Você será avisado quando um cliente responder um chamado.</span></div>';
+}
+
+function markSeenAgent(ticketId) {
+  clientReplyTicketIds.delete(ticketId);
+  renderTickets();
+  renderNotifPanel();
+  updateNotifDot();
+}
+
+function clearAgentNotifs() {
+  clientReplyTicketIds.clear();
+  updateNotifDot();
+  renderNotifPanel();
+  renderTickets();
 }
 
 function showToast(msg, type='accent') {
@@ -2482,7 +2532,7 @@ function show(view, el) {
   document.getElementById('page-title').textContent = titles[view]||view;
 }
 function closeModal(id, e) { if (!e||e.target===document.getElementById(id)) document.getElementById(id).classList.remove('open'); }
-function toggleNotifs() { document.getElementById('notif-panel').classList.toggle('open'); }
+function toggleNotifs() { renderNotifPanel(); document.getElementById('notif-panel').classList.toggle('open'); }
 function logout() { localStorage.removeItem('hd_token'); localStorage.removeItem('hd_agent'); window.location.href='/'; }
 function liveSearch(val) { /* search across tickets */ }
 document.addEventListener('click', e => { if (!document.getElementById('notif-btn').contains(e.target)) document.getElementById('notif-panel').classList.remove('open'); });

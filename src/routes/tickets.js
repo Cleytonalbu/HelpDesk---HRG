@@ -122,24 +122,39 @@ router.get('/stream', (req, res) => {
 
   const interval = setInterval(() => {
     const now = new Date().toISOString();
-    db.tickets.find({ updated_at: { $gt: lastCheck } }, (err, changed) => {
+    const checkFrom = lastCheck;
+    db.tickets.find({ updated_at: { $gt: checkFrom } }, (err, changed) => {
       db.tickets.count({}, (err2, total) => {
         const newCount = total || 0;
         const hasNew   = newCount > totalSeen;
         const hasUpdate= (changed||[]).length > 0;
         if (hasNew || hasUpdate) {
-          const payload = JSON.stringify({
-            new_tickets: hasNew ? newCount - totalSeen : 0,
-            total:       newCount,
-            updated:     (changed||[]).map(t => ({ _id:t._id, status:t.status, number:t.number, updated_at:t.updated_at })),
-            ts:          now,
+          const ticketIds = (changed||[]).map(t => t._id);
+          db.comments.find({
+            ticket_id: { $in: ticketIds },
+            type: 'reply',
+            agent_id: null,
+            created_at: { $gt: checkFrom },
+          }, (err3, clientReplies) => {
+            const repliedIds = new Set((clientReplies||[]).map(c => c.ticket_id));
+            const payload = JSON.stringify({
+              new_tickets: hasNew ? newCount - totalSeen : 0,
+              total:       newCount,
+              updated:     (changed||[]).map(t => ({
+                _id: t._id, status: t.status, number: t.number, title: t.title,
+                requester_name: t.requester_name, updated_at: t.updated_at,
+                has_client_reply: repliedIds.has(t._id),
+              })),
+              ts: now,
+            });
+            res.write(`event: update\ndata: ${payload}\n\n`);
+            totalSeen = newCount;
+            lastCheck = now;
           });
-          res.write(`event: update\ndata: ${payload}\n\n`);
-          totalSeen = newCount;
         } else {
           res.write('event: heartbeat\ndata: {"ts":"' + now + '"}\n\n');
+          lastCheck = now;
         }
-        lastCheck = now;
       });
     });
   }, 8000);
