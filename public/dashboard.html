@@ -1123,6 +1123,15 @@ select.fi{cursor:pointer;appearance:none}
             <option value="outros">📋 Outros</option>
           </select>
         </div>
+        <div>
+          <div class="ms-label">Urgência</div>
+          <select class="fi" id="m-priority" style="font-size:12px;padding:6px 10px" onchange="updateTicketPriority(this.value)">
+            <option value="critical">🔴 Crítica</option>
+            <option value="high">🟠 Alta</option>
+            <option value="medium">🟡 Média</option>
+            <option value="low">🟢 Baixa</option>
+          </select>
+        </div>
         <div><div class="ms-label">Nível</div><div class="ms-val" id="m-tier"></div></div>
         <div><div class="ms-label">SLA Restante</div><div class="ms-val" id="m-sla"></div></div>
         <div><div class="ms-label">Ativo</div><div class="ms-val" id="m-asset" style="font-size:12px;color:var(--muted)"></div></div>
@@ -1683,6 +1692,7 @@ async function openTicket(id) {
 
   // Category
   document.getElementById('m-category').value = t.category || 'outros';
+  document.getElementById('m-priority').value = t.priority || 'medium';
 
   document.getElementById('m-tier').innerHTML = `<span class="tier-tag">${t.tier}</span>`;
   document.getElementById('m-sla').innerHTML = `<span class="${sla.cls}">${sla.text}</span>`;
@@ -1781,6 +1791,22 @@ async function selfAssign() {
 }
 
 // Update category from modal dropdown
+async function updateTicketPriority(priority) {
+  const t = allTickets.find(t=>t._id===currentTicketId);
+  const oldPriority = t ? t.priority : null;
+  await api('PATCH', '/tickets/'+currentTicketId, { priority });
+  if (t) t.priority = priority;
+  if (oldPriority && oldPriority !== priority) {
+    await api('POST', '/tickets/'+currentTicketId+'/comments', {
+      body: `Urgência alterada de ${prioLabel[oldPriority]} para ${prioLabel[priority]} por ${AGENT.name}.`,
+      type: 'system'
+    });
+  }
+  showToast('Urgência atualizada.', 'accent');
+  openTicket(currentTicketId);
+  loadAll();
+}
+
 async function updateTicketCategory(category) {
   await api('PATCH', '/tickets/'+currentTicketId, { category });
   // Update local cache too
