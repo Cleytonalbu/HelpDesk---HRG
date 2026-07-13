@@ -36,58 +36,63 @@ router.get('/', auth, (req, res) => {
 router.get('/client-stream', (req, res) => {
   const jwt = require('jsonwebtoken');
   const token = req.headers.authorization?.replace('Bearer ','') || req.query.token || '';
-  let clientEmail;
+  let clientId;
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
     if (payload.type !== 'client') return res.status(403).end();
-    clientEmail = payload.email;
+    clientId = payload.id;
   } catch { return res.status(401).end(); }
 
-  res.set({
-    'Content-Type':  'text/event-stream',
-    'Cache-Control': 'no-cache',
-    'Connection':    'keep-alive',
-    'X-Accel-Buffering': 'no',
-  });
-  res.flushHeaders();
-  res.write('event: connected\ndata: {}\n\n');
+  db.clients.findOne({ _id: clientId, active: true }, (err, client) => {
+    if (!client) return res.status(401).end();
+    const clientEmail = client.email;
 
-  let lastCheck = new Date().toISOString();
-
-  const interval = setInterval(() => {
-    const now = new Date().toISOString();
-    const checkFrom = lastCheck;
-    // Only check tickets belonging to this client that were updated since last check
-    db.tickets.find({ requester_email: clientEmail, updated_at: { $gt: checkFrom } }, (err, changed) => {
-      if ((changed||[]).length > 0) {
-        const ticketIds = changed.map(t => t._id);
-        // Check if any of the changes are new agent replies
-        db.comments.find({
-          ticket_id: { $in: ticketIds },
-          type: 'reply',
-          agent_id: { $exists: true, $ne: null },
-          created_at: { $gt: checkFrom },
-        }, (err2, agentReplies) => {
-          const repliedIds = new Set((agentReplies||[]).map(c => c.ticket_id));
-          const payload = JSON.stringify({
-            updated: changed.map(t => ({
-              _id: t._id, number: t.number, title: t.title,
-              status: t.status, updated_at: t.updated_at,
-              comments_count: (t.comments||[]).length,
-              has_agent_reply: repliedIds.has(t._id),
-            })),
-            ts: now,
-          });
-          res.write(`event: update\ndata: ${payload}\n\n`);
-        });
-      } else {
-        res.write(`event: heartbeat\ndata: {"ts":"${now}"}\n\n`);
-      }
-      lastCheck = now;
+    res.set({
+      'Content-Type':  'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection':    'keep-alive',
+      'X-Accel-Buffering': 'no',
     });
-  }, 8000);
+    res.flushHeaders();
+    res.write('event: connected\ndata: {}\n\n');
 
-  req.on('close', () => { clearInterval(interval); res.end(); });
+    let lastCheck = new Date().toISOString();
+
+    const interval = setInterval(() => {
+      const now = new Date().toISOString();
+      const checkFrom = lastCheck;
+      // Only check tickets belonging to this client that were updated since last check
+      db.tickets.find({ requester_email: clientEmail, updated_at: { $gt: checkFrom } }, (err, changed) => {
+        if ((changed||[]).length > 0) {
+          const ticketIds = changed.map(t => t._id);
+          // Check if any of the changes are new agent replies
+          db.comments.find({
+            ticket_id: { $in: ticketIds },
+            type: 'reply',
+            agent_id: { $exists: true, $ne: null },
+            created_at: { $gt: checkFrom },
+          }, (err2, agentReplies) => {
+            const repliedIds = new Set((agentReplies||[]).map(c => c.ticket_id));
+            const payload = JSON.stringify({
+              updated: changed.map(t => ({
+                _id: t._id, number: t.number, title: t.title,
+                status: t.status, updated_at: t.updated_at,
+                comments_count: (t.comments||[]).length,
+                has_agent_reply: repliedIds.has(t._id),
+              })),
+              ts: now,
+            });
+            res.write(`event: update\ndata: ${payload}\n\n`);
+          });
+        } else {
+          res.write(`event: heartbeat\ndata: {"ts":"${now}"}\n\n`);
+        }
+        lastCheck = now;
+      });
+    }, 8000);
+
+    req.on('close', () => { clearInterval(interval); res.end(); });
+  });
 });
 
 
@@ -241,8 +246,9 @@ router.delete('/:id', auth, (req, res) => {
 router.post('/:id/comments', auth, (req, res) => {
   const { body, type } = req.body;
   if (!body) return res.status(400).json({ error: 'body obrigatorio' });
+  const isAgent = req.user.userType !== 'client';
   const comment = { _id:uuid(), ticket_id:req.params.id,
-    agent_id:req.user._id, author_name:req.user.name,
+    agent_id: isAgent ? req.user._id : null, author_name:req.user.name,
     body, type:type||'reply', created_at:now() };
   db.tickets.update({ _id: req.params.id }, { $set: { updated_at: now() } }, {});
   db.comments.insert(comment, (err, doc) => res.status(201).json(doc));
