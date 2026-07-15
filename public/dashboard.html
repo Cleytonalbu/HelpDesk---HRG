@@ -182,6 +182,23 @@ tr{cursor:pointer;transition:background .1s}
 .fsel{background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:6px 10px;font-size:12px;color:var(--text);font-family:'DM Sans',sans-serif;cursor:pointer;outline:none}
 .fsel:focus{border-color:var(--accent)}
 .spacer{flex:1}
+/* Native date/time picker icon is dark by default and invisible on our dark inputs — invert so it's visible and clickable */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+  opacity: 0.75;
+  border-radius: 4px;
+}
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input[type="time"]::-webkit-calendar-picker-indicator:hover,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+  background: rgba(255,255,255,0.1);
+}
+input[type="date"],
+input[type="time"] { color-scheme: dark; }
 
 /* MODAL */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);backdrop-filter:blur(6px);z-index:100;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
@@ -598,6 +615,10 @@ select.fi{cursor:pointer;appearance:none}
         </div>
         <select class="fsel" id="prio-filter" onchange="renderTickets()"><option value="">Todas as prioridades</option><option value="critical">Crítica</option><option value="high">Alta</option><option value="medium">Média</option><option value="low">Baixa</option></select>
         <select class="fsel" id="agent-filter" onchange="renderTickets()"><option value="">Todos os agentes</option></select>
+        <input class="fsel" type="date" id="date-from-filter" onchange="renderTickets()" title="Data inicial">
+        <span style="font-size:12px;color:var(--muted)">até</span>
+        <input class="fsel" type="date" id="date-to-filter" onchange="renderTickets()" title="Data final">
+        <span onclick="clearDateFilter()" style="font-size:11.5px;color:var(--accent);cursor:pointer;white-space:nowrap">Limpar datas</span>
         <span class="spacer"></span>
         <span style="font-size:12px;color:var(--muted)" id="ticket-count">— chamados</span>
       </div>
@@ -1717,10 +1738,15 @@ async function loadAll() {
 function renderTickets() {
   const prio = document.getElementById('prio-filter').value;
   const agent = document.getElementById('agent-filter').value;
+  const dateFrom = document.getElementById('date-from-filter').value;
+  const dateTo   = document.getElementById('date-to-filter').value;
   let filtered = allTickets.filter(t => {
     if (activeFilter !== 'all' && t.status !== activeFilter) return false;
     if (prio && t.priority !== prio) return false;
     if (agent && t.agent_id !== agent) return false;
+    const ticketDate = (t.created_at||'').slice(0,10);
+    if (dateFrom && ticketDate < dateFrom) return false;
+    if (dateTo   && ticketDate > dateTo)   return false;
     return true;
   });
   document.getElementById('ticket-count').textContent = filtered.length + ' chamados';
@@ -1763,9 +1789,17 @@ function filterTickets(status, el) {
   renderTickets();
 }
 
+function clearDateFilter() {
+  document.getElementById('date-from-filter').value = '';
+  document.getElementById('date-to-filter').value = '';
+  renderTickets();
+}
+
 function viewAgentTickets(agentId) {
   document.getElementById('prio-filter').value = '';
   document.getElementById('agent-filter').value = agentId;
+  document.getElementById('date-from-filter').value = '';
+  document.getElementById('date-to-filter').value = '';
   filterTickets('all', document.querySelector('#status-tabs .tab'));
   show('tickets', document.querySelector('[data-view="tickets"]'));
 }
@@ -2716,6 +2750,12 @@ function toggleNotifs() { renderNotifPanel(); document.getElementById('notif-pan
 function logout() { localStorage.removeItem('hd_token'); localStorage.removeItem('hd_agent'); window.location.href='/'; }
 function liveSearch(val) { /* search across tickets */ }
 document.addEventListener('click', e => { if (!document.getElementById('notif-btn').contains(e.target)) document.getElementById('notif-panel').classList.remove('open'); });
+
+// Native date/time picker icon is tiny and easy to miss — open the picker on click anywhere in the field
+document.addEventListener('click', e => {
+  const el = e.target.closest('input[type="date"], input[type="time"]');
+  if (el && typeof el.showPicker === 'function') { try { el.showPicker(); } catch {} }
+});
 
 // ── REPORTS ──────────────────────────────────────────────────────────────────
 let currentReportPeriod = 'current_month';
