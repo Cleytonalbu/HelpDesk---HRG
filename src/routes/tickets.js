@@ -285,14 +285,25 @@ router.post('/:id/comments', auth, (req, res) => {
 // POST /api/tickets/:id/attachments
 router.post('/:id/attachments', auth, upload.single('file'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'Arquivo nao enviado' });
-  const att = { _id:uuid(), ticket_id:req.params.id, comment_id:req.body.comment_id||null,
-    filename:req.file.filename, original_name:req.file.originalname,
-    mimetype:req.file.mimetype, size_bytes:req.file.size, created_at:now() };
-  db.attachments.insert(att, (err, doc) => res.status(201).json(doc));
+  db.tickets.findOne({ _id: req.params.id }, (err, ticket) => {
+    if (!ticket) { fs.unlink(req.file.path, () => {}); return res.status(404).json({ error: 'Ticket nao encontrado' }); }
+    if (req.user.userType === 'client' && ticket.requester_email !== req.user.email) {
+      fs.unlink(req.file.path, () => {});
+      return res.status(403).json({ error: 'Acesso negado' });
+    }
+    const att = { _id:uuid(), ticket_id:req.params.id, comment_id:req.body.comment_id||null,
+      filename:req.file.filename, original_name:req.file.originalname,
+      mimetype:req.file.mimetype, size_bytes:req.file.size, created_at:now() };
+    db.attachments.insert(att, (err2, doc) => res.status(201).json(doc));
+  });
 });
 
 router.get('/:id/attachments/:filename', auth, (req, res) => {
-  res.sendFile(path.join(UPLOAD_DIR, req.params.filename));
+  db.tickets.findOne({ _id: req.params.id }, (err, ticket) => {
+    if (!ticket) return res.status(404).end();
+    if (req.user.userType === 'client' && ticket.requester_email !== req.user.email) return res.status(403).end();
+    res.sendFile(path.join(UPLOAD_DIR, req.params.filename));
+  });
 });
 
 module.exports = router;

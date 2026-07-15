@@ -403,6 +403,10 @@ textarea.fi{resize:none;line-height:1.5}
         <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">Descrição</div>
         <div style="font-size:14px;line-height:1.6;color:var(--text)" id="ts-desc"></div>
       </div>
+      <div id="ts-attachments-wrap" style="display:none;margin-bottom:8px">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">Anexos</div>
+        <div id="ts-attachments" style="display:flex;flex-direction:column;gap:6px"></div>
+      </div>
       <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px;margin-top:16px">Histórico</div>
       <div id="ts-timeline"></div>
       <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
@@ -623,6 +627,13 @@ async function openTicketSheet(id) {
     <span style="font-size:11px;color:var(--muted2)">${catIcon[t.category]||'📋'} ${t.category}</span>
     <span style="font-size:11px;color:var(--muted2)">${fmtDate(t.created_at)}</span>`;
   document.getElementById('ts-desc').textContent  = t.description || '—';
+  const attachments = t.attachments || [];
+  document.getElementById('ts-attachments-wrap').style.display = attachments.length ? 'block' : 'none';
+  document.getElementById('ts-attachments').innerHTML = attachments.map(a => `
+    <a href="${API}/tickets/${t._id}/attachments/${a.filename}?token=${encodeURIComponent(TOKEN)}" target="_blank" rel="noopener"
+       style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--accent);text-decoration:none;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 10px">
+      📎 <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.original_name}</span>
+    </a>`).join('');
   document.getElementById('ts-reply').value = '';
 
   const tlColorCls = {system:'#94a3b8',reply:'#2563eb',note:'#d97706',escalation:'#ef4444'};

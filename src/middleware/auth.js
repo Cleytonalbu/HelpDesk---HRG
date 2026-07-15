@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const db  = require('../db');
 module.exports = (req, res, next) => {
   const h = req.headers.authorization || '';
-  const token = h.startsWith('Bearer ') ? h.slice(7) : null;
+  const token = (h.startsWith('Bearer ') ? h.slice(7) : null) || req.query.token || null;
   if (!token) return res.status(401).json({ error: 'Token nao fornecido' });
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);

@@ -612,12 +612,13 @@ select.fi{cursor:pointer;appearance:none}
         <div class="fg"><label class="fl">Descrição Detalhada</label><textarea class="fi" id="nt-desc" placeholder="Descreva o problema com detalhes: mensagens de erro, quando começou, impacto no trabalho…"></textarea></div>
         <div class="fg">
           <label class="fl">Anexos</label>
-          <div class="upload-zone" onclick="document.getElementById('file-input').click()">
+          <div class="upload-zone" id="nt-upload-zone" onclick="document.getElementById('file-input').click()">
             <div style="font-size:24px;margin-bottom:8px">📎</div>
             <div style="font-size:13px;color:var(--muted)">Arraste ou <span style="color:var(--accent)">clique para selecionar</span></div>
             <div style="font-size:11px;color:var(--muted);margin-top:4px">PNG, JPG, PDF, DOCX — máx. 10 MB</div>
           </div>
           <input type="file" id="file-input" style="display:none" multiple>
+          <div id="nt-file-list" style="margin-top:8px;display:flex;flex-direction:column;gap:6px"></div>
         </div>
         <div style="display:flex;gap:10px">
           <button class="btn btn-primary" onclick="createTicket()">📨 Abrir Chamado</button>
@@ -1138,6 +1139,10 @@ select.fi{cursor:pointer;appearance:none}
         <div><div class="ms-label">Nível</div><div class="ms-val" id="m-tier"></div></div>
         <div><div class="ms-label">SLA Restante</div><div class="ms-val" id="m-sla"></div></div>
         <div><div class="ms-label">Ativo</div><div class="ms-val" id="m-asset" style="font-size:12px;color:var(--muted)"></div></div>
+        <div id="m-attachments-wrap" style="display:none">
+          <div class="ms-label">Anexos</div>
+          <div id="m-attachments" style="display:flex;flex-direction:column;gap:5px"></div>
+        </div>
         <div>
           <div class="ms-label">Status</div>
           <select class="fi" id="m-status" style="font-size:12px;padding:7px 10px" onchange="updateTicketStatus()">
@@ -1713,6 +1718,14 @@ async function openTicket(id) {
   document.getElementById('m-asset').textContent = t.asset_id || '—';
   document.getElementById('m-status').value = t.status;
 
+  const attachments = t.attachments || [];
+  document.getElementById('m-attachments-wrap').style.display = attachments.length ? 'block' : 'none';
+  document.getElementById('m-attachments').innerHTML = attachments.map(a => `
+    <a href="${API}/tickets/${t._id}/attachments/${a.filename}?token=${encodeURIComponent(TOKEN)}" target="_blank" rel="noopener"
+       style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--accent);text-decoration:none;background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:6px 9px">
+      📎 <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.original_name}</span>
+    </a>`).join('');
+
   const tlColors = {system:'gray',reply:'blue',note:'orange',escalation:'red'};
   const descBlock = t.description ? `
   <div class="tl-item">
@@ -1975,6 +1988,52 @@ const _toastStyle = document.createElement('style');
 _toastStyle.textContent = '@keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}';
 document.head.appendChild(_toastStyle);
 
+// ── ANEXOS (Novo Chamado) ─────────────────────────────────────────────────
+let ntSelectedFiles = [];
+const MAX_ATTACH_MB = 10;
+
+function ntAddFiles(fileList) {
+  [...fileList].forEach(f => {
+    if (f.size > MAX_ATTACH_MB * 1024 * 1024) {
+      alert(`"${f.name}" excede o limite de ${MAX_ATTACH_MB} MB e não foi adicionado.`);
+      return;
+    }
+    ntSelectedFiles.push(f);
+  });
+  renderNtFileList();
+}
+
+function renderNtFileList() {
+  document.getElementById('nt-file-list').innerHTML = ntSelectedFiles.map((f, i) => `
+    <div style="display:flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:6px 10px;font-size:12.5px">
+      <span>📎</span>
+      <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.name}</span>
+      <span style="color:var(--muted);font-size:11px">${(f.size/1024).toFixed(0)} KB</span>
+      <span onclick="ntRemoveFile(${i})" style="cursor:pointer;color:var(--muted)">✕</span>
+    </div>`).join('');
+}
+
+function ntRemoveFile(i) { ntSelectedFiles.splice(i,1); renderNtFileList(); }
+
+document.getElementById('file-input').addEventListener('change', e => { ntAddFiles(e.target.files); e.target.value=''; });
+const ntZone = document.getElementById('nt-upload-zone');
+['dragover','dragleave','drop'].forEach(evt => ntZone.addEventListener(evt, e => e.preventDefault()));
+ntZone.addEventListener('dragover', () => ntZone.style.borderColor = 'var(--accent)');
+ntZone.addEventListener('dragleave', () => ntZone.style.borderColor = '');
+ntZone.addEventListener('drop', e => { ntZone.style.borderColor=''; ntAddFiles(e.dataTransfer.files); });
+
+async function uploadAttachments(ticketId, files) {
+  for (const f of files) {
+    const fd = new FormData();
+    fd.append('file', f);
+    await fetch(API + '/tickets/' + ticketId + '/attachments', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + TOKEN },
+      body: fd,
+    }).catch(() => {});
+  }
+}
+
 async function createTicket() {
   const title = document.getElementById('nt-title').value.trim();
   const desc  = document.getElementById('nt-desc').value.trim();
@@ -1990,6 +2049,8 @@ async function createTicket() {
   };
   const r = await api('POST', '/tickets', body);
   if (r._id) {
+    if (ntSelectedFiles.length) await uploadAttachments(r._id, ntSelectedFiles);
+    ntSelectedFiles = []; renderNtFileList();
     alert('Chamado #'+r.number+' aberto com sucesso!');
     ['nt-title','nt-desc','nt-name','nt-email'].forEach(id => document.getElementById(id).value = '');
     loadAll(); show('tickets', document.querySelector('[data-view="tickets"]'));
