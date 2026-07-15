@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="HelpDesk Agente">
+<meta name="theme-color" content="#3b82f6">
+<link rel="icon" type="image/png" href="/img/hospital-regional.png">
+<link rel="apple-touch-icon" href="/img/hospital-regional.png">
+<link rel="manifest" href="/manifest.json">
+<title>HelpDesk Pro — Agente</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#080c14;--bg2:#0e1520;--bg3:#141d2e;--bg4:#1c2840;--card:#0e1520;--border:rgba(255,255,255,.08);
+  --text:#f1f5f9;--muted:#8b96a8;--muted2:#64748b;
+  --accent:#3b82f6;--a2:#2563eb;--green:#10b981;--green-bg:rgba(16,185,129,.12);
+  --orange:#f59e0b;--orange-bg:rgba(245,158,11,.12);
+  --red:#ef4444;--red-bg:rgba(239,68,68,.12);
+  --purple:#8b5cf6;--purple-bg:rgba(139,92,246,.12);
+  --safe-t:env(safe-area-inset-top,0px);
+  --safe-b:env(safe-area-inset-bottom,0px);
+}
+html,body{height:100%;background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);overflow:hidden}
+body{display:flex;flex-direction:column}
+input[type="date"]::-webkit-calendar-picker-indicator,input[type="time"]::-webkit-calendar-picker-indicator{filter:invert(1);cursor:pointer;opacity:.75}
+input[type="date"],input[type="time"]{color-scheme:dark}
+
+/* ── TOPBAR ─────────────────────────────────── */
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 16px;padding-top:calc(14px + var(--safe-t));display:flex;align-items:center;justify-content:space-between;flex-shrink:0;position:relative;z-index:10}
+.topbar-title{position:absolute;left:50%;transform:translateX(-50%);font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--text);white-space:nowrap;pointer-events:none}
+.topbar-av{width:36px;height:36px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;cursor:pointer;flex-shrink:0}
+.topbar-badge{position:relative}
+.topbar-dot{position:absolute;top:-2px;right:-2px;width:9px;height:9px;border-radius:50%;background:var(--red);border:2px solid var(--bg2);display:none}
+
+/* ── SCROLL AREA ─────────────────────────────── */
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(76px + var(--safe-b))}
+
+/* ── VIEWS ───────────────────────────────────── */
+.view{display:none;padding:16px;animation:fadeUp .22s ease}
+.view.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── BOTTOM NAV ──────────────────────────────── */
+.bnav{position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);display:flex;padding-bottom:var(--safe-b);z-index:50}
+.bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 4px;gap:3px;cursor:pointer;border:none;background:none;color:var(--muted);font-family:'DM Sans',sans-serif;transition:color .15s;min-height:56px;position:relative}
+.bnav-btn.active{color:var(--accent)}
+.bnav-btn .ico{font-size:22px;line-height:1}
+.bnav-btn .lbl{font-size:10px;font-weight:500;white-space:nowrap}
+
+/* ── CARDS ───────────────────────────────────── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px}
+.card-sm{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px}
+
+/* ── KPI GRID ────────────────────────────────── */
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.kpi-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:4px}
+.kpi-val{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;line-height:1}
+.kpi-lbl{font-size:11px;color:var(--muted);font-weight:500}
+
+/* ── SECTION TITLE ───────────────────────────── */
+.sec-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.sec-more{font-size:12px;color:var(--accent);font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer}
+
+/* ── TICKET ITEMS ────────────────────────────── */
+.ticket-item{display:flex;align-items:flex-start;gap:12px;padding:14px;background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:8px;cursor:pointer;border-left:3px solid transparent}
+.ticket-item.open{border-left-color:var(--accent)}
+.ticket-item.progress{border-left-color:var(--orange)}
+.ticket-item.resolved{border-left-color:var(--green)}
+.ticket-item.escalated{border-left-color:var(--red)}
+.ticket-item.waiting{border-left-color:var(--purple)}
+.ti-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;background:var(--bg3)}
+.ti-info{flex:1;min-width:0}
+.ti-title{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px}
+.ti-sub{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ti-meta{display:flex;align-items:center;gap:6px;margin-top:5px;flex-wrap:wrap}
+
+/* ── BADGES ──────────────────────────────────── */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:600;white-space:nowrap}
+.badge.open{background:rgba(59,130,246,.14);color:var(--accent)}
+.badge.progress{background:var(--orange-bg);color:var(--orange)}
+.badge.resolved{background:var(--green-bg);color:var(--green)}
+.badge.escalated{background:var(--red-bg);color:var(--red)}
+.badge.waiting{background:var(--purple-bg);color:var(--purple)}
+.badge.closed{background:var(--bg3);color:var(--muted)}
+.badge.new-badge{background:rgba(59,130,246,.18);color:var(--accent)}
+.badge.reply-badge{background:var(--green-bg);color:var(--green)}
+.prio{font-size:10px;color:var(--muted2);background:var(--bg3);border:1px solid var(--border);padding:2px 7px;border-radius:10px}
+
+/* ── FORMS ───────────────────────────────────── */
+.fg{margin-bottom:14px}
+.fl{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;display:block;margin-bottom:5px}
+.fi{width:100%;background:var(--bg3);border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;-webkit-appearance:none}
+.fi:focus{border-color:var(--accent)}
+select.fi{cursor:pointer}
+textarea.fi{resize:none;line-height:1.5}
+
+/* ── BUTTONS ─────────────────────────────────── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:13px 20px;border-radius:12px;font-size:15px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;border:none;width:100%}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:active{background:var(--a2)}
+.btn-ghost{background:var(--bg3);color:var(--text);border:1px solid var(--border)}
+.btn-danger{background:var(--red-bg);color:var(--red);border:1.5px solid rgba(239,68,68,.25)}
+.btn-sm{padding:9px 16px;font-size:13px;border-radius:9px;width:auto}
+
+/* ── ALERTS ──────────────────────────────────── */
+.alert{border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:12px;display:none}
+.alert-ok{background:var(--green-bg);border:1px solid rgba(16,185,129,.25);color:var(--green)}
+.alert-err{background:var(--red-bg);border:1px solid rgba(239,68,68,.25);color:var(--red)}
+
+/* ── BOTTOM SHEET ────────────────────────────── */
+.sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;display:none;align-items:flex-end}
+.sheet-overlay.open{display:flex}
+.sheet{background:var(--bg2);border:1px solid var(--border);border-bottom:none;border-radius:20px 20px 0 0;width:100%;max-height:92vh;overflow-y:auto;padding:0 0 calc(20px + var(--safe-b));animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sheet-handle{width:40px;height:4px;background:var(--bg4);border-radius:2px;margin:12px auto 16px}
+.sheet-hdr{padding:0 20px 16px;border-bottom:1px solid var(--border);margin-bottom:16px}
+.sheet-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:800}
+.sheet-body{padding:0 20px}
+
+/* ── DESCRIPTION HIGHLIGHT ───────────────────── */
+.desc-box{background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:10px;padding:12px 14px;font-size:13.5px;line-height:1.6;white-space:pre-wrap;word-break:break-word}
+
+/* ── PROFILE ──────────────────────────────────── */
+.profile-av-wrap{text-align:center;margin-bottom:20px;padding-top:8px}
+.profile-av{width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;color:#fff;margin:0 auto 10px}
+
+/* ── TOAST ───────────────────────────────────── */
+.m-toast{position:fixed;bottom:calc(72px + var(--safe-b));left:12px;right:12px;background:var(--bg2);border:1px solid var(--accent);border-radius:14px;padding:13px 16px;box-shadow:0 6px 24px rgba(0,0,0,.4);z-index:300;display:flex;align-items:flex-start;gap:10px;animation:slideUp .3s ease;cursor:pointer}
+.m-toast-icon{font-size:20px;flex-shrink:0}
+.m-toast-title{font-size:13.5px;font-weight:700;margin-bottom:2px}
+.m-toast-body{font-size:12px;color:var(--muted);line-height:1.4}
+
+/* ── OFFLINE BANNER ───────────────────────────── */
+#offline-banner{display:none;position:fixed;top:0;left:0;right:0;background:var(--red);color:#fff;padding:8px 16px;text-align:center;font-size:13px;font-weight:600;z-index:400}
+</style>
+</head>
+<body>
+
+<div id="offline-banner">📡 Sem conexão — dados podem estar desatualizados</div>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div style="width:36px"></div>
+  <div class="topbar-title">Painel do Agente</div>
+  <div class="topbar-badge" onclick="showView('profile')">
+    <div class="topbar-av" id="top-av">?</div>
+    <span class="topbar-dot" id="top-dot"></span>
+  </div>
+</div>
+
+<!-- SCROLL AREA -->
+<div class="scroll" id="scroll-area">
+
+  <!-- ── HOME ─────────────────────────────────── -->
+  <div class="view active" id="v-home">
+    <div style="margin-bottom:16px">
+      <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:2px">Olá, <span id="home-name">—</span> 👋</div>
+      <div style="font-size:13px;color:var(--muted)" id="home-role"></div>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="kpi-val" id="kpi-open" style="color:var(--accent)">—</div><div class="kpi-lbl">Chamados Abertos</div></div>
+      <div class="kpi-card"><div class="kpi-val" id="kpi-progress" style="color:var(--orange)">—</div><div class="kpi-lbl">Em Andamento</div></div>
+      <div class="kpi-card"><div class="kpi-val" id="kpi-resolved" style="color:var(--green)">—</div><div class="kpi-lbl">Resolvidos Hoje</div></div>
+      <div class="kpi-card"><div class="kpi-val" id="kpi-breach" style="color:var(--red)">—</div><div class="kpi-lbl">SLA Vencido</div></div>
+    </div>
+
+    <div class="sec-title">
+      Precisam de Atenção
+      <span class="sec-more" onclick="showView('tickets')">Ver todos ›</span>
+    </div>
+    <div id="home-priority"></div>
+  </div>
+
+  <!-- ── TICKETS ───────────────────────────────── -->
+  <div class="view" id="v-tickets">
+    <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:10px;margin-bottom:12px;scrollbar-width:none">
+      <div class="chip" id="tf-all"      onclick="filterTickets('all',this)"      style="background:var(--accent);color:#fff;padding:7px 14px;border-radius:20px;font-size:12.5px;font-weight:500;cursor:pointer;white-space:nowrap">Todos</div>
+      <div class="chip" id="tf-open"     onclick="filterTickets('open',this)"     style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:7px 14px;border-radius:20px;font-size:12.5px;font-weight:500;cursor:pointer;white-space:nowrap">Abertos</div>
+      <div class="chip" id="tf-progress" onclick="filterTickets('progress',this)" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:7px 14px;border-radius:20px;font-size:12.5px;font-weight:500;cursor:pointer;white-space:nowrap">Em Andamento</div>
+      <div class="chip" id="tf-waiting"  onclick="filterTickets('waiting',this)"  style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:7px 14px;border-radius:20px;font-size:12.5px;font-weight:500;cursor:pointer;white-space:nowrap">Aguardando</div>
+      <div class="chip" id="tf-resolved" onclick="filterTickets('resolved',this)" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:7px 14px;border-radius:20px;font-size:12.5px;font-weight:500;cursor:pointer;white-space:nowrap">Resolvidos</div>
+    </div>
+    <div id="tickets-list"></div>
+  </div>
+
+  <!-- ── PROFILE ───────────────────────────────── -->
+  <div class="view" id="v-profile">
+    <div class="profile-av-wrap">
+      <div class="profile-av" id="pf-av" style="background:var(--accent)">?</div>
+      <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800" id="pf-name">—</div>
+      <div style="font-size:12.5px;color:var(--muted)" id="pf-role">—</div>
+    </div>
+    <div class="card">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px">Dados</div>
+      <div style="font-size:13.5px;color:var(--muted);margin-bottom:4px">E-mail</div>
+      <div style="font-size:14px;margin-bottom:12px" id="pf-email">—</div>
+      <a href="/dashboard.html" class="btn btn-ghost btn-sm" style="width:100%;text-decoration:none;box-sizing:border-box">💻 Abrir versão desktop</a>
+    </div>
+    <div class="card">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px">Alterar Senha</div>
+      <div id="pf-ok"  class="alert alert-ok"></div>
+      <div id="pf-err" class="alert alert-err"></div>
+      <div class="fg"><label class="fl">Senha atual</label><input class="fi" type="password" id="pf-old" placeholder="••••••••"></div>
+      <div class="fg"><label class="fl">Nova senha</label><input class="fi" type="password" id="pf-new" placeholder="Mín. 8 caracteres"></div>
+      <div class="fg" style="margin-bottom:6px"><label class="fl">Confirmar</label><input class="fi" type="password" id="pf-confirm" placeholder="Repita a nova senha"></div>
+      <button class="btn btn-primary btn-sm" style="width:100%" onclick="savePassword()">Salvar nova senha</button>
+    </div>
+    <button class="btn btn-danger" onclick="logout()">⏏ Sair da Conta</button>
+  </div>
+
+</div><!-- /scroll -->
+
+<!-- BOTTOM NAV -->
+<nav class="bnav">
+  <button class="bnav-btn active" id="nav-home"    onclick="showView('home')">    <span class="ico">🏠</span><span class="lbl">Início</span></button>
+  <button class="bnav-btn"        id="nav-tickets" onclick="showView('tickets')"> <span class="ico">🎫</span><span class="lbl">Chamados</span></button>
+  <button class="bnav-btn"        id="nav-profile" onclick="showView('profile')"><span class="ico">👤</span><span class="lbl">Perfil</span></button>
+</nav>
+
+<!-- ── TICKET DETAIL SHEET ──────────────────────── -->
+<div class="sheet-overlay" id="ticket-sheet" onclick="if(event.target===this)closeSheet('ticket-sheet')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-hdr">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-size:12px;color:var(--accent);font-weight:700;margin-bottom:2px" id="ts-num">#—</div>
+          <div class="sheet-title" id="ts-title">—</div>
+        </div>
+        <div id="ts-badge"></div>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap" id="ts-meta"></div>
+    </div>
+    <div class="sheet-body">
+      <div class="fg" style="margin-bottom:14px">
+        <div style="display:flex;gap:8px">
+          <select class="fi" id="ts-status" onchange="updateStatus()" style="flex:1">
+            <option value="open">Aberto</option>
+            <option value="progress">Em Andamento</option>
+            <option value="waiting">Aguardando</option>
+            <option value="resolved">Resolvido</option>
+            <option value="closed">Fechado</option>
+            <option value="escalated">Escalado</option>
+          </select>
+        </div>
+        <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:8px" id="ts-assign-btn" onclick="assignToMe()">👤 Atribuir a mim</button>
+      </div>
+      <div class="fg" style="margin-bottom:8px">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">Descrição<span style="display:inline-block;background:rgba(59,130,246,.14);color:var(--accent);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:1px 7px;border-radius:9px;margin-left:6px;vertical-align:middle">Original</span></div>
+        <div class="desc-box" id="ts-desc"></div>
+      </div>
+      <div id="ts-attachments-wrap" style="display:none;margin-bottom:8px">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">Anexos</div>
+        <div id="ts-attachments" style="display:flex;flex-direction:column;gap:6px"></div>
+      </div>
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px;margin-top:16px">Histórico</div>
+      <div id="ts-timeline"></div>
+      <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Responder</div>
+        <textarea class="fi" id="ts-reply" rows="3" placeholder="Escreva uma resposta para o solicitante…"></textarea>
+        <button class="btn btn-primary" style="margin-top:8px" onclick="sendReply()">Enviar Resposta</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────────────────────
+const API = '/api';
+let TOKEN = localStorage.getItem('hd_token');
+let AGENT = JSON.parse(localStorage.getItem('hd_agent') || 'null');
+let allTickets = [];
+let currentTicketId = null;
+let activeTicketFilter = 'all';
+let clientReplyIds = new Set();
+
+// ── AUTH CHECK ────────────────────────────────────────────────────────────────
+if (!TOKEN || !AGENT) { window.location.href = '/'; }
+
+// ── API HELPER ────────────────────────────────────────────────────────────────
+async function api(m, p, data) {
+  try {
+    const r = await fetch(API + p, {
+      method: m,
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN },
+      body: data ? JSON.stringify(data) : undefined,
+    });
+    return r.json();
+  } catch { return { error: 'Sem conexão com o servidor' }; }
+}
+
+// ── NAVIGATION ────────────────────────────────────────────────────────────────
+const viewTitles = { home: 'Painel do Agente', tickets: 'Chamados', profile: 'Meu Perfil' };
+
+function showView(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('active'));
+  const v = document.getElementById('v-' + id);
+  if (v) { v.classList.add('active'); document.getElementById('scroll-area').scrollTop = 0; }
+  document.querySelector('.topbar-title').textContent = viewTitles[id] || 'HelpDesk Pro';
+  const navBtn = document.getElementById('nav-' + id);
+  if (navBtn) navBtn.classList.add('active');
+  if (id === 'tickets') loadTickets();
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+function initials(name) { return (name||'?').split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase(); }
+
+async function init() {
+  document.getElementById('top-av').textContent  = initials(AGENT.name);
+  document.getElementById('top-av').style.background = AGENT.color || 'var(--accent)';
+  document.getElementById('home-name').textContent = AGENT.name.split(' ')[0];
+  document.getElementById('home-role').textContent = AGENT.role ? `Nível ${AGENT.role}` : '';
+  document.getElementById('pf-av').textContent  = initials(AGENT.name);
+  document.getElementById('pf-av').style.background = AGENT.color || 'var(--accent)';
+  document.getElementById('pf-name').textContent = AGENT.name;
+  document.getElementById('pf-role').textContent = AGENT.role ? `Nível ${AGENT.role}` : '';
+  document.getElementById('pf-email').textContent = AGENT.email;
+
+  await loadTickets();
+}
+
+// ── TICKETS ───────────────────────────────────────────────────────────────────
+const statusLabel = {open:'Aberto',progress:'Em Andamento',resolved:'Resolvido',closed:'Fechado',escalated:'Escalado',waiting:'Aguardando'};
+const prioLabel   = {critical:'Crítica',high:'Alta',medium:'Média',low:'Baixa'};
+const catIcon     = {hardware:'💻',software:'⚙',rede:'🌐',acesso:'🔑',impressora:'🖨',datashow:'📽',outros:'📋'};
+
+function fmtDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'}) + ' ' +
+         d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
+
+function ticketItemHTML(t) {
+  const isNew = t.status === 'open' && !t.viewed_at;
+  const hasReply = clientReplyIds.has(t._id);
+  return `<div class="ticket-item ${t.status}" onclick="openTicketSheet('${t._id}')">
+    <div class="ti-icon">${catIcon[t.category]||'📋'}</div>
+    <div class="ti-info">
+      <div class="ti-title">#${t.number} ${t.title}</div>
+      <div class="ti-sub">${t.requester_name||''}</div>
+      <div class="ti-meta">
+        <span class="badge ${t.status}">${statusLabel[t.status]||t.status}</span>
+        <span class="prio">${prioLabel[t.priority]||t.priority}</span>
+        ${isNew?'<span class="badge new-badge">🆕 Novo</span>':''}
+        ${hasReply?'<span class="badge reply-badge">💬 Resposta</span>':''}
+      </div>
+    </div>
+  </div>`;
+}
+
+async function loadTickets() {
+  const tickets = await api('GET', '/tickets');
+  allTickets = Array.isArray(tickets) ? tickets : [];
+
+  const open     = allTickets.filter(t=>t.status==='open').length;
+  const progress = allTickets.filter(t=>t.status==='progress').length;
+  const today    = new Date().toISOString().slice(0,10);
+  const resolvedToday = allTickets.filter(t=>t.status==='resolved' && (t.resolved_at||'').slice(0,10)===today).length;
+  const breached = allTickets.filter(t=>t.status!=='resolved' && t.status!=='closed' && new Date(t.sla_resolve_deadline) < new Date()).length;
+  document.getElementById('kpi-open').textContent     = open;
+  document.getElementById('kpi-progress').textContent = progress;
+  document.getElementById('kpi-resolved').textContent = resolvedToday;
+  document.getElementById('kpi-breach').textContent   = breached;
+
+  // Priority list on home: unread client replies first, then unseen new tickets, then SLA breach
+  const priority = allTickets.filter(t =>
+    clientReplyIds.has(t._id) || (t.status==='open' && !t.viewed_at) ||
+    (t.status!=='resolved' && t.status!=='closed' && new Date(t.sla_resolve_deadline) < new Date())
+  ).slice(0, 6);
+  document.getElementById('home-priority').innerHTML = priority.length
+    ? priority.map(t => ticketItemHTML(t)).join('')
+    : '<div class="card-sm" style="text-align:center;color:var(--muted);padding:24px">Tudo em dia por aqui ✅</div>';
+
+  filterTickets(activeTicketFilter);
+}
+
+function filterTickets(status, el) {
+  activeTicketFilter = status;
+  document.querySelectorAll('[id^="tf-"]').forEach(c => { c.style.background='var(--bg3)'; c.style.color='var(--text)'; });
+  const activeChip = el || document.getElementById('tf-' + status);
+  if (activeChip) { activeChip.style.background = 'var(--accent)'; activeChip.style.color = '#fff'; }
+  const filtered = status === 'all' ? allTickets : allTickets.filter(t => t.status === status);
+  const list = document.getElementById('tickets-list');
+  if (!list) return;
+  list.innerHTML = filtered.length
+    ? filtered.map(t => ticketItemHTML(t)).join('')
+    : `<div class="card-sm" style="text-align:center;color:var(--muted);padding:24px">Nenhum chamado ${status==='all'?'':'com esse status'}</div>`;
+}
+
+async function openTicketSheet(id) {
+  currentTicketId = id;
+  clientReplyIds.delete(id);
+  updateNotifDot();
+  const t = await api('GET', `/tickets/${id}`);
+  if (!t || t.error) return;
+  document.getElementById('ts-num').textContent   = '#' + t.number;
+  document.getElementById('ts-title').textContent = t.title;
+  document.getElementById('ts-badge').innerHTML   = `<span class="badge ${t.status}">${statusLabel[t.status]||t.status}</span>`;
+  document.getElementById('ts-meta').innerHTML    = `
+    <span class="prio">${prioLabel[t.priority]||t.priority}</span>
+    <span style="font-size:11px;color:var(--muted2)">${catIcon[t.category]||'📋'} ${t.category}</span>
+    <span style="font-size:11px;color:var(--muted2)">${fmtDate(t.created_at)}</span>
+    <span style="font-size:11px;color:var(--muted2)">👤 ${t.requester_name||'—'}</span>`;
+  document.getElementById('ts-desc').textContent = t.description || '—';
+  document.getElementById('ts-status').value = t.status;
+  document.getElementById('ts-assign-btn').style.display = (t.agent_id === AGENT._id) ? 'none' : '';
+
+  const attachments = t.attachments || [];
+  document.getElementById('ts-attachments-wrap').style.display = attachments.length ? 'block' : 'none';
+  document.getElementById('ts-attachments').innerHTML = attachments.map(a => `
+    <a href="${API}/tickets/${t._id}/attachments/${a.filename}?token=${encodeURIComponent(TOKEN)}" target="_blank" rel="noopener"
+       style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--accent);text-decoration:none;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 10px">
+      📎 <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.original_name}</span>
+    </a>`).join('');
+  document.getElementById('ts-reply').value = '';
+
+  const tlColorCls = {system:'#8b96a8',reply:'#3b82f6',note:'#f59e0b',escalation:'#ef4444'};
+  document.getElementById('ts-timeline').innerHTML = (t.comments||[]).length
+    ? (t.comments||[]).map(c => `
+        <div style="display:flex;gap:10px;margin-bottom:12px">
+          <div style="width:28px;height:28px;border-radius:50%;background:${tlColorCls[c.type]||'#8b96a8'}22;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">
+            ${c.type==='system'?'⚙':c.type==='note'?'📝':c.type==='escalation'?'⬆':'💬'}
+          </div>
+          <div style="flex:1">
+            <div style="font-size:12px;font-weight:600;color:var(--text)">${c.author_name}</div>
+            <div style="font-size:11px;color:var(--muted2);margin-bottom:4px">${fmtDate(c.created_at)}</div>
+            <div style="font-size:13.5px;line-height:1.5;background:${c.type==='note'?'var(--orange-bg)':c.type==='system'?'var(--bg3)':'var(--bg3)'};padding:10px 12px;border-radius:10px">${c.body}</div>
+          </div>
+        </div>`).join('')
+    : '<div style="text-align:center;color:var(--muted);font-size:13px;padding:16px">Nenhuma interação ainda.</div>';
+
+  // Reflect the just-viewed state locally so the "Novo" badge clears immediately
+  const cached = allTickets.find(x => x._id === id);
+  if (cached && !cached.viewed_at && t.viewed_at) cached.viewed_at = t.viewed_at;
+
+  openSheet('ticket-sheet');
+}
+
+async function updateStatus() {
+  const status = document.getElementById('ts-status').value;
+  await api('PATCH', `/tickets/${currentTicketId}`, { status });
+  const t = allTickets.find(x=>x._id===currentTicketId);
+  if (t) t.status = status;
+  loadTickets();
+}
+
+async function assignToMe() {
+  await api('PATCH', `/tickets/${currentTicketId}`, { agent_id: AGENT._id, status: 'progress' });
+  await api('POST', `/tickets/${currentTicketId}/comments`, { body: `Chamado atribuído a ${AGENT.name}.`, type: 'system' });
+  document.getElementById('ts-assign-btn').style.display = 'none';
+  document.getElementById('ts-status').value = 'progress';
+  loadTickets();
+}
+
+async function sendReply() {
+  const body = document.getElementById('ts-reply').value.trim();
+  if (!body) return;
+  const r = await api('POST', `/tickets/${currentTicketId}/comments`, { body, type: 'reply' });
+  if (!r.error) {
+    document.getElementById('ts-reply').value = '';
+    openTicketSheet(currentTicketId);
+  }
+}
+
+// ── PROFILE / PASSWORD ────────────────────────────────────────────────────────
+async function savePassword() {
+  const old  = document.getElementById('pf-old').value;
+  const novo = document.getElementById('pf-new').value;
+  const conf = document.getElementById('pf-confirm').value;
+  const okEl  = document.getElementById('pf-ok');
+  const errEl = document.getElementById('pf-err');
+  okEl.style.display='none'; errEl.style.display='none';
+  if (!old||!novo) { errEl.textContent='Preencha a senha atual e a nova.'; errEl.style.display='block'; return; }
+  if (novo!==conf) { errEl.textContent='As senhas não coincidem.'; errEl.style.display='block'; return; }
+  if (novo.length<8){ errEl.textContent='Mínimo 8 caracteres.'; errEl.style.display='block'; return; }
+  const r = await api('PUT','/agents/me/password',{current_password:old,new_password:novo});
+  if (r.message) {
+    okEl.textContent='✓ Senha alterada com sucesso!'; okEl.style.display='block';
+    document.getElementById('pf-old').value='';
+    document.getElementById('pf-new').value='';
+    document.getElementById('pf-confirm').value='';
+    setTimeout(()=>okEl.style.display='none',3000);
+  } else { errEl.textContent=r.error||'Erro ao alterar senha.'; errEl.style.display='block'; }
+}
+
+function logout() {
+  if (!confirm('Sair da conta?')) return;
+  localStorage.removeItem('hd_token');
+  localStorage.removeItem('hd_agent');
+  window.location.href = '/';
+}
+
+// ── SHEET HELPERS ─────────────────────────────────────────────────────────────
+function openSheet(id)  { document.getElementById(id).classList.add('open'); }
+function closeSheet(id) { document.getElementById(id).classList.remove('open'); }
+
+// ── OFFLINE ───────────────────────────────────────────────────────────────────
+window.addEventListener('online',  () => document.getElementById('offline-banner').style.display='none');
+window.addEventListener('offline', () => document.getElementById('offline-banner').style.display='block');
+if (!navigator.onLine) document.getElementById('offline-banner').style.display='block';
+
+// ── SERVICE WORKER ────────────────────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+
+// ── START ─────────────────────────────────────────────────────────────────────
+init();
+
+// ── NOTIFICAÇÕES SSE (AGENT MOBILE) ─────────────────────────────────────────
+let mSseConn = null, mReconnTimer = null;
+
+function initMobileSSE() {
+  if (mSseConn) { mSseConn.abort(); mSseConn = null; }
+  const ctrl = new AbortController();
+  mSseConn = ctrl;
+  fetch(`${API}/tickets/stream`, {
+    headers: { 'Authorization': 'Bearer ' + TOKEN },
+    signal: ctrl.signal,
+  }).then(async res => {
+    if (!res.ok) { scheduleMReconn(); return; }
+    const reader = res.body.getReader();
+    const dec = new TextDecoder();
+    let buf = '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      const lines = buf.split('\n'); buf = lines.pop();
+      let evt='', dat='';
+      for (const l of lines) {
+        if (l.startsWith('event:')) evt = l.slice(6).trim();
+        else if (l.startsWith('data:')) dat = l.slice(5).trim();
+        else if (l==='' && dat) {
+          if (evt==='update') handleMobileUpdate(JSON.parse(dat));
+          evt=''; dat='';
+        }
+      }
+    }
+    scheduleMReconn();
+  }).catch(e => { if (e.name!=='AbortError') scheduleMReconn(); });
+}
+
+function scheduleMReconn() {
+  clearTimeout(mReconnTimer);
+  mReconnTimer = setTimeout(initMobileSSE, 12000);
+}
+
+function updateNotifDot() {
+  document.getElementById('top-dot').style.display = clientReplyIds.size > 0 ? 'block' : 'none';
+}
+
+function handleMobileUpdate(data) {
+  const updated = data.updated || [];
+  const clientReplies = updated.filter(t => t.has_client_reply);
+  clientReplies.forEach(t => clientReplyIds.add(t._id));
+  updateNotifDot();
+
+  if (clientReplies.length > 0) {
+    showMobileToast(clientReplies[clientReplies.length-1], 'reply');
+  } else if ((data.new_tickets||0) > 0) {
+    showMobileToast(updated[updated.length-1], 'new');
+  }
+
+  loadTickets();
+}
+
+function showMobileToast(t, kind) {
+  if (!t) return;
+  document.querySelectorAll('.m-toast').forEach(el=>el.remove());
+  const title = kind === 'reply'
+    ? `💬 ${t.requester_name||'Cliente'} respondeu`
+    : `🎫 Novo chamado aberto`;
+  const toast = document.createElement('div');
+  toast.className = 'm-toast';
+  toast.innerHTML = `
+    <div class="m-toast-icon">${kind==='reply'?'💬':'🎫'}</div>
+    <div style="flex:1">
+      <div class="m-toast-title">${title}</div>
+      <div class="m-toast-body">Chamado #${t.number}: ${(t.title||'').slice(0,50)}${(t.title||'').length>50?'…':''}</div>
+    </div>
+    <span onclick="this.parentElement.remove()" style="font-size:16px;color:var(--muted);padding:2px">✕</span>`;
+  toast.addEventListener('click', e => {
+    if (e.target.tagName==='SPAN') return;
+    toast.remove();
+    showView('tickets');
+    openTicketSheet(t._id);
+  });
+  document.body.appendChild(toast);
+  setTimeout(()=>{ if(toast.parentElement){toast.style.opacity='0';toast.style.transition='opacity .3s';setTimeout(()=>toast.remove(),300);} },7000);
+}
+
+initMobileSSE();
+</script>
+</body>
+</html>

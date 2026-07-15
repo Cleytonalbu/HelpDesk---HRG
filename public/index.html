@@ -443,7 +443,7 @@ async function doLogin() {
     if (!r.ok) throw new Error(d.error || 'Erro desconhecido');
     localStorage.setItem('hd_token', d.token);
     localStorage.setItem('hd_agent', JSON.stringify(d.agent));
-    window.location.href = 'dashboard.html';
+    window.location.href = window.innerWidth<=768 ? 'agent-mobile.html' : 'dashboard.html';
   } catch(e) {
     setLoading('login-btn','login-spinner','login-label', false);
     showError('agent-error','agent-error-text', e.message);
