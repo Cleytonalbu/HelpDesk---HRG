@@ -1672,6 +1672,13 @@ function filterTickets(status, el) {
   renderTickets();
 }
 
+function viewAgentTickets(agentId) {
+  document.getElementById('prio-filter').value = '';
+  document.getElementById('agent-filter').value = agentId;
+  filterTickets('all', document.querySelector('#status-tabs .tab'));
+  show('tickets', document.querySelector('[data-view="tickets"]'));
+}
+
 async function openTicket(id) {
   currentTicketId = id;
   if (clientReplyTicketIds.has(id)) markSeenAgent(id);
@@ -1998,13 +2005,14 @@ function buildAgents(agents, report, clients) {
   document.getElementById('agents-grid').innerHTML = agents.map(a => {
     const rp = report.find(r=>r.agent_id===a._id)||{total:0,resolved:0};
     const isSelf = AGENT && a._id === AGENT._id;
-    return `<div class="agent-card">
+    return `<div class="agent-card" style="cursor:pointer" onclick="viewAgentTickets('${a._id}')" title="Ver chamados de ${a.name}">
       <div class="av-lg" style="background:${a.color||'#3b82f6'}">${a.name.split(' ').map(x=>x[0]).join('').slice(0,2)}</div>
       <div class="an">${a.name}${isSelf?' <span style="font-size:10px;color:var(--accent)">(você)</span>':''}</div>
       <div class="ae">${a.email}</div>
       <span class="role-badge ${a.role}">${a.role}</span>
       <div class="agent-stats"><div><b>${rp.total}</b>Total</div><div><b>${rp.resolved}</b>Resolvidos</div></div>
       <div style="display:flex;gap:5px;justify-content:center;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();viewAgentTickets('${a._id}')">🎫 Ver Chamados</button>
         ${isAdmin ? `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openAgentForm('${a._id}')">✏ Editar</button>` : ''}
         ${isAdmin && !isSelf ? `<button class="btn btn-ghost btn-sm" style="color:var(--orange);border-color:rgba(245,158,11,.3)" onclick="event.stopPropagation();openAgentPassReset('${a._id}','${a.name}')">🔑 Senha</button>` : ''}
         ${isSelf ? `<button class="btn btn-ghost btn-sm" style="color:var(--accent)" onclick="event.stopPropagation();document.getElementById('own-pass-overlay').classList.add('open')">🔑 Minha Senha</button>` : ''}
