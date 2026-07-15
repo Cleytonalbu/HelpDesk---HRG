@@ -498,6 +498,7 @@ select.fi{cursor:pointer;appearance:none}
     </a>
     <a data-view="datashow" onclick="show('datashow',this)">
       <span class="ni">📽</span> Datashow
+      <span class="badge red" id="nav-datashow" style="display:none">0</span>
     </a>
     <a href="/tv.html" target="_blank" style="margin-top:4px">
       <span class="ni">📺</span> Painel TV
@@ -1609,14 +1610,15 @@ let selectedColor = colors[0];
 
 async function loadAll() {
   try {
-    const [stats, tickets, agents, assets, kbCats, kbArts, slaData, report, clients] = await Promise.all([
+    const [stats, tickets, agents, assets, kbCats, kbArts, slaData, report, clients, datashow] = await Promise.all([
       api('GET','/tickets/stats'), api('GET','/tickets'), api('GET','/agents'),
       api('GET','/assets'), api('GET','/kb/categories'), api('GET','/kb/articles'),
-      api('GET','/reports/sla'), api('GET','/reports/dashboard'), api('GET','/clients')
+      api('GET','/reports/sla'), api('GET','/reports/dashboard'), api('GET','/clients'), api('GET','/datashow')
     ]);
     allTickets = Array.isArray(tickets) ? tickets : [];
     allAgents  = Array.isArray(agents)  ? agents  : [];
     allClients = Array.isArray(clients) ? clients : [];
+    updateDatashowBadge(Array.isArray(datashow) ? datashow.filter(d => !d.viewed_at).length : 0);
 
     // KPIs
     document.getElementById('k-open').textContent     = stats.open     ?? '—';
@@ -1966,6 +1968,7 @@ function initSSE() {
         else if (line.startsWith('data:')) dataStr = line.slice(5).trim();
         else if (line === '' && dataStr) {
           if (eventType === 'update') handleSSEUpdate(JSON.parse(dataStr));
+          else if (eventType === 'heartbeat') updateDatashowBadge(JSON.parse(dataStr).datashow_unseen || 0);
           eventType = ''; dataStr = '';
         }
       }
@@ -1986,9 +1989,24 @@ function scheduleSSEReconnect() {
 let clientReplyTicketIds = new Set();
 let agentNotifHistory     = []; // { _id, number, title, requester_name, time }
 
+function updateDatashowBadge(count) {
+  const el = document.getElementById('nav-datashow');
+  if (!el) return;
+  el.textContent = count;
+  el.style.display = count > 0 ? '' : 'none';
+}
+
+async function markDatashowSeen() {
+  await api('POST', '/datashow/mark-seen');
+  updateDatashowBadge(0);
+}
+
 function handleSSEUpdate(data) {
-  const newTickets = data.new_tickets || 0;
-  const updated    = data.updated    || [];
+  const newTickets   = data.new_tickets || 0;
+  const updated      = data.updated    || [];
+  const newDatashow  = data.new_datashow || [];
+
+  updateDatashowBadge(data.datashow_unseen || 0);
 
   if (newTickets > 0 || updated.length > 0) {
     // Refresh data silently in background
@@ -2004,8 +2022,11 @@ function handleSSEUpdate(data) {
       if (agentNotifHistory.length > 20) agentNotifHistory.pop();
     });
 
-    // Show toast notification — client reply takes priority over generic updates
-    if (clientReplies.length > 0) {
+    // Show toast notification — datashow bookings and client replies take priority over generic updates
+    if (newDatashow.length > 0) {
+      const d = newDatashow[newDatashow.length - 1];
+      showToast(`📽 ${d.requester_name || 'Alguém'} agendou o Datashow — ${d.location} em ${d.date} às ${d.time}`, 'accent');
+    } else if (clientReplies.length > 0) {
       const t = clientReplies[clientReplies.length - 1];
       showToast(`💬 ${t.requester_name || 'Cliente'} respondeu ao chamado #${t.number}`, 'green');
     } else if (newTickets > 0) {
@@ -3111,7 +3132,7 @@ const _origShow = show;
 show = (view, el) => {
   _origShow(view, el);
   if (view === 'reports')  loadReportData();
-  if (view === 'datashow') loadDsAgent();
+  if (view === 'datashow') { loadDsAgent(); markDatashowSeen(); }
 };
 
 // ── DATASHOW (AGENT VIEW) ─────────────────────────────────────────────────────

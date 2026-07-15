@@ -4,6 +4,38 @@ const db   = require('../db');
 const auth = require('../middleware/auth');
 const now  = () => new Date().toISOString();
 
+// Datashow bookings are low-priority informational tickets
+const slaDeadline = (created, hours) => new Date(new Date(created).getTime() + hours*3600000).toISOString();
+
+function createLinkedTicket(reservation, cb) {
+  db.tickets.count({}, (err, count) => {
+    const created = now();
+    const ticket = {
+      _id: uuid(), number: 1000 + count + 1,
+      title: `Agendamento de Datashow — ${reservation.location} em ${reservation.date} ${reservation.time}`,
+      description: `Reserva de Datashow/Auditório.\nLocal: ${reservation.location}\nData/Hora: ${reservation.date} às ${reservation.time} (${reservation.duration} min)\nFinalidade: ${reservation.purpose}${reservation.notes ? '\nObservações: '+reservation.notes : ''}`,
+      status: 'open', priority: 'low', category: 'datashow', channel: 'portal', tier: 'N1',
+      requester_name: reservation.requester_name,
+      requester_email: reservation.requester_email || '',
+      requester_dept: reservation.requester_dept || '',
+      agent_id: null, asset_id: null, viewed_at: null,
+      sla_response_deadline: slaDeadline(created, 8),
+      sla_resolve_deadline:  slaDeadline(created, 24),
+      sla_breached: false, resolved_at: null, closed_at: null,
+      created_at: created, updated_at: created,
+      datashow_id: reservation._id,
+    };
+    db.tickets.insert(ticket, (err2, doc) => {
+      if (!err2 && doc) {
+        db.comments.insert({ _id: uuid(), ticket_id: doc._id, agent_id: null, author_name: 'Sistema',
+          body: `Chamado gerado automaticamente a partir de um agendamento de Datashow (${reservation.date} ${reservation.time}, ${reservation.location}).`,
+          type: 'system', created_at: now() });
+      }
+      cb(doc);
+    });
+  });
+}
+
 // GET /api/datashow — list all reservations (optionally filter by date range)
 router.get('/', auth, (req, res) => {
   const q = {};
@@ -70,14 +102,17 @@ router.post('/', auth, (req, res) => {
       requester_name, requester_email: requester_email || '',
       requester_dept: requester_dept || '',
       purpose, notes: notes || '',
-      status: 'confirmed',
+      status: 'confirmed', viewed_at: null,
       created_by: req.user._id,
       created_by_name: req.user.name,
       created_at: now(), updated_at: now(),
     };
     db.datashow.insert(reservation, (err, doc) => {
       if (err) return res.status(500).json({ error: 'Erro ao criar agendamento' });
-      res.status(201).json(doc);
+      createLinkedTicket(doc, ticket => {
+        if (ticket) db.datashow.update({ _id: doc._id }, { $set: { ticket_id: ticket._id, ticket_number: ticket.number } }, {});
+        res.status(201).json(doc);
+      });
     });
   });
 });
@@ -130,6 +165,13 @@ router.patch('/:id', auth, (req, res) => {
 router.delete('/:id', auth, (req, res) => {
   db.datashow.remove({ _id: req.params.id }, {}, (err, n) =>
     n ? res.json({ message: 'Cancelado' }) : res.status(404).json({ error: 'Nao encontrado' }));
+});
+
+// POST /api/datashow/mark-seen — agent opened the Datashow tab, clear the "new booking" badge for everyone
+router.post('/mark-seen', auth, (req, res) => {
+  if (req.user.userType === 'client') return res.status(403).json({ error: 'Acesso negado' });
+  db.datashow.update({ viewed_at: null }, { $set: { viewed_at: now() } }, { multi: true }, (err, n) =>
+    res.json({ marked: n || 0 }));
 });
 
 module.exports = router;
