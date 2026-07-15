@@ -94,6 +94,23 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .form-row .form-group{margin-bottom:0}
 select.form-input{appearance:none;cursor:pointer}
 
+/* ── ALERT MODAL (substitui o alert() nativo) ─────────────────────────── */
+.app-alert-overlay{position:fixed;inset:0;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;z-index:3000;animation:fadeIn .15s ease}
+.app-alert-card{background:var(--card);border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.28);max-width:380px;width:90%;padding:28px 26px 22px;text-align:center;animation:fadeIn .2s ease}
+.app-alert-icon{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 16px;font-weight:700}
+.app-alert-icon.success{background:rgba(16,185,129,.1);color:var(--green)}
+.app-alert-icon.error{background:rgba(239,68,68,.1);color:var(--red)}
+.app-alert-icon.warning{background:rgba(245,158,11,.1);color:#f59e0b}
+.app-alert-icon.info{background:rgba(37,99,235,.08);color:var(--accent)}
+.app-alert-title{font-weight:700;font-size:15px;margin-bottom:8px;font-family:'Syne',sans-serif;color:var(--text)}
+.app-alert-msg{font-size:13.5px;line-height:1.6;color:var(--muted);margin-bottom:22px;white-space:pre-wrap}
+.app-alert-msg.error{color:var(--red);font-weight:600}
+.app-alert-btn{padding:10px 32px;border-radius:9px;font-size:13.5px;font-weight:600;cursor:pointer;border:none;font-family:'Syne',sans-serif;color:#fff}
+.app-alert-btn.success{background:var(--green)}
+.app-alert-btn.error{background:var(--red)}
+.app-alert-btn.warning{background:#f59e0b}
+.app-alert-btn.info{background:var(--accent)}
+
 /* ── RESPONSIVE ──────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
   html, body { overflow: auto; height: auto; }
@@ -481,7 +498,24 @@ async function doRegister() {
   }
 }
 
-function showForgot() { alert('Entre em contato com o administrador do sistema para redefinir sua senha.'); }
+function showAlert(message, type='info') {
+  document.querySelectorAll('.app-alert-overlay').forEach(el=>el.remove());
+  const icons  = { success:'✓', error:'✕', warning:'⚠', info:'ℹ' };
+  const titles = { success:'Sucesso', error:'Erro', warning:'Atenção', info:'Aviso' };
+  const overlay = document.createElement('div');
+  overlay.className = 'app-alert-overlay';
+  overlay.innerHTML = `
+    <div class="app-alert-card">
+      <div class="app-alert-icon ${type}">${icons[type]||icons.info}</div>
+      <div class="app-alert-title">${titles[type]||titles.info}</div>
+      <div class="app-alert-msg ${type==='error'?'error':''}">${message}</div>
+      <button class="app-alert-btn ${type}" onclick="this.closest('.app-alert-overlay').remove()">OK</button>
+    </div>`;
+  overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
+  document.body.appendChild(overlay);
+}
+
+function showForgot() { showAlert('Entre em contato com o administrador do sistema para redefinir sua senha.', 'info'); }
 
 // Auto-redirect if already logged in
 if (localStorage.getItem('hd_token')) window.location.href = 'dashboard.html';

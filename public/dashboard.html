@@ -66,6 +66,23 @@ nav a .badge.red{background:var(--red)}
 .view{display:none}.view.active{display:block;animation:fadeIn .2s ease}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 
+/* ── ALERT MODAL (substitui o alert() nativo) ─────────────────────────── */
+.app-alert-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:3000;animation:fadeIn .15s ease}
+.app-alert-card{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.5);max-width:380px;width:90%;padding:28px 26px 22px;text-align:center;animation:fadeIn .2s ease}
+.app-alert-icon{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 16px;font-weight:700}
+.app-alert-icon.success{background:var(--green-bg);color:var(--green)}
+.app-alert-icon.error{background:var(--red-bg);color:var(--red)}
+.app-alert-icon.warning{background:var(--orange-bg);color:var(--orange)}
+.app-alert-icon.info{background:rgba(59,130,246,0.14);color:var(--accent)}
+.app-alert-title{font-weight:700;font-size:15px;margin-bottom:8px;font-family:'Syne',sans-serif;color:var(--text)}
+.app-alert-msg{font-size:13.5px;line-height:1.6;color:var(--muted);margin-bottom:22px;white-space:pre-wrap}
+.app-alert-msg.error{color:var(--red);font-weight:600}
+.app-alert-btn{padding:10px 32px;border-radius:9px;font-size:13.5px;font-weight:600;cursor:pointer;border:none;font-family:'Syne',sans-serif;color:#fff}
+.app-alert-btn.success{background:var(--green)}
+.app-alert-btn.error{background:var(--red)}
+.app-alert-btn.warning{background:var(--orange)}
+.app-alert-btn.info{background:var(--accent)}
+
 /* CARDS */
 .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg)}
 .card-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border)}
@@ -1153,7 +1170,7 @@ select.fi{cursor:pointer;appearance:none}
         </div>
         <div style="display:flex;flex-direction:column;gap:6px">
           <button class="btn btn-ghost btn-sm" onclick="escalateTicket()">⬆ Escalar</button>
-          <button class="btn btn-ghost btn-sm" onclick="alert('Iniciando acesso remoto…')">🖥 Acesso Remoto</button>
+          <button class="btn btn-ghost btn-sm" onclick="showAlert('Iniciando acesso remoto…', 'info')">🖥 Acesso Remoto</button>
           <button class="btn btn-primary btn-sm" onclick="resolveTicket()">✅ Resolver</button>
           <button class="btn btn-danger btn-sm" onclick="deleteTicket()" style="margin-top:4px;border-top:1px solid var(--border);padding-top:10px">🗑 Excluir Chamado</button>
         </div>
@@ -1488,6 +1505,23 @@ const api = (method, path, body) => fetch(API+path, {
   method, headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+TOKEN },
   body: body ? JSON.stringify(body) : undefined
 }).then(r => r.json());
+
+function showAlert(message, type='info') {
+  document.querySelectorAll('.app-alert-overlay').forEach(el=>el.remove());
+  const icons  = { success:'✓', error:'✕', warning:'⚠', info:'ℹ' };
+  const titles = { success:'Sucesso', error:'Erro', warning:'Atenção', info:'Aviso' };
+  const overlay = document.createElement('div');
+  overlay.className = 'app-alert-overlay';
+  overlay.innerHTML = `
+    <div class="app-alert-card">
+      <div class="app-alert-icon ${type}">${icons[type]||icons.info}</div>
+      <div class="app-alert-title">${titles[type]||titles.info}</div>
+      <div class="app-alert-msg ${type==='error'?'error':''}">${message}</div>
+      <button class="app-alert-btn ${type}" onclick="this.closest('.app-alert-overlay').remove()">OK</button>
+    </div>`;
+  overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
+  document.body.appendChild(overlay);
+}
 
 const fmtDate = iso => iso ? new Date(iso).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—';
 const slaRemaining = deadline => {
@@ -1995,7 +2029,7 @@ const MAX_ATTACH_MB = 10;
 function ntAddFiles(fileList) {
   [...fileList].forEach(f => {
     if (f.size > MAX_ATTACH_MB * 1024 * 1024) {
-      alert(`"${f.name}" excede o limite de ${MAX_ATTACH_MB} MB e não foi adicionado.`);
+      showAlert(`"${f.name}" excede o limite de ${MAX_ATTACH_MB} MB e não foi adicionado.`, 'warning');
       return;
     }
     ntSelectedFiles.push(f);
@@ -2039,7 +2073,7 @@ async function createTicket() {
   const desc  = document.getElementById('nt-desc').value.trim();
   const name  = document.getElementById('nt-name').value.trim();
   const email = document.getElementById('nt-email').value.trim();
-  if (!title||!desc||!name||!email) return alert('Preencha todos os campos obrigatórios.');
+  if (!title||!desc||!name||!email) return showAlert('Preencha todos os campos obrigatórios.', 'warning');
   const body = {
     title, description:desc, requester_name:name, requester_email:email,
     priority: document.getElementById('nt-prio').value,
@@ -2051,10 +2085,10 @@ async function createTicket() {
   if (r._id) {
     if (ntSelectedFiles.length) await uploadAttachments(r._id, ntSelectedFiles);
     ntSelectedFiles = []; renderNtFileList();
-    alert('Chamado #'+r.number+' aberto com sucesso!');
+    showAlert('Chamado #'+r.number+' aberto com sucesso!', 'success');
     ['nt-title','nt-desc','nt-name','nt-email'].forEach(id => document.getElementById(id).value = '');
     loadAll(); show('tickets', document.querySelector('[data-view="tickets"]'));
-  } else alert('Erro: '+(r.error||'Falha ao criar chamado'));
+  } else showAlert('Erro: '+(r.error||'Falha ao criar chamado'), 'error');
 }
 
 function buildAgents(agents, report, clients) {
@@ -2750,7 +2784,7 @@ function exportReportCSV() {
 }
 
 function exportReportPDF() {
-  if (!reportData) { alert('Carregue os dados do relatório primeiro.'); return; }
+  if (!reportData) { showAlert('Carregue os dados do relatório primeiro.', 'warning'); return; }
   const d = reportData;
   const periodLabel = document.getElementById('rp-period-label')?.textContent || '';
   const now = new Date().toLocaleDateString('pt-BR', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
