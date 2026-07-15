@@ -143,7 +143,7 @@ router.get('/stream', (req, res) => {
               updated:     (changed||[]).map(t => ({
                 _id: t._id, status: t.status, number: t.number, title: t.title,
                 requester_name: t.requester_name, updated_at: t.updated_at,
-                has_client_reply: repliedIds.has(t._id),
+                has_client_reply: repliedIds.has(t._id), viewed_at: t.viewed_at || null,
               })),
               ts: now,
             });
@@ -185,11 +185,24 @@ router.get('/stats', auth, (req, res) => {
 router.get('/:id', auth, (req, res) => {
   db.tickets.findOne({ _id: req.params.id }, (err, ticket) => {
     if (!ticket) return res.status(404).json({ error: 'Ticket nao encontrado' });
-    db.comments.find({ ticket_id: ticket._id }).sort({ created_at: 1 }).exec((err, comments) => {
-      db.attachments.find({ ticket_id: ticket._id }, (err, attachments) => {
-        res.json({ ...ticket, comments: comments||[], attachments: attachments||[] });
+
+    const respond = (t) => {
+      db.comments.find({ ticket_id: t._id }).sort({ created_at: 1 }).exec((err, comments) => {
+        db.attachments.find({ ticket_id: t._id }, (err, attachments) => {
+          res.json({ ...t, comments: comments||[], attachments: attachments||[] });
+        });
       });
-    });
+    };
+
+    // First time an agent (not the client) opens this ticket — clear the "Novo" badge for everyone
+    if (req.user.userType !== 'client' && !ticket.viewed_at) {
+      const viewed_at = now();
+      db.tickets.update({ _id: ticket._id }, { $set: { viewed_at, updated_at: viewed_at } }, {}, () => {
+        respond({ ...ticket, viewed_at, updated_at: viewed_at });
+      });
+    } else {
+      respond(ticket);
+    }
   });
 });
 
@@ -209,7 +222,7 @@ router.post('/', auth, (req, res) => {
       channel: channel || 'portal', tier,
       requester_name, requester_email,
       requester_dept: requester_dept || '',
-      agent_id: null, asset_id: asset_id || null,
+      agent_id: null, asset_id: asset_id || null, viewed_at: null,
       sla_response_deadline: slaDeadline(prio, created, 0),
       sla_resolve_deadline:  slaDeadline(prio, created, 1),
       sla_breached: false, resolved_at: null, closed_at: null,

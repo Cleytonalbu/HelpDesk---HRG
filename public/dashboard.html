@@ -149,6 +149,7 @@ tr{cursor:pointer;transition:background .1s}
 .badge.escalated{background:var(--red-bg);color:var(--red)}
 .badge.waiting{background:var(--purple-bg);color:var(--purple)}
 .reply-badge{display:inline-flex;align-items:center;gap:3px;background:var(--green-bg);color:var(--green);font-size:10px;font-weight:700;height:18px;border-radius:9px;padding:0 7px;margin-left:6px;vertical-align:middle}
+.new-badge{display:inline-flex;align-items:center;gap:3px;background:rgba(59,130,246,0.14);color:var(--accent);font-size:10px;font-weight:700;height:18px;border-radius:9px;padding:0 7px;margin-left:6px;vertical-align:middle}
 .notif-unread.client-reply{background:var(--green)}
 .prio{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500}
 .prio.critical{color:var(--red)}.prio.high{color:var(--orange)}.prio.medium{color:var(--cyan)}.prio.low{color:var(--muted)}
@@ -1641,7 +1642,7 @@ function renderTickets() {
     const descFull = t.description || '';
     const descShort = descFull.length > 80 ? descFull.slice(0,80)+'…' : descFull;
     return `<tr onclick="openTicket('${t._id}')">
-      <td><span class="tid">#${t.number}</span>${clientReplyTicketIds.has(t._id)?'<span class="reply-badge">💬 Resposta</span>':''}</td>
+      <td><span class="tid">#${t.number}</span>${clientReplyTicketIds.has(t._id)?'<span class="reply-badge">💬 Resposta</span>':''}${(t.status==='open'&&!t.viewed_at)?'<span class="new-badge">🆕 Novo</span>':''}</td>
       <td style="max-width:260px">
         <div class="ttitle">${t.title}</div>
         <div class="tdesc" title="${descFull.replace(/"/g,'&quot;')}" style="white-space:normal;line-height:1.4">${descShort}</div>
@@ -1675,6 +1676,9 @@ async function openTicket(id) {
   currentTicketId = id;
   if (clientReplyTicketIds.has(id)) markSeenAgent(id);
   const t = await api('GET', '/tickets/'+id);
+  // GET already marked the ticket as viewed server-side (first agent to open it) — sync the local cache so the "Novo" badge clears immediately, for this agent and anyone who reloads
+  const cached = allTickets.find(x => x._id === id);
+  if (cached && !cached.viewed_at && t.viewed_at) { cached.viewed_at = t.viewed_at; renderTickets(); }
   document.getElementById('m-num').textContent = '#'+t.number;
   document.getElementById('m-title').textContent = t.title;
   const sla = slaRemaining(t.sla_resolve_deadline);
