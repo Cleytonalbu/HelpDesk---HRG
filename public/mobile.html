@@ -460,7 +460,7 @@ textarea.fi{resize:none;line-height:1.5}
 <script>
 // ── CONFIG ────────────────────────────────────────────────────────────────────
 const API = '/api';
-let TOKEN   = localStorage.getItem('hd_token');
+let TOKEN   = localStorage.getItem('hd_client_token') || localStorage.getItem('hd_token');
 let CLIENT  = JSON.parse(localStorage.getItem('hd_client') || 'null');
 let myTickets = [];
 let allKBCats = [], allKBArts = [];
@@ -853,6 +853,7 @@ async function savePassword() {
 
 function logout() {
   if (!confirm('Sair da conta?')) return;
+  localStorage.removeItem('hd_client_token');
   localStorage.removeItem('hd_token');
   localStorage.removeItem('hd_client');
   window.location.href = '/';
