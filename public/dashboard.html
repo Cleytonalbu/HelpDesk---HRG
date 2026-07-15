@@ -998,17 +998,26 @@ select.fi{cursor:pointer;appearance:none}
           <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Resolução (h)</div>
         </div>
 
-        ${[
-          {key:'critical', label:'🔴 Crítica',  resp:'0.5',  res:'2'},
-          {key:'high',     label:'🟠 Alta',     resp:'1',    res:'4'},
-          {key:'medium',   label:'🟡 Média',    resp:'4',    res:'8'},
-          {key:'low',      label:'⚪ Baixa',    resp:'8',    res:'24'},
-        ].map(p => `
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;align-items:center;margin-bottom:10px">
-          <div style="font-size:13.5px;font-weight:500">${p.label}</div>
-          <input class="fi" id="sla-resp-${p.key}" type="number" value="${p.resp}" min="0.5" step="0.5" style="padding:8px 10px;font-size:13px">
-          <input class="fi" id="sla-res-${p.key}"  type="number" value="${p.res}"  min="1"   step="0.5" style="padding:8px 10px;font-size:13px">
-        </div>`).join('')}
+          <div style="font-size:13.5px;font-weight:500">🔴 Crítica</div>
+          <input class="fi" id="sla-resp-critical" type="number" value="0.5" min="0.5" step="0.5" style="padding:8px 10px;font-size:13px">
+          <input class="fi" id="sla-res-critical"  type="number" value="2"   min="1"   step="0.5" style="padding:8px 10px;font-size:13px">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;align-items:center;margin-bottom:10px">
+          <div style="font-size:13.5px;font-weight:500">🟠 Alta</div>
+          <input class="fi" id="sla-resp-high" type="number" value="1" min="0.5" step="0.5" style="padding:8px 10px;font-size:13px">
+          <input class="fi" id="sla-res-high"  type="number" value="4" min="1"   step="0.5" style="padding:8px 10px;font-size:13px">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;align-items:center;margin-bottom:10px">
+          <div style="font-size:13.5px;font-weight:500">🟡 Média</div>
+          <input class="fi" id="sla-resp-medium" type="number" value="4" min="0.5" step="0.5" style="padding:8px 10px;font-size:13px">
+          <input class="fi" id="sla-res-medium"  type="number" value="8" min="1"   step="0.5" style="padding:8px 10px;font-size:13px">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;align-items:center;margin-bottom:10px">
+          <div style="font-size:13.5px;font-weight:500">⚪ Baixa</div>
+          <input class="fi" id="sla-resp-low" type="number" value="8"  min="0.5" step="0.5" style="padding:8px 10px;font-size:13px">
+          <input class="fi" id="sla-res-low"  type="number" value="24" min="1"   step="0.5" style="padding:8px 10px;font-size:13px">
+        </div>
 
         <div style="margin-top:8px;padding-top:16px;border-top:1px solid var(--border)">
           <div style="font-size:12px;color:var(--muted);margin-bottom:12px">⚠️ Alterar os prazos afeta apenas chamados criados após a mudança.</div>
@@ -1020,25 +1029,66 @@ select.fi{cursor:pointer;appearance:none}
       <div id="stab-content-notif" style="padding:22px 24px;display:none">
         <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px">Alertas em Tempo Real</div>
 
-        ${[
-          {id:'ntf-new',      label:'Novo chamado aberto',           sub:'Toast ao chegar novo ticket', default:true},
-          {id:'ntf-breach',   label:'SLA violado',                    sub:'Alerta quando prazo vence', default:true},
-          {id:'ntf-escalate', label:'Chamado escalado',               sub:'Notificar ao escalar nível', default:true},
-          {id:'ntf-resolved', label:'Chamado resolvido',              sub:'Confirmar resoluções', default:false},
-          {id:'ntf-sound',    label:'Som de notificação',             sub:'Bip ao receber alertas', default:false},
-        ].map(n => `
         <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)">
           <div>
-            <div style="font-size:13.5px;font-weight:500">${n.label}</div>
-            <div style="font-size:12px;color:var(--muted)">${n.sub}</div>
+            <div style="font-size:13.5px;font-weight:500">Novo chamado aberto</div>
+            <div style="font-size:12px;color:var(--muted)">Toast ao chegar novo ticket</div>
           </div>
           <label style="position:relative;display:inline-block;width:42px;height:24px;flex-shrink:0">
-            <input type="checkbox" id="${n.id}" ${n.default?'checked':''} style="opacity:0;width:0;height:0">
-            <span onclick="this.previousElementSibling.checked=!this.previousElementSibling.checked;saveNotifSettings()" style="position:absolute;cursor:pointer;inset:0;background:${n.default?'var(--accent)':'var(--bg4)'};border-radius:24px;transition:.3s" id="${n.id}-span">
-              <span style="position:absolute;left:${n.default?'20':'2'}px;top:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:.3s"></span>
+            <input type="checkbox" id="ntf-new" checked style="opacity:0;width:0;height:0">
+            <span onclick="this.previousElementSibling.checked=!this.previousElementSibling.checked;saveNotifSettings()" style="position:absolute;cursor:pointer;inset:0;background:var(--accent);border-radius:24px;transition:.3s" id="ntf-new-span">
+              <span style="position:absolute;left:20px;top:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:.3s"></span>
             </span>
           </label>
-        </div>`).join('')}
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)">
+          <div>
+            <div style="font-size:13.5px;font-weight:500">SLA violado</div>
+            <div style="font-size:12px;color:var(--muted)">Alerta quando prazo vence</div>
+          </div>
+          <label style="position:relative;display:inline-block;width:42px;height:24px;flex-shrink:0">
+            <input type="checkbox" id="ntf-breach" checked style="opacity:0;width:0;height:0">
+            <span onclick="this.previousElementSibling.checked=!this.previousElementSibling.checked;saveNotifSettings()" style="position:absolute;cursor:pointer;inset:0;background:var(--accent);border-radius:24px;transition:.3s" id="ntf-breach-span">
+              <span style="position:absolute;left:20px;top:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:.3s"></span>
+            </span>
+          </label>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)">
+          <div>
+            <div style="font-size:13.5px;font-weight:500">Chamado escalado</div>
+            <div style="font-size:12px;color:var(--muted)">Notificar ao escalar nível</div>
+          </div>
+          <label style="position:relative;display:inline-block;width:42px;height:24px;flex-shrink:0">
+            <input type="checkbox" id="ntf-escalate" checked style="opacity:0;width:0;height:0">
+            <span onclick="this.previousElementSibling.checked=!this.previousElementSibling.checked;saveNotifSettings()" style="position:absolute;cursor:pointer;inset:0;background:var(--accent);border-radius:24px;transition:.3s" id="ntf-escalate-span">
+              <span style="position:absolute;left:20px;top:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:.3s"></span>
+            </span>
+          </label>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)">
+          <div>
+            <div style="font-size:13.5px;font-weight:500">Chamado resolvido</div>
+            <div style="font-size:12px;color:var(--muted)">Confirmar resoluções</div>
+          </div>
+          <label style="position:relative;display:inline-block;width:42px;height:24px;flex-shrink:0">
+            <input type="checkbox" id="ntf-resolved" style="opacity:0;width:0;height:0">
+            <span onclick="this.previousElementSibling.checked=!this.previousElementSibling.checked;saveNotifSettings()" style="position:absolute;cursor:pointer;inset:0;background:var(--bg4);border-radius:24px;transition:.3s" id="ntf-resolved-span">
+              <span style="position:absolute;left:2px;top:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:.3s"></span>
+            </span>
+          </label>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)">
+          <div>
+            <div style="font-size:13.5px;font-weight:500">Som de notificação</div>
+            <div style="font-size:12px;color:var(--muted)">Bip ao receber alertas</div>
+          </div>
+          <label style="position:relative;display:inline-block;width:42px;height:24px;flex-shrink:0">
+            <input type="checkbox" id="ntf-sound" style="opacity:0;width:0;height:0">
+            <span onclick="this.previousElementSibling.checked=!this.previousElementSibling.checked;saveNotifSettings()" style="position:absolute;cursor:pointer;inset:0;background:var(--bg4);border-radius:24px;transition:.3s" id="ntf-sound-span">
+              <span style="position:absolute;left:2px;top:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:.3s"></span>
+            </span>
+          </label>
+        </div>
 
         <div style="margin-top:16px;font-size:12px;color:var(--muted)">
           💡 As notificações por toast aparecem no canto inferior direito da tela enquanto o painel estiver aberto.
