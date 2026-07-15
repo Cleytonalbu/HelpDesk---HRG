@@ -800,6 +800,10 @@ select.fi{cursor:pointer;appearance:none}
       </div>
       <!-- USERS LIST -->
       <div id="tab-users" style="display:none">
+        <div style="margin-bottom:12px;position:relative;max-width:320px">
+          <input type="text" id="user-search" class="fsel" style="width:100%;padding:8px 12px 8px 32px" placeholder="Buscar por nome ou e-mail…" oninput="filterUsers(this.value)">
+          <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:12px;pointer-events:none">🔍</span>
+        </div>
         <div class="tbl-wrap">
           <table>
             <thead><tr><th>Nome</th><th>E-mail</th><th>Departamento</th><th>Cadastrado em</th><th>Chamados</th><th style="min-width:160px">Ações</th></tr></thead>
@@ -2221,7 +2225,11 @@ function buildAgents(agents, report, clients) {
     </div>`;
   }).join('');
 
-  // Build users table
+  // Build users table (keep any active search filter applied)
+  filterUsers(document.getElementById('user-search')?.value || '');
+}
+
+function renderUsersTable(clients) {
   const tbody = document.getElementById('users-tbody');
   if (!tbody) return;
   tbody.innerHTML = (clients||[]).map(c => {
@@ -2245,6 +2253,13 @@ function buildAgents(agents, report, clients) {
       </td>
     </tr>`;
   }).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:28px">Nenhum cliente cadastrado ainda</td></tr>';
+}
+
+function filterUsers(query) {
+  const q = query.trim().toLowerCase();
+  const filtered = !q ? allClients : allClients.filter(c =>
+    (c.name||'').toLowerCase().includes(q) || (c.email||'').toLowerCase().includes(q));
+  renderUsersTable(filtered);
 }
 
 function switchAgentTab(tab) {
