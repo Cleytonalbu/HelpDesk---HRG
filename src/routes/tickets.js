@@ -204,8 +204,15 @@ router.get('/:id', auth, (req, res) => {
       });
     };
 
-    // First time an agent (not the client) opens this ticket — clear the "Novo" badge for everyone
-    if (req.user.userType !== 'client' && !ticket.viewed_at) {
+    if (req.user.userType === 'client') {
+      // Client opened the ticket — record when, so agents can see "seen" status on their replies.
+      // Doesn't bump updated_at (that would spam agents with false "ticket updated" notifications).
+      const client_viewed_at = now();
+      db.tickets.update({ _id: ticket._id }, { $set: { client_viewed_at } }, {}, () => {
+        respond({ ...ticket, client_viewed_at });
+      });
+    } else if (!ticket.viewed_at) {
+      // First time an agent opens this ticket — clear the "Novo" badge for everyone
       const viewed_at = now();
       db.tickets.update({ _id: ticket._id }, { $set: { viewed_at, updated_at: viewed_at } }, {}, () => {
         respond({ ...ticket, viewed_at, updated_at: viewed_at });
@@ -232,7 +239,7 @@ router.post('/', auth, (req, res) => {
       channel: channel || 'portal', tier,
       requester_name, requester_email,
       requester_dept: requester_dept || '',
-      agent_id: null, asset_id: asset_id || null, viewed_at: null,
+      agent_id: null, asset_id: asset_id || null, viewed_at: null, client_viewed_at: null,
       sla_response_deadline: slaDeadline(prio, created, 0),
       sla_resolve_deadline:  slaDeadline(prio, created, 1),
       sla_breached: false, resolved_at: null, closed_at: null,

@@ -433,6 +433,9 @@ async function openTicketSheet(id) {
             <div style="font-size:12px;font-weight:600;color:var(--text)">${c.author_name}</div>
             <div style="font-size:11px;color:var(--muted2);margin-bottom:4px">${fmtDate(c.created_at)}</div>
             <div style="font-size:13.5px;line-height:1.5;background:${c.type==='note'?'var(--orange-bg)':c.type==='system'?'var(--bg3)':'var(--bg3)'};padding:10px 12px;border-radius:10px">${c.body}</div>
+            ${c.type==='reply' && c.agent_id ? (t.client_viewed_at && t.client_viewed_at >= c.created_at
+              ? `<div style="font-size:10.5px;margin-top:4px;color:var(--accent);font-weight:500">✓✓ Visto pelo cliente em ${fmtDate(t.client_viewed_at)}</div>`
+              : `<div style="font-size:10.5px;margin-top:4px;color:var(--muted2)">✓ Enviado</div>`) : ''}
           </div>
         </div>`).join('')
     : '<div style="text-align:center;color:var(--muted);font-size:13px;padding:16px">Nenhuma interação ainda.</div>';

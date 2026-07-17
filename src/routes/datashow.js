@@ -18,7 +18,7 @@ function createLinkedTicket(reservation, cb) {
       requester_name: reservation.requester_name,
       requester_email: reservation.requester_email || '',
       requester_dept: reservation.requester_dept || '',
-      agent_id: null, asset_id: null, viewed_at: null,
+      agent_id: null, asset_id: null, viewed_at: null, client_viewed_at: null,
       sla_response_deadline: slaDeadline(created, 8),
       sla_resolve_deadline:  slaDeadline(created, 24),
       sla_breached: false, resolved_at: null, closed_at: null,

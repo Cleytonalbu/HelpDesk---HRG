@@ -1875,6 +1875,9 @@ async function openTicket(id) {
         <span class="tl-actor">${c.author_name}</span>
         <span class="tl-time">${fmtDate(c.created_at)}</span>
         <div class="${c.type==='note'?'tl-note':c.type==='system'?'tl-system':'tl-msg'}">${c.body}</div>
+        ${c.type==='reply' && c.agent_id ? (t.client_viewed_at && t.client_viewed_at >= c.created_at
+          ? `<div style="font-size:10.5px;margin-top:4px;color:var(--accent);font-weight:500">✓✓ Visto pelo cliente em ${fmtDate(t.client_viewed_at)}</div>`
+          : `<div style="font-size:10.5px;margin-top:4px;color:var(--muted)">✓ Enviado</div>`) : ''}
       </div>
     </div>`).join('') || '<div style="color:var(--muted);font-size:13px">Nenhuma interação ainda.</div>';
 
