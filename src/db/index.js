@@ -14,4 +14,5 @@ module.exports = {
   slaRules:     load('sla_rules'),
   clients:      load('clients'),
   datashow:     load('datashow'),
+  activities:   load('activities'),
 };

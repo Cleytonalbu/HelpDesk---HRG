@@ -23,6 +23,7 @@ app.use('/api/assets',  require('./routes/assets'));
 app.use('/api/kb',      require('./routes/kb'));
 app.use('/api/reports', require('./routes/reports'));
 app.use('/api/datashow', require('./routes/datashow'));
+app.use('/api/activities', require('./routes/activities'));
 
 app.get('/api/health', (_, res) => res.json({ status:'ok', ts:new Date().toISOString() }));
 

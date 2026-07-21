@@ -517,6 +517,9 @@ select.fi{cursor:pointer;appearance:none}
       <span class="ni">📽</span> Datashow
       <span class="badge red" id="nav-datashow" style="display:none">0</span>
     </a>
+    <a data-view="activities" onclick="show('activities',this)">
+      <span class="ni">🔧</span> Atividades Internas
+    </a>
     <a href="/tv.html" target="_blank" style="margin-top:4px">
       <span class="ni">📺</span> Painel TV
       <span style="font-size:9px;color:var(--accent);margin-left:auto;border:1px solid var(--accent);border-radius:4px;padding:1px 5px">LIVE</span>
@@ -815,6 +818,10 @@ select.fi{cursor:pointer;appearance:none}
 
     <!-- REPORTS -->
     <div class="view" id="v-reports">
+      <div style="display:flex;gap:3px;background:var(--bg3);border-radius:8px;padding:3px;width:fit-content;margin-bottom:14px">
+        <div class="tab active" id="rp-scope-tickets" onclick="setReportScope('tickets',this)">📋 Chamados</div>
+        <div class="tab" id="rp-scope-activities" onclick="setReportScope('activities',this)">🔧 Atividades Internas</div>
+      </div>
       <div style="display:flex;gap:10px;align-items:center;margin-bottom:18px;flex-wrap:wrap">
         <div style="display:flex;gap:3px;background:var(--bg3);border-radius:8px;padding:3px">
           <div class="tab active" onclick="setReportPeriod('current_month',this)">Mês atual</div>
@@ -831,31 +838,58 @@ select.fi{cursor:pointer;appearance:none}
         </div>
         <span class="spacer"></span>
         <span style="font-size:12px;color:var(--muted)" id="rp-period-label"></span>
-        <button class="btn btn-ghost btn-sm" onclick="exportReportCSV()">📊 Exportar CSV</button>
-        <button class="btn btn-ghost btn-sm" onclick="exportReportPDF()" style="color:var(--red);border-color:rgba(239,68,68,.3)">📄 Exportar PDF</button>
+        <button class="btn btn-ghost btn-sm" id="rp-export-csv" onclick="exportCurrentReportCSV()">📊 Exportar CSV</button>
+        <button class="btn btn-ghost btn-sm" id="rp-export-pdf" onclick="exportReportPDF()" style="color:var(--red);border-color:rgba(239,68,68,.3)">📄 Exportar PDF</button>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px" id="rp-kpis"></div>
-      <div class="two-col" style="margin-bottom:16px">
-        <div class="card"><div class="card-header"><span class="card-title">📁 Por Categoria</span></div><div class="card-body" id="rp-categories"></div></div>
-        <div class="card"><div class="card-header"><span class="card-title">🚦 Por Prioridade</span></div><div class="card-body" id="rp-priority"></div></div>
-      </div>
-      <div class="two-col" style="margin-bottom:16px">
-        <div class="card"><div class="card-header"><span class="card-title">🔄 Incidentes Frequentes</span></div><div class="card-body" id="rp-incidents"></div></div>
-        <div class="card"><div class="card-header"><span class="card-title">👤 Quem Mais Abre</span></div><div class="card-body" id="rp-users"></div></div>
-      </div>
-      <div class="two-col" style="margin-bottom:16px">
-        <div class="card"><div class="card-header"><span class="card-title">🏢 Por Setor</span></div><div class="card-body" id="rp-dept"></div></div>
-        <div class="card"><div class="card-header"><span class="card-title">📊 Desempenho Agentes</span></div><div class="card-body" id="rep-agents"></div></div>
-      </div>
-      <div class="card">
-        <div class="card-header">
-          <span class="card-title">📋 Chamados no Período</span>
-          <span style="font-size:12px;color:var(--muted)" id="rp-ticket-count"></span>
+
+      <!-- CHAMADOS report -->
+      <div id="rp-section-tickets">
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px" id="rp-kpis"></div>
+        <div class="two-col" style="margin-bottom:16px">
+          <div class="card"><div class="card-header"><span class="card-title">📁 Por Categoria</span></div><div class="card-body" id="rp-categories"></div></div>
+          <div class="card"><div class="card-header"><span class="card-title">🚦 Por Prioridade</span></div><div class="card-body" id="rp-priority"></div></div>
         </div>
-        <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">
-          <thead><tr><th>N°</th><th>Assunto</th><th>Status</th><th>Prioridade</th><th>Categoria</th><th>Solicitante</th><th>Setor</th><th>Aberto em</th></tr></thead>
-          <tbody id="rp-tickets-tbody"></tbody>
-        </table></div>
+        <div class="two-col" style="margin-bottom:16px">
+          <div class="card"><div class="card-header"><span class="card-title">🔄 Incidentes Frequentes</span></div><div class="card-body" id="rp-incidents"></div></div>
+          <div class="card"><div class="card-header"><span class="card-title">👤 Quem Mais Abre</span></div><div class="card-body" id="rp-users"></div></div>
+        </div>
+        <div class="two-col" style="margin-bottom:16px">
+          <div class="card"><div class="card-header"><span class="card-title">🏢 Por Setor</span></div><div class="card-body" id="rp-dept"></div></div>
+          <div class="card"><div class="card-header"><span class="card-title">📊 Desempenho Agentes</span></div><div class="card-body" id="rep-agents"></div></div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">📋 Chamados no Período</span>
+            <span style="font-size:12px;color:var(--muted)" id="rp-ticket-count"></span>
+          </div>
+          <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">
+            <thead><tr><th>N°</th><th>Assunto</th><th>Status</th><th>Prioridade</th><th>Categoria</th><th>Solicitante</th><th>Setor</th><th>Aberto em</th></tr></thead>
+            <tbody id="rp-tickets-tbody"></tbody>
+          </table></div>
+        </div>
+      </div>
+
+      <!-- ATIVIDADES INTERNAS report -->
+      <div id="rp-section-activities" style="display:none">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px" id="rp-act-kpis"></div>
+        <div class="two-col" style="margin-bottom:16px">
+          <div class="card"><div class="card-header"><span class="card-title">🏢 Por Setor</span></div><div class="card-body" id="rp-act-dept"></div></div>
+          <div class="card"><div class="card-header"><span class="card-title">🛠 Por Tipo de Serviço</span></div><div class="card-body" id="rp-act-type"></div></div>
+        </div>
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header"><span class="card-title">👷 Por Técnico</span></div>
+          <div class="card-body" id="rp-act-agent"></div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">🔧 Atividades no Período</span>
+            <span style="font-size:12px;color:var(--muted)" id="rp-act-count"></span>
+          </div>
+          <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">
+            <thead><tr><th>Data</th><th>Setor</th><th>Tipo</th><th>Descrição</th><th>Técnico</th><th>Status</th></tr></thead>
+            <tbody id="rp-act-tbody"></tbody>
+          </table></div>
+        </div>
       </div>
     </div>
 
@@ -905,6 +939,48 @@ select.fi{cursor:pointer;appearance:none}
             </tr>
           </thead>
           <tbody id="dsa-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ATIVIDADES INTERNAS VIEW -->
+    <div class="view" id="v-activities">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:12px">
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:4px">🔧 Atividades Internas</div>
+          <div style="font-size:13px;color:var(--muted)">Registre manutenções preventivas e serviços realizados sem chamado prévio (troca de suprimentos, ajustes de rede etc.). Não afeta métricas de SLA dos chamados.</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <select class="fsel" id="act-filter-dept" onchange="renderActivities()">
+            <option value="">Todos os setores</option>
+          </select>
+          <select class="fsel" id="act-filter-type" onchange="renderActivities()">
+            <option value="">Todos os tipos</option>
+            <option value="preventiva">Manutenção Preventiva</option>
+            <option value="pecas">Troca de Peça/Consumível</option>
+            <option value="rede">Infraestrutura de Rede</option>
+            <option value="instalacao">Instalação/Configuração</option>
+            <option value="outro">Outro</option>
+          </select>
+          <button class="btn btn-primary" onclick="openActivityForm(null)">➕ Nova Atividade</button>
+        </div>
+      </div>
+
+      <div class="tbl-wrap" style="margin-top:16px">
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Setor</th>
+              <th>Tipo</th>
+              <th>Descrição</th>
+              <th>Ativo</th>
+              <th>Técnico</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="act-tbody"></tbody>
         </table>
       </div>
     </div>
@@ -1567,6 +1643,114 @@ select.fi{cursor:pointer;appearance:none}
   </div>
 </div>
 
+<div class="aform-overlay" id="act-form-overlay" onclick="closeModal('act-form-overlay',event)">
+  <div class="aform" style="max-width:540px" onclick="event.stopPropagation()">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700" id="actf-title">Nova Atividade Interna</div>
+      <div class="close-btn" onclick="closeModal('act-form-overlay')">✕</div>
+    </div>
+    <div id="actf-ok"  style="background:var(--green-bg);border:1px solid rgba(16,185,129,.2);border-radius:8px;padding:9px 13px;font-size:13px;color:var(--green);margin-bottom:12px;display:none"></div>
+    <div id="actf-err" style="background:var(--red-bg);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:9px 13px;font-size:13px;color:var(--red);margin-bottom:12px;display:none"></div>
+    <div class="form-row2">
+      <div class="fg"><label class="fl">Data <span style="color:var(--red)">*</span></label>
+        <input class="fi" type="date" id="actf-date"></div>
+      <div class="fg"><label class="fl">Tipo de Serviço <span style="color:var(--red)">*</span></label>
+        <select class="fi" id="actf-type">
+          <option value="preventiva">Manutenção Preventiva</option>
+          <option value="pecas">Troca de Peça/Consumível</option>
+          <option value="rede">Infraestrutura de Rede</option>
+          <option value="instalacao">Instalação/Configuração</option>
+          <option value="outro">Outro</option>
+        </select></div>
+    </div>
+    <div class="form-row2">
+      <div class="fg"><label class="fl">Setor <span style="color:var(--red)">*</span></label>
+        <select class="fi" id="actf-dept">
+          <option value="">— Selecionar setor —</option>
+          <option>Almoxarifado</option>
+              <option>Administrativo</option>
+              <option>Ambulatorio</option>
+              <option>Alojamento Conjunto</option>
+              <option>Assessoria de Pele</option>
+              <option>Auditoria</option>
+              <option>Bloco Cirúrgico</option>
+              <option>Bloco Cirúrgico Obstétrico</option>
+              <option>CAF</option>
+              <option>CME</option>
+              <option>Clinica Cirúrgica</option>
+              <option>Clinica Médica</option>
+              <option>Consultório Cirurgião Geral</option>
+              <option>Consultório Clinico Geral</option>
+              <option>Consultório Obstétrico</option>
+              <option>Consultório Ortopedia</option>
+              <option>Direção Administrativa</option>
+              <option>Direção Geral</option>
+              <option>Direção Técnica</option>
+              <option>Enfermaria Pediátrica</option>
+              <option>Farmácia</option>
+              <option>Farmácia Satélite 01</option>
+              <option>Faturamento</option>
+              <option>Fisioterapia</option>
+              <option>Fonoaudiologia</option>
+              <option>GAF</option>
+              <option>GSL</option>
+              <option>Humanização</option>
+              <option>Lavanderia</option>
+              <option>NAE</option>
+              <option>NEP</option>
+              <option>NIR</option>
+              <option>NSP</option>
+              <option>Nutrição</option>
+              <option>Odontologia</option>
+              <option>Ouvidoria</option>
+              <option>Posto de Enf. CDI</option>
+              <option>Pré-Parto</option>
+              <option>Raio X</option>
+              <option>Recepção Ambulatório</option>
+              <option>Recepção CDI</option>
+              <option>Recepção Maternidade</option>
+              <option>Recepção Urgência/Emergência</option>
+              <option>RH</option>
+              <option>Sala Amarela</option>
+              <option>Sala Verde</option>
+              <option>Sala Vermelha</option>
+              <option>SAME</option>
+              <option>SCIH</option>
+              <option>Segurança do Trabalho</option>
+              <option>Serviço Social</option>
+              <option>TI</option>
+              <option>Tomografia</option>
+              <option>Triagem Obstetrícia</option>
+              <option>Triagem Urgência/Emergência</option>
+              <option>Imunização</option>
+              <option>UCIN</option>
+              <option>Urgência/Emergência</option>
+              <option>UTI</option>
+              <option>UTIN</option>
+        </select></div>
+      <div class="fg"><label class="fl">Ativo Relacionado</label>
+        <select class="fi" id="actf-asset"><option value="">— Selecionar ativo —</option></select></div>
+    </div>
+    <div class="fg"><label class="fl">Descrição do serviço realizado <span style="color:var(--red)">*</span></label>
+      <textarea class="fi" id="actf-desc" rows="3" placeholder="Ex: Verificada necessidade preventiva na impressora e substituído o toner antes de esgotar…"></textarea></div>
+    <div class="form-row2">
+      <div class="fg"><label class="fl">Técnico Responsável</label>
+        <select class="fi" id="actf-agent"></select></div>
+      <div class="fg"><label class="fl">Status</label>
+        <select class="fi" id="actf-status">
+          <option value="concluido">✅ Concluído</option>
+          <option value="pendente">⏳ Pendente</option>
+        </select></div>
+    </div>
+    <div class="fg" style="margin-bottom:20px"><label class="fl">Observações</label>
+      <textarea class="fi" id="actf-notes" rows="2" placeholder="Detalhes adicionais…"></textarea></div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-primary" style="flex:1" onclick="saveActivity()">🔧 Salvar Atividade</button>
+      <button class="btn btn-ghost" onclick="closeModal('act-form-overlay')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const API = '/api';
 let TOKEN = localStorage.getItem('hd_token');
@@ -1715,6 +1899,14 @@ async function loadAll() {
     // Assets filter for new ticket
     document.getElementById('nt-asset').innerHTML = '<option value="">— Selecionar ativo —</option>' +
       (Array.isArray(assets) ? assets.map(a=>`<option value="${a._id}">${a.code} — ${a.name}</option>`).join('') : '');
+
+    // Atividades Internas — asset/technician/sector selects
+    document.getElementById('actf-asset').innerHTML = '<option value="">— Selecionar ativo —</option>' +
+      (Array.isArray(assets) ? assets.map(a=>`<option value="${a._id}">${a.code} — ${a.name}</option>`).join('') : '');
+    document.getElementById('actf-agent').innerHTML =
+      allAgents.map(a=>`<option value="${a._id}"${AGENT&&a._id===AGENT._id?' selected':''}>${a.name}</option>`).join('');
+    const actDeptOptions = document.getElementById('actf-dept').innerHTML;
+    document.getElementById('act-filter-dept').innerHTML = '<option value="">Todos os setores</option>' + actDeptOptions.replace('<option value="">— Selecionar setor —</option>','');
 
     // KB
     buildKB(kbCats, kbArts);
@@ -2761,7 +2953,7 @@ function show(view, el) {
   const v = document.getElementById('v-'+view);
   if (v) v.classList.add('active');
   if (el) el.classList.add('active');
-  const titles = {dashboard:'Dashboard',tickets:'Chamados',['new-ticket']:'Novo Chamado',kb:'Base de Conhecimento',chat:'IA Assistente',sla:'Gestão de SLAs',assets:'Ativos (CMDB)',agents:'Agentes',reports:'Relatórios',datashow:'Agendamentos de Datashow'};
+  const titles = {dashboard:'Dashboard',tickets:'Chamados',['new-ticket']:'Novo Chamado',kb:'Base de Conhecimento',chat:'IA Assistente',sla:'Gestão de SLAs',assets:'Ativos (CMDB)',agents:'Agentes',reports:'Relatórios',datashow:'Agendamentos de Datashow',activities:'Atividades Internas'};
   document.getElementById('page-title').textContent = titles[view]||view;
 }
 function closeModal(id, e) { if (!e||e.target===document.getElementById(id)) document.getElementById(id).classList.remove('open'); }
@@ -2778,14 +2970,30 @@ document.addEventListener('click', e => {
 
 // ── REPORTS ──────────────────────────────────────────────────────────────────
 let currentReportPeriod = 'current_month';
+let currentReportScope  = 'tickets'; // 'tickets' | 'activities'
 let reportData = null;
 
+function setReportScope(scope, el) {
+  currentReportScope = scope;
+  document.getElementById('rp-scope-tickets').classList.toggle('active', scope==='tickets');
+  document.getElementById('rp-scope-activities').classList.toggle('active', scope==='activities');
+  document.getElementById('rp-section-tickets').style.display    = scope==='tickets' ? '' : 'none';
+  document.getElementById('rp-section-activities').style.display = scope==='activities' ? '' : 'none';
+  document.getElementById('rp-export-pdf').style.display = scope==='tickets' ? '' : 'none';
+  loadCurrentReportScope();
+}
+
+function loadCurrentReportScope() {
+  if (currentReportScope === 'activities') loadActReportData();
+  else loadReportData();
+}
+
 function setReportPeriod(period, el) {
-  document.querySelectorAll('#v-reports .tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('#v-reports .tab').forEach(t=>{ if (t !== document.getElementById('rp-scope-tickets') && t !== document.getElementById('rp-scope-activities')) t.classList.remove('active'); });
   if (el) el.classList.add('active');
   const cr = document.getElementById('custom-range');
   if (cr) cr.style.display = period === 'custom' ? 'flex' : 'none';
-  if (period !== 'custom') { currentReportPeriod = period; loadReportData(); }
+  if (period !== 'custom') { currentReportPeriod = period; loadCurrentReportScope(); }
 }
 
 function applyCustomRange() {
@@ -2793,7 +3001,7 @@ function applyCustomRange() {
   const to   = document.getElementById('rp-to').value;
   if (!from || !to) return;
   currentReportPeriod = `custom:${from}:${to}`;
-  loadReportData();
+  loadCurrentReportScope();
 }
 
 async function loadReportData() {
@@ -2910,6 +3118,88 @@ function exportReportCSV() {
   const a = document.createElement('a');
   a.href = 'data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
   a.download = `chamados_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+function exportCurrentReportCSV() {
+  if (currentReportScope === 'activities') exportActivitiesCSV();
+  else exportReportCSV();
+}
+
+let actReportData = null;
+
+async function loadActReportData() {
+  let url = '/activities/report?';
+  if (currentReportPeriod.startsWith('custom:')) {
+    const [,from,to] = currentReportPeriod.split(':');
+    url += `from=${from}&to=${to}`;
+    document.getElementById('rp-period-label').textContent = `${fmtDateShort(from)} \u2013 ${fmtDateShort(to)}`;
+  } else {
+    url += `period=${currentReportPeriod}`;
+    const labels = { current_month:'M\u00EAs atual', last_month:'\u00DAltimo m\u00EAs', last_7:'\u00DAltimos 7 dias', last_30:'\u00DAltimos 30 dias' };
+    document.getElementById('rp-period-label').textContent = labels[currentReportPeriod]||'';
+  }
+  actReportData = await api('GET', url);
+  renderActReportData();
+}
+
+function renderActReportData() {
+  if (!actReportData) return;
+  const d = actReportData;
+
+  document.getElementById('rp-act-kpis').innerHTML = [
+    {label:'Total no Per\u00EDodo',val:d.total,c:'var(--accent)'},
+    {label:'Conclu\u00EDdas',val:d.concluded,c:'var(--green)'},
+    {label:'Pendentes',val:d.pending,c:'var(--orange)'},
+    {label:'Setores Atendidos',val:Object.keys(d.byDept||{}).length,c:'var(--purple)'},
+  ].map(k=>`<div class="kpi blue" style="padding:14px 16px"><div class="kpi-label" style="font-size:10px">${k.label}</div><div class="kpi-val" style="font-size:22px;color:${k.c}">${k.val}</div></div>`).join('');
+
+  const depts = Object.entries(d.byDept||{}).sort((a,b)=>b[1]-a[1]);
+  const deptMax = depts[0]?.[1]||1;
+  document.getElementById('rp-act-dept').innerHTML = depts.map(([k,v])=>
+    `<div class="pbar-row"><span style="font-size:12.5px">${k}</span><span style="font-weight:600">${v}</span></div>
+     <div class="pbar-wrap"><div class="pbar-fill" style="width:${(v/deptMax)*100}%;background:var(--purple)"></div></div>`
+  ).join('') || '<div style="color:var(--muted);font-size:13px;padding:12px">Sem dados no per\u00EDodo</div>';
+
+  const types = Object.entries(d.byType||{}).sort((a,b)=>b[1]-a[1]);
+  const typeMax = types[0]?.[1]||1;
+  document.getElementById('rp-act-type').innerHTML = types.map(([k,v])=>
+    `<div class="pbar-row"><span style="font-size:12.5px">${actTypeLabel[k]||k}</span><span style="font-weight:600">${v}</span></div>
+     <div class="pbar-wrap"><div class="pbar-fill" style="width:${(v/typeMax)*100}%;background:var(--accent)"></div></div>`
+  ).join('') || '<div style="color:var(--muted);font-size:13px;padding:12px">Sem dados no per\u00EDodo</div>';
+
+  const agents = Object.entries(d.byAgent||{}).sort((a,b)=>b[1]-a[1]);
+  const agentMax = agents[0]?.[1]||1;
+  document.getElementById('rp-act-agent').innerHTML = agents.map(([k,v])=>
+    `<div class="pbar-row"><span style="font-size:12.5px">${k}</span><span style="font-weight:600">${v}</span></div>
+     <div class="pbar-wrap"><div class="pbar-fill" style="width:${(v/agentMax)*100}%;background:var(--green)"></div></div>`
+  ).join('') || '<div style="color:var(--muted);font-size:13px;padding:12px">Sem dados no per\u00EDodo</div>';
+
+  const statusBadge = { concluido:'<span class="badge resolved">\u2705 Conclu\u00EDdo</span>', pendente:'<span class="badge progress">\u23F3 Pendente</span>' };
+  const items = (d.activities||[]).slice(0,50);
+  document.getElementById('rp-act-count').textContent = `${d.total} atividades`;
+  document.getElementById('rp-act-tbody').innerHTML = items.map(a=>
+    `<tr><td style="font-size:12px">${(a.performed_at||'').split('-').reverse().join('/')}</td>
+     <td style="font-size:12px;color:var(--muted)">${a.dept||'\u2014'}</td>
+     <td style="font-size:12px">${actTypeLabel[a.type]||a.type}</td>
+     <td style="font-size:12px;max-width:220px">${a.description}</td>
+     <td style="font-size:12px">${a.agent_name||'\u2014'}</td>
+     <td>${statusBadge[a.status]||a.status}</td></tr>`
+  ).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">Nenhuma atividade no per\u00EDodo</td></tr>';
+}
+
+function exportActivitiesCSV() {
+  if (!actReportData) return;
+  const rows = [['Data','Setor','Tipo','Descri\u00E7\u00E3o','Ativo','T\u00E9cnico','Status']];
+  (actReportData.activities||[]).forEach(a => {
+    const asset = allAssets.find(x => x._id === a.asset_id);
+    rows.push([a.performed_at, a.dept, actTypeLabel[a.type]||a.type, a.description,
+      asset ? asset.code : '', a.agent_name||'', a.status]);
+  });
+  const csv = rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
+  a.download = `atividades_internas_${new Date().toISOString().slice(0,10)}.csv`;
   a.click();
 }
 
@@ -3190,8 +3480,9 @@ async function saveClientEdit() {
 const _origShow = show;
 show = (view, el) => {
   _origShow(view, el);
-  if (view === 'reports')  loadReportData();
+  if (view === 'reports')  loadCurrentReportScope();
   if (view === 'datashow') { loadDsAgent(); markDatashowSeen(); }
+  if (view === 'activities') loadActivities();
 };
 
 // ── DATASHOW (AGENT VIEW) ─────────────────────────────────────────────────────
@@ -3325,6 +3616,115 @@ async function deleteDsAgent(id) {
   if (!confirm('Tem certeza que deseja REMOVER este agendamento?\nEsta ação não pode ser desfeita.')) return;
   await api('DELETE', `/datashow/${id}`);
   loadDsAgent();
+}
+
+// ── ATIVIDADES INTERNAS ────────────────────────────────────────────────────────
+let allActivities = [];
+let actEditId = null;
+const actTypeLabel = { preventiva:'Manutenção Preventiva', pecas:'Troca de Peça/Consumível',
+  rede:'Infraestrutura de Rede', instalacao:'Instalação/Configuração', outro:'Outro' };
+
+async function loadActivities() {
+  allActivities = await api('GET', '/activities');
+  if (!Array.isArray(allActivities)) allActivities = [];
+  renderActivities();
+}
+
+function renderActivities() {
+  const dept = document.getElementById('act-filter-dept')?.value || '';
+  const type = document.getElementById('act-filter-type')?.value || '';
+  let items = allActivities || [];
+  if (dept) items = items.filter(a => a.dept === dept);
+  if (type) items = items.filter(a => a.type === type);
+
+  const statusBadge = {
+    concluido: '<span class="badge resolved">✅ Concluído</span>',
+    pendente:  '<span class="badge progress">⏳ Pendente</span>',
+  };
+
+  document.getElementById('act-tbody').innerHTML = items.length
+    ? items.map(a => {
+        const asset = allAssets.find(x => x._id === a.asset_id);
+        return `<tr>
+          <td style="font-size:12.5px;font-weight:500">${(a.performed_at||'').split('-').reverse().join('/')}</td>
+          <td><span style="font-size:11.5px;background:var(--bg3);border:1px solid var(--border);padding:2px 8px;border-radius:5px">${a.dept||'—'}</span></td>
+          <td style="font-size:12.5px">${actTypeLabel[a.type]||a.type}</td>
+          <td style="font-size:12.5px;max-width:260px">${a.description}</td>
+          <td style="font-size:12px;color:var(--muted)">${asset ? asset.code : '—'}</td>
+          <td style="font-size:12.5px">${a.agent_name||'—'}</td>
+          <td>${statusBadge[a.status] || `<span class="badge open">${a.status}</span>`}</td>
+          <td>
+            <div style="display:flex;gap:5px">
+              <button class="btn btn-ghost btn-sm" onclick="openActivityForm('${a._id}')">✏</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteActivity('${a._id}')">✕</button>
+            </div>
+          </td>
+        </tr>`;
+      }).join('')
+    : `<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:32px">
+        Nenhuma atividade registrada ${(dept||type) ? '— tente remover os filtros' : ''}
+       </td></tr>`;
+}
+
+function openActivityForm(id) {
+  actEditId = id;
+  const a = id ? (allActivities||[]).find(x => x._id === id) : null;
+  document.getElementById('actf-title').textContent = id ? 'Editar Atividade' : 'Nova Atividade Interna';
+  document.getElementById('actf-ok').style.display  = 'none';
+  document.getElementById('actf-err').style.display = 'none';
+  document.getElementById('actf-date').value   = a?.performed_at || new Date().toISOString().slice(0, 10);
+  document.getElementById('actf-type').value   = a?.type || 'preventiva';
+  document.getElementById('actf-asset').value  = a?.asset_id || '';
+  document.getElementById('actf-desc').value   = a?.description || '';
+  document.getElementById('actf-notes').value  = a?.notes || '';
+  document.getElementById('actf-status').value = a?.status || 'concluido';
+  document.getElementById('actf-agent').value  = a?.agent_id || (AGENT ? AGENT._id : '');
+  const deptSel = document.getElementById('actf-dept');
+  const dept    = a?.dept || '';
+  for (let opt of deptSel.options) { if (opt.value === dept || opt.text === dept) { deptSel.value = opt.value; break; } }
+  if (!a) deptSel.value = '';
+  document.getElementById('act-form-overlay').classList.add('open');
+}
+
+async function saveActivity() {
+  const performed_at = document.getElementById('actf-date').value;
+  const dept   = document.getElementById('actf-dept').value;
+  const type   = document.getElementById('actf-type').value;
+  const asset_id = document.getElementById('actf-asset').value || null;
+  const description = document.getElementById('actf-desc').value.trim();
+  const agent_id = document.getElementById('actf-agent').value;
+  const status = document.getElementById('actf-status').value;
+  const notes  = document.getElementById('actf-notes').value.trim();
+  const okEl   = document.getElementById('actf-ok');
+  const errEl  = document.getElementById('actf-err');
+  okEl.style.display = 'none'; errEl.style.display = 'none';
+
+  if (!performed_at || !dept || !type || !description) {
+    errEl.textContent = 'Preencha os campos obrigatórios: data, setor, tipo de serviço e descrição.';
+    errEl.style.display = 'block'; return;
+  }
+
+  const body = { performed_at, dept, type, description, asset_id, agent_id, status, notes };
+
+  const r = actEditId
+    ? await api('PATCH', `/activities/${actEditId}`, body)
+    : await api('POST',  '/activities', body);
+
+  if (r.error) {
+    errEl.innerHTML = `⚠ ${r.error}`;
+    errEl.style.display = 'block';
+  } else {
+    okEl.textContent = actEditId ? '✓ Atividade atualizada!' : '✓ Atividade registrada!';
+    okEl.style.display = 'block';
+    await loadActivities();
+    setTimeout(() => closeModal('act-form-overlay'), 1200);
+  }
+}
+
+async function deleteActivity(id) {
+  if (!confirm('Tem certeza que deseja REMOVER esta atividade?\nEsta ação não pode ser desfeita.')) return;
+  await api('DELETE', `/activities/${id}`);
+  loadActivities();
 }
 
 // ── SETTINGS ─────────────────────────────────────────────────────────────────
