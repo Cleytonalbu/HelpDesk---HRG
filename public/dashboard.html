@@ -1733,15 +1733,14 @@ select.fi{cursor:pointer;appearance:none}
     </div>
     <div class="fg"><label class="fl">Descrição do serviço realizado <span style="color:var(--red)">*</span></label>
       <textarea class="fi" id="actf-desc" rows="3" placeholder="Ex: Verificada necessidade preventiva na impressora e substituído o toner antes de esgotar…"></textarea></div>
-    <div class="form-row2">
-      <div class="fg"><label class="fl">Técnico Responsável</label>
-        <select class="fi" id="actf-agent"></select></div>
-      <div class="fg"><label class="fl">Status</label>
-        <select class="fi" id="actf-status">
-          <option value="concluido">✅ Concluído</option>
-          <option value="pendente">⏳ Pendente</option>
-        </select></div>
+    <div class="fg"><label class="fl">Técnicos Responsáveis</label>
+      <div id="actf-agents" style="display:flex;flex-wrap:wrap;gap:6px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px"></div>
     </div>
+    <div class="fg" style="margin-bottom:8px"><label class="fl">Status</label>
+      <select class="fi" id="actf-status">
+        <option value="concluido">✅ Concluído</option>
+        <option value="pendente">⏳ Pendente</option>
+      </select></div>
     <div class="fg" style="margin-bottom:20px"><label class="fl">Observações</label>
       <textarea class="fi" id="actf-notes" rows="2" placeholder="Detalhes adicionais…"></textarea></div>
     <div style="display:flex;gap:10px">
@@ -1903,8 +1902,10 @@ async function loadAll() {
     // Atividades Internas — asset/technician/sector selects
     document.getElementById('actf-asset').innerHTML = '<option value="">— Selecionar ativo —</option>' +
       (Array.isArray(assets) ? assets.map(a=>`<option value="${a._id}">${a.code} — ${a.name}</option>`).join('') : '');
-    document.getElementById('actf-agent').innerHTML =
-      allAgents.map(a=>`<option value="${a._id}"${AGENT&&a._id===AGENT._id?' selected':''}>${a.name}</option>`).join('');
+    document.getElementById('actf-agents').innerHTML = allAgents.map(a =>
+      `<label style="display:flex;align-items:center;gap:6px;font-size:12.5px;cursor:pointer">
+         <input type="checkbox" class="actf-agent-chk" value="${a._id}"${AGENT&&a._id===AGENT._id?' checked':''}> ${a.name}
+       </label>`).join('');
     const actDeptOptions = document.getElementById('actf-dept').innerHTML;
     document.getElementById('act-filter-dept').innerHTML = '<option value="">Todos os setores</option>' + actDeptOptions.replace('<option value="">— Selecionar setor —</option>','');
 
@@ -3183,7 +3184,7 @@ function renderActReportData() {
      <td style="font-size:12px;color:var(--muted)">${a.dept||'\u2014'}</td>
      <td style="font-size:12px">${actTypeLabel[a.type]||a.type}</td>
      <td style="font-size:12px;max-width:220px">${a.description}</td>
-     <td style="font-size:12px">${a.agent_name||'\u2014'}</td>
+     <td style="font-size:12px">${(a.agent_names||[]).join(', ')||'\u2014'}</td>
      <td>${statusBadge[a.status]||a.status}</td></tr>`
   ).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">Nenhuma atividade no per\u00EDodo</td></tr>';
 }
@@ -3194,7 +3195,7 @@ function exportActivitiesCSV() {
   (actReportData.activities||[]).forEach(a => {
     const asset = allAssets.find(x => x._id === a.asset_id);
     rows.push([a.performed_at, a.dept, actTypeLabel[a.type]||a.type, a.description,
-      asset ? asset.code : '', a.agent_name||'', a.status]);
+      asset ? asset.code : '', (a.agent_names||[]).join(', '), a.status]);
   });
   const csv = rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
   const a = document.createElement('a');
@@ -3651,7 +3652,7 @@ function renderActivities() {
           <td style="font-size:12.5px">${actTypeLabel[a.type]||a.type}</td>
           <td style="font-size:12.5px;max-width:260px">${a.description}</td>
           <td style="font-size:12px;color:var(--muted)">${asset ? asset.code : '—'}</td>
-          <td style="font-size:12.5px">${a.agent_name||'—'}</td>
+          <td style="font-size:12.5px">${(a.agent_names||[]).join(', ')||'—'}</td>
           <td>${statusBadge[a.status] || `<span class="badge open">${a.status}</span>`}</td>
           <td>
             <div style="display:flex;gap:5px">
@@ -3678,7 +3679,8 @@ function openActivityForm(id) {
   document.getElementById('actf-desc').value   = a?.description || '';
   document.getElementById('actf-notes').value  = a?.notes || '';
   document.getElementById('actf-status').value = a?.status || 'concluido';
-  document.getElementById('actf-agent').value  = a?.agent_id || (AGENT ? AGENT._id : '');
+  const selectedAgentIds = a ? (a.agent_ids||[]) : (AGENT ? [AGENT._id] : []);
+  document.querySelectorAll('.actf-agent-chk').forEach(chk => { chk.checked = selectedAgentIds.includes(chk.value); });
   const deptSel = document.getElementById('actf-dept');
   const dept    = a?.dept || '';
   for (let opt of deptSel.options) { if (opt.value === dept || opt.text === dept) { deptSel.value = opt.value; break; } }
@@ -3692,7 +3694,7 @@ async function saveActivity() {
   const type   = document.getElementById('actf-type').value;
   const asset_id = document.getElementById('actf-asset').value || null;
   const description = document.getElementById('actf-desc').value.trim();
-  const agent_id = document.getElementById('actf-agent').value;
+  const agent_ids = Array.from(document.querySelectorAll('.actf-agent-chk:checked')).map(chk => chk.value);
   const status = document.getElementById('actf-status').value;
   const notes  = document.getElementById('actf-notes').value.trim();
   const okEl   = document.getElementById('actf-ok');
@@ -3703,8 +3705,12 @@ async function saveActivity() {
     errEl.textContent = 'Preencha os campos obrigatórios: data, setor, tipo de serviço e descrição.';
     errEl.style.display = 'block'; return;
   }
+  if (!agent_ids.length) {
+    errEl.textContent = 'Selecione ao menos um técnico responsável.';
+    errEl.style.display = 'block'; return;
+  }
 
-  const body = { performed_at, dept, type, description, asset_id, agent_id, status, notes };
+  const body = { performed_at, dept, type, description, asset_id, agent_ids, status, notes };
 
   const r = actEditId
     ? await api('PATCH', `/activities/${actEditId}`, body)

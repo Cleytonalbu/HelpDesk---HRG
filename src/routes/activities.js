@@ -46,7 +46,7 @@ router.get('/', auth, agentOnly, (req, res) => {
   const q = {};
   if (req.query.dept)     q.dept     = req.query.dept;
   if (req.query.type)     q.type     = req.query.type;
-  if (req.query.agent_id) q.agent_id = req.query.agent_id;
+  if (req.query.agent_id) q.agent_ids = req.query.agent_id;
   db.activities.find(q).sort({ performed_at: -1, created_at: -1 }).exec((err, docs) => res.json(docs || []));
 });
 
@@ -62,8 +62,8 @@ router.get('/report', auth, agentOnly, (req, res) => {
     filtered.forEach(a => {
       byDept[a.dept] = (byDept[a.dept]||0)+1;
       byType[a.type] = (byType[a.type]||0)+1;
-      const agentKey = a.agent_name || 'Sem técnico';
-      byAgent[agentKey] = (byAgent[agentKey]||0)+1;
+      const names = a.agent_names && a.agent_names.length ? a.agent_names : ['Sem técnico'];
+      names.forEach(name => { byAgent[name] = (byAgent[name]||0)+1; });
       if (a.status === 'concluido') concluded++;
     });
 
@@ -79,37 +79,33 @@ router.get('/report', auth, agentOnly, (req, res) => {
 
 // POST /api/activities — create
 router.post('/', auth, agentOnly, (req, res) => {
-  const { performed_at, dept, type, description, asset_id, agent_id, notes, status } = req.body;
+  const { performed_at, dept, type, description, asset_id, agent_ids, notes, status } = req.body;
   if (!performed_at || !dept || !type || !description)
     return res.status(400).json({ error: 'Campos obrigatorios: performed_at, dept, type, description' });
 
-  const finishCreate = (agentDoc) => {
+  const ids = Array.isArray(agent_ids) && agent_ids.length ? agent_ids : [req.user._id];
+
+  db.agents.find({ _id: { $in: ids } }, (err, agentDocs) => {
     const activity = {
       _id: uuid(), performed_at, dept, type, description,
       asset_id: asset_id || null,
-      agent_id: agentDoc ? agentDoc._id : null,
-      agent_name: agentDoc ? agentDoc.name : '',
+      agent_ids: (agentDocs||[]).map(a => a._id),
+      agent_names: (agentDocs||[]).map(a => a.name),
       notes: notes || '',
       status: status === 'pendente' ? 'pendente' : 'concluido',
       created_by: req.user._id,
       created_at: now(), updated_at: now(),
     };
-    db.activities.insert(activity, (err, doc) => {
-      if (err) return res.status(500).json({ error: 'Erro ao registrar atividade' });
+    db.activities.insert(activity, (err2, doc) => {
+      if (err2) return res.status(500).json({ error: 'Erro ao registrar atividade' });
       res.status(201).json(doc);
     });
-  };
-
-  if (agent_id) {
-    db.agents.findOne({ _id: agent_id }, (err, agentDoc) => finishCreate(agentDoc));
-  } else {
-    finishCreate(req.user);
-  }
+  });
 });
 
 // PATCH /api/activities/:id
 router.patch('/:id', auth, agentOnly, (req, res) => {
-  const allowed = ['performed_at','dept','type','asset_id','description','notes','agent_id','status'];
+  const allowed = ['performed_at','dept','type','asset_id','description','notes','agent_ids','status'];
   const update = { updated_at: now() };
   allowed.forEach(k => { if (req.body[k] !== undefined) update[k] = req.body[k]; });
 
@@ -118,9 +114,10 @@ router.patch('/:id', auth, agentOnly, (req, res) => {
       n ? res.json({ message: 'Atualizado' }) : res.status(404).json({ error: 'Nao encontrado' }));
   };
 
-  if (update.agent_id) {
-    db.agents.findOne({ _id: update.agent_id }, (err, agentDoc) => {
-      update.agent_name = agentDoc ? agentDoc.name : '';
+  if (update.agent_ids) {
+    db.agents.find({ _id: { $in: update.agent_ids } }, (err, agentDocs) => {
+      update.agent_ids   = (agentDocs||[]).map(a => a._id);
+      update.agent_names = (agentDocs||[]).map(a => a.name);
       finishUpdate();
     });
   } else {
