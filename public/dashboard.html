@@ -66,6 +66,16 @@ nav a .badge.red{background:var(--red)}
 .view{display:none}.view.active{display:block;animation:fadeIn .2s ease}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 
+/* ── AVISO (bloqueante, exibido a cada novo login) ────────────────────── */
+.ann-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:3800;display:none;align-items:center;justify-content:center;padding:20px;animation:fadeIn .15s ease}
+.ann-card{background:var(--card);border:1px solid var(--border2);border-radius:16px;max-width:440px;width:100%;padding:30px 26px 26px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5);animation:fadeIn .2s ease}
+.ann-icon{font-size:34px;margin-bottom:8px}
+.ann-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:10px;color:var(--text)}
+.ann-msg{font-size:14px;color:var(--muted);line-height:1.55;white-space:pre-wrap;margin-bottom:18px;text-align:left}
+.ann-count{font-size:12px;color:var(--muted2);margin-bottom:10px}
+.ann-btn{background:var(--accent);color:#fff;border:none;border-radius:10px;padding:12px 24px;font-size:14px;font-weight:700;cursor:pointer;width:100%}
+.ann-btn:hover{background:var(--accent2)}
+
 /* ── ALERT MODAL (substitui o alert() nativo) ─────────────────────────── */
 .app-alert-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:3000;animation:fadeIn .15s ease}
 .app-alert-card{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.5);max-width:380px;width:90%;padding:28px 26px 22px;text-align:center;animation:fadeIn .2s ease}
@@ -519,6 +529,9 @@ select.fi{cursor:pointer;appearance:none}
     </a>
     <a data-view="activities" onclick="show('activities',this)">
       <span class="ni">🔧</span> Atividades Internas
+    </a>
+    <a data-view="announcements" onclick="show('announcements',this)">
+      <span class="ni">📢</span> Avisos
     </a>
     <a href="/tv.html" target="_blank" style="margin-top:4px">
       <span class="ni">📺</span> Painel TV
@@ -981,6 +994,33 @@ select.fi{cursor:pointer;appearance:none}
             </tr>
           </thead>
           <tbody id="act-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="view" id="v-announcements">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:12px">
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:4px">📢 Avisos</div>
+          <div style="font-size:13px;color:var(--muted)">Publique avisos em destaque, exibidos como um alerta bloqueante assim que o usuário entra no sistema, dentro do período definido.</div>
+        </div>
+        <button class="btn btn-primary" onclick="openAnnouncementForm(null)">➕ Novo Aviso</button>
+      </div>
+
+      <div class="tbl-wrap" style="margin-top:16px">
+        <table>
+          <thead>
+            <tr>
+              <th>Título</th>
+              <th>Mensagem</th>
+              <th>Destinatários</th>
+              <th>Período</th>
+              <th>Status</th>
+              <th>Criado por</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="ann-tbody"></tbody>
         </table>
       </div>
     </div>
@@ -1750,6 +1790,49 @@ select.fi{cursor:pointer;appearance:none}
   </div>
 </div>
 
+<!-- ANNOUNCEMENT FORM MODAL -->
+<div class="aform-overlay" id="ann-form-overlay" onclick="closeModal('ann-form-overlay',event)">
+  <div class="aform" style="max-width:540px" onclick="event.stopPropagation()">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700" id="annf-title">Novo Aviso</div>
+      <div class="close-btn" onclick="closeModal('ann-form-overlay')">✕</div>
+    </div>
+    <div id="annf-ok"  style="background:var(--green-bg);border:1px solid rgba(16,185,129,.2);border-radius:8px;padding:9px 13px;font-size:13px;color:var(--green);margin-bottom:12px;display:none"></div>
+    <div id="annf-err" style="background:var(--red-bg);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:9px 13px;font-size:13px;color:var(--red);margin-bottom:12px;display:none"></div>
+    <div class="fg"><label class="fl">Título</label>
+      <input class="fi" type="text" id="annf-titlefield" placeholder="Ex: Manutenção programada"></div>
+    <div class="fg"><label class="fl">Mensagem <span style="color:var(--red)">*</span></label>
+      <textarea class="fi" id="annf-message" rows="4" placeholder="Descreva o aviso que os usuários verão ao entrar…"></textarea></div>
+    <div class="form-row2">
+      <div class="fg"><label class="fl">Destinatários</label>
+        <select class="fi" id="annf-target">
+          <option value="all">Todos (agentes e clientes)</option>
+          <option value="agents">Somente agentes</option>
+          <option value="clients">Somente clientes</option>
+        </select></div>
+      <div class="fg"><label class="fl">Início</label>
+        <input class="fi" type="datetime-local" id="annf-starts"></div>
+    </div>
+    <div class="fg" style="margin-bottom:20px"><label class="fl">Fim <span style="color:var(--red)">*</span></label>
+      <input class="fi" type="datetime-local" id="annf-ends"></div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-primary" style="flex:1" onclick="saveAnnouncement()">📢 Salvar Aviso</button>
+      <button class="btn btn-ghost" onclick="closeModal('ann-form-overlay')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- AVISO (bloqueante) -->
+<div class="ann-overlay" id="announcement-overlay">
+  <div class="ann-card">
+    <div class="ann-icon">📢</div>
+    <div class="ann-title" id="ann-modal-title">Aviso</div>
+    <div class="ann-msg" id="ann-modal-msg"></div>
+    <div class="ann-count" id="ann-modal-count" style="display:none"></div>
+    <button class="ann-btn" onclick="closeAnnouncement()">Entendi, fechar</button>
+  </div>
+</div>
+
 <script>
 const API = '/api';
 let TOKEN = localStorage.getItem('hd_token');
@@ -1765,6 +1848,39 @@ const api = (method, path, body) => fetch(API+path, {
   method, headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+TOKEN },
   body: body ? JSON.stringify(body) : undefined
 }).then(r => r.json());
+
+// ── AVISO (bloqueante, exibido a cada novo login) ──────────────────────────
+let announcementQueue = [];
+async function checkAnnouncements() {
+  if (sessionStorage.getItem('hd_ann_seen')) return;
+  sessionStorage.setItem('hd_ann_seen', '1');
+  try {
+    const list = await api('GET', '/announcements/active');
+    if (Array.isArray(list) && list.length) {
+      announcementQueue = list;
+      showNextAnnouncement();
+    }
+  } catch (e) {}
+}
+function showNextAnnouncement() {
+  const overlay = document.getElementById('announcement-overlay');
+  if (!announcementQueue.length) { overlay.style.display = 'none'; return; }
+  const a = announcementQueue[0];
+  document.getElementById('ann-modal-title').textContent = a.title || 'Aviso';
+  document.getElementById('ann-modal-msg').textContent = a.message;
+  const countEl = document.getElementById('ann-modal-count');
+  if (announcementQueue.length > 1) {
+    countEl.textContent = `Aviso 1 de ${announcementQueue.length}`;
+    countEl.style.display = 'block';
+  } else {
+    countEl.style.display = 'none';
+  }
+  overlay.style.display = 'flex';
+}
+function closeAnnouncement() {
+  announcementQueue.shift();
+  showNextAnnouncement();
+}
 
 function showAlert(message, type='info') {
   document.querySelectorAll('.app-alert-overlay').forEach(el=>el.remove());
@@ -1815,6 +1931,7 @@ let selectedColor = colors[0];
   show('dashboard', document.querySelector('nav a'));
   // Start real-time updates via SSE
   initSSE();
+  checkAnnouncements();
 })();
 
 async function loadAll() {
@@ -3484,6 +3601,7 @@ show = (view, el) => {
   if (view === 'reports')  loadCurrentReportScope();
   if (view === 'datashow') { loadDsAgent(); markDatashowSeen(); }
   if (view === 'activities') loadActivities();
+  if (view === 'announcements') loadAnnouncements();
 };
 
 // ── DATASHOW (AGENT VIEW) ─────────────────────────────────────────────────────
@@ -3731,6 +3849,109 @@ async function deleteActivity(id) {
   if (!confirm('Tem certeza que deseja REMOVER esta atividade?\nEsta ação não pode ser desfeita.')) return;
   await api('DELETE', `/activities/${id}`);
   loadActivities();
+}
+
+// ── AVISOS (ANNOUNCEMENTS) ─────────────────────────────────────────────────
+let allAnnouncements = [];
+let annEditId = null;
+const annTargetLabel = { all:'Todos', agents:'Agentes', clients:'Clientes' };
+
+const toLocalInput = iso => {
+  if (!iso) return '';
+  const d = new Date(iso), pad = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
+async function loadAnnouncements() {
+  allAnnouncements = await api('GET', '/announcements');
+  if (!Array.isArray(allAnnouncements)) allAnnouncements = [];
+  renderAnnouncements();
+}
+
+function renderAnnouncements() {
+  const nowIso = new Date().toISOString();
+  document.getElementById('ann-tbody').innerHTML = allAnnouncements.length
+    ? allAnnouncements.map(a => {
+        const statusBadge = !a.active
+          ? '<span class="badge closed">Desativado</span>'
+          : a.ends_at < nowIso
+            ? '<span class="badge closed">Expirado</span>'
+            : a.starts_at > nowIso
+              ? '<span class="badge progress">Agendado</span>'
+              : '<span class="badge resolved">✅ Ativo</span>';
+        return `<tr>
+          <td style="font-size:12.5px;font-weight:600">${a.title||'—'}</td>
+          <td style="font-size:12.5px;max-width:280px">${a.message}</td>
+          <td style="font-size:12px">${annTargetLabel[a.target]||a.target}</td>
+          <td style="font-size:12px;color:var(--muted)">${fmtDate(a.starts_at)} — ${fmtDate(a.ends_at)}</td>
+          <td>${statusBadge}</td>
+          <td style="font-size:12px;color:var(--muted)">${a.created_by_name||'—'}</td>
+          <td>
+            <div style="display:flex;gap:5px">
+              <button class="btn btn-ghost btn-sm" onclick="openAnnouncementForm('${a._id}')">✏</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteAnnouncement('${a._id}')">✕</button>
+            </div>
+          </td>
+        </tr>`;
+      }).join('')
+    : `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:32px">Nenhum aviso publicado</td></tr>`;
+}
+
+function openAnnouncementForm(id) {
+  annEditId = id;
+  const a = id ? allAnnouncements.find(x => x._id === id) : null;
+  document.getElementById('annf-title').textContent = id ? 'Editar Aviso' : 'Novo Aviso';
+  document.getElementById('annf-ok').style.display  = 'none';
+  document.getElementById('annf-err').style.display = 'none';
+  document.getElementById('annf-titlefield').value = a?.title || '';
+  document.getElementById('annf-message').value    = a?.message || '';
+  document.getElementById('annf-target').value      = a?.target || 'all';
+  document.getElementById('annf-starts').value      = toLocalInput(a?.starts_at) || toLocalInput(new Date().toISOString());
+  document.getElementById('annf-ends').value        = toLocalInput(a?.ends_at) || '';
+  document.getElementById('ann-form-overlay').classList.add('open');
+}
+
+async function saveAnnouncement() {
+  const title     = document.getElementById('annf-titlefield').value.trim();
+  const message   = document.getElementById('annf-message').value.trim();
+  const target    = document.getElementById('annf-target').value;
+  const startsVal = document.getElementById('annf-starts').value;
+  const endsVal   = document.getElementById('annf-ends').value;
+  const okEl  = document.getElementById('annf-ok');
+  const errEl = document.getElementById('annf-err');
+  okEl.style.display = 'none'; errEl.style.display = 'none';
+
+  if (!message || !endsVal) {
+    errEl.textContent = 'Preencha a mensagem e a data/hora de término.';
+    errEl.style.display = 'block'; return;
+  }
+  const starts_at = startsVal ? new Date(startsVal).toISOString() : new Date().toISOString();
+  const ends_at   = new Date(endsVal).toISOString();
+  if (ends_at <= starts_at) {
+    errEl.textContent = 'A data de término deve ser posterior ao início.';
+    errEl.style.display = 'block'; return;
+  }
+
+  const body = { title, message, target, starts_at, ends_at };
+  const r = annEditId
+    ? await api('PATCH', `/announcements/${annEditId}`, body)
+    : await api('POST',  '/announcements', body);
+
+  if (r.error) {
+    errEl.innerHTML = `⚠ ${r.error}`;
+    errEl.style.display = 'block';
+  } else {
+    okEl.textContent = annEditId ? '✓ Aviso atualizado!' : '✓ Aviso publicado!';
+    okEl.style.display = 'block';
+    await loadAnnouncements();
+    setTimeout(() => closeModal('ann-form-overlay'), 1200);
+  }
+}
+
+async function deleteAnnouncement(id) {
+  if (!confirm('Tem certeza que deseja REMOVER este aviso?\nEsta ação não pode ser desfeita.')) return;
+  await api('DELETE', `/announcements/${id}`);
+  loadAnnouncements();
 }
 
 // ── SETTINGS ─────────────────────────────────────────────────────────────────

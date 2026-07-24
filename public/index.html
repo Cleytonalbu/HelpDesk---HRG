@@ -443,6 +443,7 @@ async function doLogin() {
     if (!r.ok) throw new Error(d.error || 'Erro desconhecido');
     localStorage.setItem('hd_token', d.token);
     localStorage.setItem('hd_agent', JSON.stringify(d.agent));
+    sessionStorage.removeItem('hd_ann_seen');
     window.location.href = window.innerWidth<=768 ? 'agent-mobile.html' : 'dashboard.html';
   } catch(e) {
     setLoading('login-btn','login-spinner','login-label', false);
@@ -466,6 +467,7 @@ async function doClientLogin() {
     if (!r.ok) throw new Error(d.error || 'Credenciais inválidas');
     localStorage.setItem('hd_client_token', d.token);
     localStorage.setItem('hd_client', JSON.stringify(d.client));
+    sessionStorage.removeItem('hd_ann_seen');
     window.location.href = window.innerWidth<=768 ? 'mobile.html' : 'portal.html';
   } catch(e) {
     showError('client-error','client-error-text', e.message);
@@ -491,6 +493,7 @@ async function doRegister() {
     document.getElementById('reg-success').style.display = 'flex';
     localStorage.setItem('hd_client_token', d.token);
     localStorage.setItem('hd_client', JSON.stringify(d.client));
+    sessionStorage.removeItem('hd_ann_seen');
     setTimeout(() => { window.location.href = window.innerWidth<=768 ? 'mobile.html' : 'portal.html'; }, 1500);
   } catch(e) {
     setLoading('reg-btn','reg-spinner','reg-label', false);

@@ -15,4 +15,5 @@ module.exports = {
   clients:      load('clients'),
   datashow:     load('datashow'),
   activities:   load('activities'),
+  announcements: load('announcements'),
 };

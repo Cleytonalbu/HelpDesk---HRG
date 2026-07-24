@@ -258,6 +258,16 @@ select.fi{cursor:pointer;appearance:none}
 #portal-notif-btn:hover { background: var(--bg3); }
 #portal-notif-dot  { position:absolute; top:2px; right:4px; width:8px; height:8px; border-radius:50%; background:var(--red); border:2px solid var(--bg); display:none; }
 
+/* ── AVISO (bloqueante, exibido a cada novo login) ────────────────────── */
+.ann-overlay{position:fixed;inset:0;background:rgba(15,23,42,.65);backdrop-filter:blur(4px);z-index:3800;display:none;align-items:center;justify-content:center;padding:20px;animation:fadeIn .15s ease}
+.ann-card{background:var(--card);border-radius:16px;max-width:440px;width:100%;padding:30px 26px 26px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3);animation:toastIn .2s ease}
+.ann-icon{font-size:34px;margin-bottom:8px}
+.ann-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:10px;color:var(--text)}
+.ann-msg{font-size:14px;color:var(--muted);line-height:1.55;white-space:pre-wrap;margin-bottom:18px;text-align:left}
+.ann-count{font-size:12px;color:var(--muted2);margin-bottom:10px}
+.ann-btn{background:var(--accent);color:#fff;border:none;border-radius:10px;padding:12px 24px;font-size:14px;font-weight:700;cursor:pointer;width:100%}
+.ann-btn:hover{background:var(--accent2)}
+
 /* ── ALERT MODAL (substitui o alert() nativo) ─────────────────────────── */
 .app-alert-overlay{position:fixed;inset:0;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;z-index:3000;animation:fadeIn .15s ease}
 .app-alert-card{background:var(--card);border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.28);max-width:380px;width:90%;padding:28px 26px 22px;text-align:center;animation:toastIn .2s ease}
@@ -889,6 +899,17 @@ select.fi{cursor:pointer;appearance:none}
   </div>
 </div>
 
+<!-- AVISO (bloqueante) -->
+<div class="ann-overlay" id="announcement-overlay">
+  <div class="ann-card">
+    <div class="ann-icon">📢</div>
+    <div class="ann-title" id="ann-modal-title">Aviso</div>
+    <div class="ann-msg" id="ann-modal-msg"></div>
+    <div class="ann-count" id="ann-modal-count" style="display:none"></div>
+    <button class="ann-btn" onclick="closeAnnouncement()">Entendi, fechar</button>
+  </div>
+</div>
+
 <script>
 const API = '/api';
 let TOKEN = localStorage.getItem('hd_client_token') || localStorage.getItem('hd_token');
@@ -919,6 +940,39 @@ function showAlert(message, type='info') {
     </div>`;
   overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
   document.body.appendChild(overlay);
+}
+
+// ── AVISO (bloqueante, exibido a cada novo login) ──────────────────────────
+let announcementQueue = [];
+async function checkAnnouncements() {
+  if (sessionStorage.getItem('hd_ann_seen')) return;
+  sessionStorage.setItem('hd_ann_seen', '1');
+  try {
+    const list = await api('GET', '/announcements/active');
+    if (Array.isArray(list) && list.length) {
+      announcementQueue = list;
+      showNextAnnouncement();
+    }
+  } catch (e) {}
+}
+function showNextAnnouncement() {
+  const overlay = document.getElementById('announcement-overlay');
+  if (!announcementQueue.length) { overlay.style.display = 'none'; return; }
+  const a = announcementQueue[0];
+  document.getElementById('ann-modal-title').textContent = a.title || 'Aviso';
+  document.getElementById('ann-modal-msg').textContent = a.message;
+  const countEl = document.getElementById('ann-modal-count');
+  if (announcementQueue.length > 1) {
+    countEl.textContent = `Aviso 1 de ${announcementQueue.length}`;
+    countEl.style.display = 'block';
+  } else {
+    countEl.style.display = 'none';
+  }
+  overlay.style.display = 'flex';
+}
+function closeAnnouncement() {
+  announcementQueue.shift();
+  showNextAnnouncement();
 }
 
 const fmtDate = iso => iso ? new Date(iso).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—';
@@ -1218,6 +1272,7 @@ function closeModal(e) { if (!e||e.target===document.getElementById('ticket-moda
 function logout() { localStorage.removeItem('hd_client_token'); localStorage.removeItem('hd_client'); window.location.href='/'; }
 
 init();
+checkAnnouncements();
 
 // ── DATASHOW ─────────────────────────────────────────────────────────────────
 let dsOffset = 0;
