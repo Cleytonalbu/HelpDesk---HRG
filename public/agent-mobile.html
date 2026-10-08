@@ -274,7 +274,12 @@ textarea.fi{resize:none;line-height:1.5}
       <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
         <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Responder</div>
         <textarea class="fi" id="ts-reply" rows="3" placeholder="Escreva uma resposta para o solicitante…"></textarea>
-        <button class="btn btn-primary" style="margin-top:8px" onclick="sendReply()">Enviar Resposta</button>
+        <input type="file" id="ts-file-input" multiple style="display:none">
+        <div id="ts-file-list" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn btn-ghost" onclick="document.getElementById('ts-file-input').click()">📎 Anexar</button>
+          <button class="btn btn-primary" style="flex:1" onclick="sendReply()">Enviar Resposta</button>
+        </div>
       </div>
     </div>
   </div>
@@ -451,6 +456,8 @@ function filterTickets(status, el) {
 
 async function openTicketSheet(id) {
   currentTicketId = id;
+  tsSelectedFiles = [];
+  renderTsFileList();
   clientReplyIds.delete(id);
   updateNotifDot();
   const t = await api('GET', `/tickets/${id}`);
@@ -517,14 +524,59 @@ async function assignToMe() {
   loadTickets();
 }
 
+// ── ANEXOS (Resposta do Agente) ─────────────────────────────────────────────
+let tsSelectedFiles = [];
+const TS_MAX_ATTACH_MB = 10;
+
+function tsAddFiles(fileList) {
+  [...fileList].forEach(f => {
+    if (f.size > TS_MAX_ATTACH_MB * 1024 * 1024) {
+      alert(`"${f.name}" excede o limite de ${TS_MAX_ATTACH_MB} MB e não foi adicionado.`);
+      return;
+    }
+    tsSelectedFiles.push(f);
+  });
+  renderTsFileList();
+}
+
+function renderTsFileList() {
+  document.getElementById('ts-file-list').innerHTML = tsSelectedFiles.map((f, i) => `
+    <div style="display:flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:5px 10px;font-size:12px">
+      <span>📎</span>
+      <span style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.name}</span>
+      <span onclick="tsRemoveFile(${i})" style="cursor:pointer;color:var(--muted)">✕</span>
+    </div>`).join('');
+}
+
+function tsRemoveFile(i) { tsSelectedFiles.splice(i, 1); renderTsFileList(); }
+
+document.getElementById('ts-file-input').addEventListener('change', e => { tsAddFiles(e.target.files); e.target.value = ''; });
+
+async function uploadTsAttachments(ticketId, files) {
+  for (const f of files) {
+    const fd = new FormData();
+    fd.append('file', f);
+    await fetch(API + '/tickets/' + ticketId + '/attachments', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + TOKEN },
+      body: fd,
+    }).catch(() => {});
+  }
+}
+
 async function sendReply() {
   const body = document.getElementById('ts-reply').value.trim();
-  if (!body) return;
-  const r = await api('POST', `/tickets/${currentTicketId}/comments`, { body, type: 'reply' });
-  if (!r.error) {
-    document.getElementById('ts-reply').value = '';
-    openTicketSheet(currentTicketId);
+  if (!body && !tsSelectedFiles.length) return;
+  if (body) {
+    const r = await api('POST', `/tickets/${currentTicketId}/comments`, { body, type: 'reply' });
+    if (r.error) return;
   }
+  if (tsSelectedFiles.length) {
+    await uploadTsAttachments(currentTicketId, tsSelectedFiles);
+    tsSelectedFiles = [];
+  }
+  document.getElementById('ts-reply').value = '';
+  openTicketSheet(currentTicketId);
 }
 
 // ── PROFILE / PASSWORD ────────────────────────────────────────────────────────

@@ -220,12 +220,12 @@ select.form-input{appearance:none;cursor:pointer}
     <div class="form-group">
       <label class="form-label">E-mail</label>
       <span class="input-icon">✉</span>
-      <input class="form-input" type="email" id="agent-email" placeholder="seu@helpdesk.com" autocomplete="email">
+      <input class="form-input" type="email" id="agent-email" autocomplete="email">
     </div>
     <div class="form-group">
       <label class="form-label">Senha</label>
       <span class="input-icon">🔒</span>
-      <input class="form-input has-toggle" type="password" id="agent-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+      <input class="form-input has-toggle" type="password" id="agent-pass" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
       <span class="pass-toggle" onclick="togglePass('agent-pass',this)">👁</span>
     </div>
     <a class="forgot" href="#" onclick="showForgot()">Esqueceu a senha?</a>
@@ -262,12 +262,12 @@ select.form-input{appearance:none;cursor:pointer}
       <div class="form-group">
         <label class="form-label">E-mail</label>
         <span class="input-icon">✉</span>
-        <input class="form-input" type="email" id="client-email" placeholder="seu@email.com">
+        <input class="form-input" type="email" id="client-email">
       </div>
       <div class="form-group">
         <label class="form-label">Senha</label>
         <span class="input-icon">🔒</span>
-        <input class="form-input has-toggle" type="password" id="client-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doClientLogin()">
+        <input class="form-input has-toggle" type="password" id="client-pass" onkeydown="if(event.key==='Enter')doClientLogin()">
         <span class="pass-toggle" onclick="togglePass('client-pass',this)">👁</span>
       </div>
       <button class="submit-btn" onclick="doClientLogin()">Entrar no Portal</button>

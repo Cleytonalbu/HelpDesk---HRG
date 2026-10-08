@@ -1371,7 +1371,10 @@ select.fi{cursor:pointer;appearance:none}
     </div>
     <div class="modal-footer">
       <textarea class="reply-area" id="reply-body" placeholder="Adicionar resposta ou nota técnica…" rows="2"></textarea>
+      <input type="file" id="reply-file-input" multiple style="display:none">
+      <div id="reply-file-list" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px"></div>
       <div class="reply-acts">
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('reply-file-input').click()">📎 Anexar</button>
         <button class="btn btn-primary btn-sm" onclick="sendReply('reply')">📨 Enviar Resposta</button>
         <button class="btn btn-ghost btn-sm" onclick="sendReply('note')">📝 Nota Interna</button>
       </div>
@@ -2121,6 +2124,8 @@ function viewAgentTickets(agentId) {
 
 async function openTicket(id) {
   currentTicketId = id;
+  replySelectedFiles = [];
+  renderReplyFileList();
   if (clientReplyTicketIds.has(id)) markSeenAgent(id);
   const t = await api('GET', '/tickets/'+id);
   // GET already marked the ticket as viewed server-side (first agent to open it) — sync the local cache so the "Novo" badge clears immediately, for this agent and anyone who reloads
@@ -2194,10 +2199,54 @@ async function openTicket(id) {
   document.getElementById('ticket-modal').classList.add('open');
 }
 
+// ── ANEXOS (Resposta do Agente) ─────────────────────────────────────────────
+let replySelectedFiles = [];
+const REPLY_MAX_ATTACH_MB = 10;
+
+function replyAddFiles(fileList) {
+  [...fileList].forEach(f => {
+    if (f.size > REPLY_MAX_ATTACH_MB * 1024 * 1024) {
+      showAlert(`"${f.name}" excede o limite de ${REPLY_MAX_ATTACH_MB} MB e não foi adicionado.`, 'warning');
+      return;
+    }
+    replySelectedFiles.push(f);
+  });
+  renderReplyFileList();
+}
+
+function renderReplyFileList() {
+  document.getElementById('reply-file-list').innerHTML = replySelectedFiles.map((f, i) => `
+    <div style="display:flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:4px 9px;font-size:12px">
+      <span>📎</span>
+      <span style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.name}</span>
+      <span onclick="replyRemoveFile(${i})" style="cursor:pointer;color:var(--muted)">✕</span>
+    </div>`).join('');
+}
+
+function replyRemoveFile(i) { replySelectedFiles.splice(i, 1); renderReplyFileList(); }
+
+document.getElementById('reply-file-input').addEventListener('change', e => { replyAddFiles(e.target.files); e.target.value = ''; });
+
+async function uploadReplyAttachments(ticketId, files) {
+  for (const f of files) {
+    const fd = new FormData();
+    fd.append('file', f);
+    await fetch(API + '/tickets/' + ticketId + '/attachments', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + TOKEN },
+      body: fd,
+    }).catch(() => {});
+  }
+}
+
 async function sendReply(type) {
   const body = document.getElementById('reply-body').value.trim();
-  if (!body) return;
-  await api('POST', '/tickets/'+currentTicketId+'/comments', { body, type });
+  if (!body && !replySelectedFiles.length) return;
+  if (body) await api('POST', '/tickets/'+currentTicketId+'/comments', { body, type });
+  if (replySelectedFiles.length) {
+    await uploadReplyAttachments(currentTicketId, replySelectedFiles);
+    replySelectedFiles = [];
+  }
   document.getElementById('reply-body').value = '';
   openTicket(currentTicketId);
 }
@@ -3123,20 +3172,20 @@ function applyCustomRange() {
 }
 
 async function loadReportData() {
-  let url = '/api/reports/tickets?';
+  let periodQS = '';
   if (currentReportPeriod.startsWith('custom:')) {
     const [,from,to] = currentReportPeriod.split(':');
-    url += `from=${from}&to=${to}`;
+    periodQS = `from=${from}&to=${to}`;
     document.getElementById('rp-period-label').textContent = `${fmtDateShort(from)} – ${fmtDateShort(to)}`;
   } else {
-    url += `period=${currentReportPeriod}`;
+    periodQS = `period=${currentReportPeriod}`;
     const labels = { current_month:'Mês atual', last_month:'Último mês', last_7:'Últimos 7 dias', last_30:'Últimos 30 dias' };
     document.getElementById('rp-period-label').textContent = labels[currentReportPeriod]||'';
   }
-  reportData = await api('GET', url.replace('/api',''));
+  reportData = await api('GET', `/reports/tickets?${periodQS}`);
   renderReportData();
-  // Also load agent report
-  const ag = await api('GET', '/reports/agents');
+  // Also load agent report, scoped to the same period
+  const ag = await api('GET', `/reports/agents?${periodQS}`);
   const agMax = Math.max(...(ag||[]).map(a=>a.total),1);
   document.getElementById('rep-agents').innerHTML = (ag||[]).slice(0,6).map(a=>
     `<div class="pbar-row"><span style="font-size:12.5px">${a.name}</span><span style="color:${a.color||'var(--accent)'};font-weight:600">${a.total}</span></div>

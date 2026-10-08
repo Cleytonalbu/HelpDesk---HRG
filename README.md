@@ -147,7 +147,7 @@ Authorization: Bearer <token>
 | GET/POST/PUT/DELETE | /api/kb/articles | Artigos KB |
 | GET | /api/reports/dashboard | KPIs + volume diário |
 | GET | /api/reports/sla | Chamados com SLA |
-| GET | /api/reports/agents | Stats por agente |
+| GET | /api/reports/agents | Stats por agente (aceita `?period=` ou `?from=&to=`, igual a `/reports/tickets`) |
 
 ---
 
