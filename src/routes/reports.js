@@ -13,6 +13,29 @@ const filterByPeriod = (tickets, from, to) => {
   });
 };
 
+// Helper: resolve a period/from/to query into concrete dateFrom/dateTo bounds
+const resolvePeriod = ({ from, to, period }) => {
+  const now = new Date();
+  let dateFrom = from, dateTo = to;
+  if (period) {
+    const y = now.getFullYear(), m = now.getMonth();
+    if (period === 'current_month') {
+      dateFrom = new Date(y, m, 1).toISOString().slice(0,10);
+      dateTo   = new Date(y, m+1, 0).toISOString().slice(0,10);
+    } else if (period === 'last_month') {
+      dateFrom = new Date(y, m-1, 1).toISOString().slice(0,10);
+      dateTo   = new Date(y, m, 0).toISOString().slice(0,10);
+    } else if (period === 'last_7') {
+      dateFrom = new Date(now - 7*86400000).toISOString().slice(0,10);
+      dateTo   = now.toISOString().slice(0,10);
+    } else if (period === 'last_30') {
+      dateFrom = new Date(now - 30*86400000).toISOString().slice(0,10);
+      dateTo   = now.toISOString().slice(0,10);
+    }
+  }
+  return { dateFrom, dateTo };
+};
+
 // GET /api/reports/dashboard — main dashboard KPIs + charts
 router.get('/dashboard', auth, (req, res) => {
   db.tickets.find({}, (err, all) => {
@@ -70,25 +93,7 @@ router.get('/dashboard', auth, (req, res) => {
 // ?from=YYYY-MM-DD&to=YYYY-MM-DD&period=current_month|last_month|last_7|last_30
 router.get('/tickets', auth, (req, res) => {
   const { from, to, period, status, priority, category } = req.query;
-  const now = new Date();
-
-  let dateFrom = from, dateTo = to;
-  if (period) {
-    const y = now.getFullYear(), m = now.getMonth();
-    if (period === 'current_month') {
-      dateFrom = new Date(y, m, 1).toISOString().slice(0,10);
-      dateTo   = new Date(y, m+1, 0).toISOString().slice(0,10);
-    } else if (period === 'last_month') {
-      dateFrom = new Date(y, m-1, 1).toISOString().slice(0,10);
-      dateTo   = new Date(y, m, 0).toISOString().slice(0,10);
-    } else if (period === 'last_7') {
-      dateFrom = new Date(now - 7*86400000).toISOString().slice(0,10);
-      dateTo   = now.toISOString().slice(0,10);
-    } else if (period === 'last_30') {
-      dateFrom = new Date(now - 30*86400000).toISOString().slice(0,10);
-      dateTo   = now.toISOString().slice(0,10);
-    }
-  }
+  const { dateFrom, dateTo } = resolvePeriod({ from, to, period });
 
   const q = {};
   if (status)   q.status   = status;
@@ -180,11 +185,16 @@ router.get('/sla', auth, (req, res) => {
 });
 
 // GET /api/reports/agents
+// ?from=YYYY-MM-DD&to=YYYY-MM-DD&period=current_month|last_month|last_7|last_30 (omit for all-time)
 router.get('/agents', auth, (req, res) => {
+  const { from, to, period } = req.query;
+  const { dateFrom, dateTo } = resolvePeriod({ from, to, period });
+
   db.agents.find({ active:true }, (err, agents) => {
     db.tickets.find({}, (err, tickets) => {
+      const filtered = filterByPeriod(tickets||[], dateFrom, dateTo);
       res.json((agents||[]).map(agent => {
-        const mine = (tickets||[]).filter(t=>t.agent_id===agent._id);
+        const mine = filtered.filter(t=>t.agent_id===agent._id);
         return { agent_id:agent._id, name:agent.name, role:agent.role, color:agent.color,
           total:mine.length,
           open:mine.filter(t=>['open','progress','waiting'].includes(t.status)).length,
