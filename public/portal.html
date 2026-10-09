@@ -920,10 +920,20 @@ let myTickets = [], allKBCats = [], allKBArts = [], currentId = null, myFilter =
 if (!TOKEN) { window.location.href = '/'; }
 if (!CLIENT) CLIENT = { name: 'Visitante', email: 'demo@helpdesk.com', department: 'TI' };
 
+function forceLogout() {
+  localStorage.removeItem('hd_client_token'); localStorage.removeItem('hd_client');
+  localStorage.removeItem('hd_token'); localStorage.removeItem('hd_agent');
+  window.location.href = '/';
+}
+
 const api = (m, p, b) => fetch(API+p, {
   method:m, headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
   body: b ? JSON.stringify(b) : undefined
-}).then(r=>r.json());
+}).then(r => {
+  // Sessão expirada/token inválido: não deixa a tela ficar "zerada" silenciosamente — manda pro login.
+  if (r.status === 401) { forceLogout(); return Promise.reject(new Error('Sessão expirada')); }
+  return r.json();
+});
 
 function showAlert(message, type='info') {
   document.querySelectorAll('.app-alert-overlay').forEach(el=>el.remove());

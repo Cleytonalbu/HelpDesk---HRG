@@ -1850,7 +1850,11 @@ if (!TOKEN || !AGENT) { window.location.href = '/'; }
 const api = (method, path, body) => fetch(API+path, {
   method, headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+TOKEN },
   body: body ? JSON.stringify(body) : undefined
-}).then(r => r.json());
+}).then(r => {
+  // Sessão expirada/token inválido: não deixa a tela ficar "zerada" silenciosamente — manda pro login.
+  if (r.status === 401) { logout(); return Promise.reject(new Error('Sessão expirada')); }
+  return r.json();
+});
 
 // ── AVISO (bloqueante, exibido a cada novo login) ──────────────────────────
 let announcementQueue = [];

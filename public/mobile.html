@@ -497,6 +497,13 @@ if (!TOKEN || !CLIENT) {
 }
 
 // ── API HELPER ────────────────────────────────────────────────────────────────
+function forceLogout() {
+  localStorage.removeItem('hd_client_token');
+  localStorage.removeItem('hd_token');
+  localStorage.removeItem('hd_client');
+  window.location.href = '/';
+}
+
 async function api(m, p, data) {
   try {
     const r = await fetch(API + p, {
@@ -504,6 +511,8 @@ async function api(m, p, data) {
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN },
       body: data ? JSON.stringify(data) : undefined,
     });
+    // Sessão expirada/token inválido: não deixa a tela ficar "zerada" silenciosamente — manda pro login.
+    if (r.status === 401) { forceLogout(); return { error: 'Sessão expirada' }; }
     return r.json();
   } catch { return { error: 'Sem conexão com o servidor' }; }
 }
