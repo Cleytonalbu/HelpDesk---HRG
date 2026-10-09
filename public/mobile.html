@@ -517,6 +517,48 @@ async function api(m, p, data) {
   } catch { return { error: 'Sem conexão com o servidor' }; }
 }
 
+// ── NOTIFICAÇÃO NA ABA (título pisca + favicon com bolinha quando a aba está em segundo plano) ──
+const TAB_ORIGINAL_TITLE = document.title;
+let tabFlashTimer = null;
+function notifyTab(message) {
+  if (!document.hidden && document.hasFocus()) return; // já está vendo a tela, não precisa chamar atenção
+  setFaviconBadge(true);
+  clearInterval(tabFlashTimer);
+  let toggle = true;
+  document.title = message;
+  tabFlashTimer = setInterval(() => {
+    document.title = toggle ? TAB_ORIGINAL_TITLE : message;
+    toggle = !toggle;
+  }, 1000);
+}
+function clearTabFlash() {
+  clearInterval(tabFlashTimer);
+  tabFlashTimer = null;
+  document.title = TAB_ORIGINAL_TITLE;
+  setFaviconBadge(false);
+}
+function setFaviconBadge(on) {
+  const link = document.querySelector('link[rel="icon"]');
+  if (!link) return;
+  if (!on) { if (link.dataset.orig) link.href = link.dataset.orig; return; }
+  if (!link.dataset.orig) link.dataset.orig = link.href;
+  const img = new Image();
+  img.onload = () => {
+    const size = 32;
+    const canvas = document.createElement('canvas');
+    canvas.width = size; canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, size, size);
+    ctx.beginPath(); ctx.arc(size-7, 7, 7, 0, Math.PI*2);
+    ctx.fillStyle = '#ef4444'; ctx.fill();
+    ctx.lineWidth = 2; ctx.strokeStyle = '#fff'; ctx.stroke();
+    link.href = canvas.toDataURL('image/png');
+  };
+  img.src = link.dataset.orig;
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) clearTabFlash(); });
+window.addEventListener('focus', clearTabFlash);
+
 // ── AVISO (bloqueante, exibido a cada novo login) ──────────────────────────────
 let announcementQueue = [];
 async function checkAnnouncements() {
@@ -699,17 +741,17 @@ async function openTicketSheet(id) {
     </a>`).join('');
   document.getElementById('ts-reply').value = '';
 
-  const tlColorCls = {system:'#94a3b8',reply:'#2563eb',note:'#d97706',escalation:'#ef4444'};
+  const tlColorCls = {system:'#94a3b8',reply:'#2563eb',note:'#d97706',escalation:'#ef4444',attachment:'#7c3aed'};
   document.getElementById('ts-timeline').innerHTML = (t.comments||[]).length
     ? (t.comments||[]).map(c => `
         <div style="display:flex;gap:10px;margin-bottom:12px">
           <div style="width:28px;height:28px;border-radius:50%;background:${tlColorCls[c.type]||'#94a3b8'}22;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">
-            ${c.type==='system'?'⚙':c.type==='note'?'📝':c.type==='escalation'?'⬆':'💬'}
+            ${c.type==='system'?'⚙':c.type==='note'?'📝':c.type==='escalation'?'⬆':c.type==='attachment'?'📎':'💬'}
           </div>
           <div style="flex:1">
             <div style="font-size:12px;font-weight:600;color:var(--text)">${c.author_name}</div>
             <div style="font-size:11px;color:var(--muted2);margin-bottom:4px">${fmtDate(c.created_at)}</div>
-            <div style="font-size:13.5px;line-height:1.5;background:${c.type==='note'?'#fffbeb':c.type==='system'?'#f8fafc':'#f0f4ff'};padding:10px 12px;border-radius:10px">${c.body}</div>
+            <div style="font-size:13.5px;line-height:1.5;font-weight:${c.type==='attachment'?'600':'400'};color:${c.type==='attachment'?'#7c3aed':'inherit'};background:${c.type==='note'?'#fffbeb':c.type==='attachment'?'#f3e8ff':c.type==='system'?'#f8fafc':'#f0f4ff'};padding:10px 12px;border-radius:10px">${c.body}</div>
           </div>
         </div>`).join('')
     : '<div style="text-align:center;color:var(--muted);font-size:13px;padding:16px">Nenhuma interação ainda.</div>';
@@ -999,6 +1041,8 @@ function scheduleMReconn() {
 function handleMobileUpdate(data) {
   const updated = data.updated||[];
   if (!updated.length) return;
+  if (updated.some(t => t.has_agent_attachment)) notifyTab('📎 O agente enviou um anexo!');
+  else if (updated.some(t => t.has_agent_reply)) notifyTab('💬 O agente respondeu seu chamado!');
   updated.forEach(t => { mUpdatedIds.add(t._id); showMobileToast(t); });
   // Update badge on nav
   const badge = document.getElementById('m-notif-badge');
@@ -1028,12 +1072,16 @@ function showMobileToast(t) {
     waiting:'O agente aguarda sua resposta',
   };
   const icons = {progress:'⚙️',resolved:'✅',closed:'🔒',escalated:'🔴',waiting:'⏳'};
+  const title = t.has_agent_attachment ? '📎 O agente enviou um anexo!'
+    : t.has_agent_reply ? '💬 O agente respondeu!'
+    : (statusMsg[t.status]||'Chamado atualizado');
+  const icon = t.has_agent_attachment ? '📎' : t.has_agent_reply ? '💬' : (icons[t.status]||'🔔');
   const toast = document.createElement('div');
   toast.className = 'm-toast';
   toast.innerHTML = `
-    <div class="m-toast-icon">${icons[t.status]||'🔔'}</div>
+    <div class="m-toast-icon">${icon}</div>
     <div style="flex:1">
-      <div class="m-toast-title">${statusMsg[t.status]||'Chamado atualizado'}</div>
+      <div class="m-toast-title">${title}</div>
       <div class="m-toast-body">Chamado #${t.number}: ${(t.title||'').slice(0,50)}${(t.title||'').length>50?'…':''}</div>
     </div>
     <span onclick="this.parentElement.remove()" style="font-size:16px;color:var(--muted);padding:2px">✕</span>`;

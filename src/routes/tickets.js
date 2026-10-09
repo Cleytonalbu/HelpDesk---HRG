@@ -65,20 +65,22 @@ router.get('/client-stream', (req, res) => {
       db.tickets.find({ requester_email: clientEmail, updated_at: { $gt: checkFrom } }, (err, changed) => {
         if ((changed||[]).length > 0) {
           const ticketIds = changed.map(t => t._id);
-          // Check if any of the changes are new agent replies
+          // Check if any of the changes are new agent replies or attachments
           db.comments.find({
             ticket_id: { $in: ticketIds },
-            type: 'reply',
+            type: { $in: ['reply', 'attachment'] },
             agent_id: { $exists: true, $ne: null },
             created_at: { $gt: checkFrom },
-          }, (err2, agentReplies) => {
-            const repliedIds = new Set((agentReplies||[]).map(c => c.ticket_id));
+          }, (err2, agentActivity) => {
+            const repliedIds  = new Set((agentActivity||[]).filter(c=>c.type==='reply').map(c => c.ticket_id));
+            const attachedIds = new Set((agentActivity||[]).filter(c=>c.type==='attachment').map(c => c.ticket_id));
             const payload = JSON.stringify({
               updated: changed.map(t => ({
                 _id: t._id, number: t.number, title: t.title,
                 status: t.status, updated_at: t.updated_at,
                 comments_count: (t.comments||[]).length,
                 has_agent_reply: repliedIds.has(t._id),
+                has_agent_attachment: attachedIds.has(t._id),
               })),
               ts: now,
             });
@@ -134,18 +136,20 @@ router.get('/stream', (req, res) => {
               const ticketIds = (changed||[]).map(t => t._id);
               db.comments.find({
                 ticket_id: { $in: ticketIds },
-                type: 'reply',
+                type: { $in: ['reply', 'attachment'] },
                 agent_id: null,
                 created_at: { $gt: checkFrom },
-              }, (err3, clientReplies) => {
-                const repliedIds = new Set((clientReplies||[]).map(c => c.ticket_id));
+              }, (err3, clientActivity) => {
+                const repliedIds  = new Set((clientActivity||[]).filter(c=>c.type==='reply').map(c => c.ticket_id));
+                const attachedIds = new Set((clientActivity||[]).filter(c=>c.type==='attachment').map(c => c.ticket_id));
                 const payload = JSON.stringify({
                   new_tickets: hasNew ? newCount - totalSeen : 0,
                   total:       newCount,
                   updated:     (changed||[]).map(t => ({
                     _id: t._id, status: t.status, number: t.number, title: t.title,
                     requester_name: t.requester_name, updated_at: t.updated_at,
-                    has_client_reply: repliedIds.has(t._id), viewed_at: t.viewed_at || null,
+                    has_client_reply: repliedIds.has(t._id), has_client_attachment: attachedIds.has(t._id),
+                    viewed_at: t.viewed_at || null,
                   })),
                   datashow_unseen: datashowUnseen || 0,
                   new_datashow: (newBookings||[]).map(d => ({
@@ -311,7 +315,18 @@ router.post('/:id/attachments', auth, upload.single('file'), (req, res) => {
     const att = { _id:uuid(), ticket_id:req.params.id, comment_id:req.body.comment_id||null,
       filename:req.file.filename, original_name:req.file.originalname,
       mimetype:req.file.mimetype, size_bytes:req.file.size, created_at:now() };
-    db.attachments.insert(att, (err2, doc) => res.status(201).json(doc));
+    db.attachments.insert(att, (err2, doc) => {
+      // Anexo sozinho (sem texto) não tocava updated_at nem aparecia na timeline — passava
+      // despercebido para quem está do outro lado. Agora vira uma mensagem na conversa e
+      // dispara a mesma notificação em tempo real de uma resposta.
+      const isAgent = req.user.userType !== 'client';
+      const noteComment = { _id:uuid(), ticket_id:req.params.id,
+        agent_id: isAgent ? req.user._id : null, author_name:req.user.name,
+        body: `📎 Anexou um arquivo: ${req.file.originalname}`, type:'attachment', created_at:now() };
+      db.tickets.update({ _id: req.params.id }, { $set: { updated_at: now() } }, {});
+      db.comments.insert(noteComment, () => {});
+      res.status(201).json(doc);
+    });
   });
 });
 

@@ -329,6 +329,48 @@ async function api(m, p, data) {
   } catch { return { error: 'Sem conexão com o servidor' }; }
 }
 
+// ── NOTIFICAÇÃO NA ABA (título pisca + favicon com bolinha quando a aba está em segundo plano) ──
+const TAB_ORIGINAL_TITLE = document.title;
+let tabFlashTimer = null;
+function notifyTab(message) {
+  if (!document.hidden && document.hasFocus()) return; // já está vendo a tela, não precisa chamar atenção
+  setFaviconBadge(true);
+  clearInterval(tabFlashTimer);
+  let toggle = true;
+  document.title = message;
+  tabFlashTimer = setInterval(() => {
+    document.title = toggle ? TAB_ORIGINAL_TITLE : message;
+    toggle = !toggle;
+  }, 1000);
+}
+function clearTabFlash() {
+  clearInterval(tabFlashTimer);
+  tabFlashTimer = null;
+  document.title = TAB_ORIGINAL_TITLE;
+  setFaviconBadge(false);
+}
+function setFaviconBadge(on) {
+  const link = document.querySelector('link[rel="icon"]');
+  if (!link) return;
+  if (!on) { if (link.dataset.orig) link.href = link.dataset.orig; return; }
+  if (!link.dataset.orig) link.dataset.orig = link.href;
+  const img = new Image();
+  img.onload = () => {
+    const size = 32;
+    const canvas = document.createElement('canvas');
+    canvas.width = size; canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, size, size);
+    ctx.beginPath(); ctx.arc(size-7, 7, 7, 0, Math.PI*2);
+    ctx.fillStyle = '#ef4444'; ctx.fill();
+    ctx.lineWidth = 2; ctx.strokeStyle = '#fff'; ctx.stroke();
+    link.href = canvas.toDataURL('image/png');
+  };
+  img.src = link.dataset.orig;
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) clearTabFlash(); });
+window.addEventListener('focus', clearTabFlash);
+
 // ── AVISO (bloqueante, exibido a cada novo login) ──────────────────────────────
 let announcementQueue = [];
 async function checkAnnouncements() {
@@ -491,17 +533,17 @@ async function openTicketSheet(id) {
     </a>`).join('');
   document.getElementById('ts-reply').value = '';
 
-  const tlColorCls = {system:'#8b96a8',reply:'#3b82f6',note:'#f59e0b',escalation:'#ef4444'};
+  const tlColorCls = {system:'#8b96a8',reply:'#3b82f6',note:'#f59e0b',escalation:'#ef4444',attachment:'#8b5cf6'};
   document.getElementById('ts-timeline').innerHTML = (t.comments||[]).length
     ? (t.comments||[]).map(c => `
         <div style="display:flex;gap:10px;margin-bottom:12px">
           <div style="width:28px;height:28px;border-radius:50%;background:${tlColorCls[c.type]||'#8b96a8'}22;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">
-            ${c.type==='system'?'⚙':c.type==='note'?'📝':c.type==='escalation'?'⬆':'💬'}
+            ${c.type==='system'?'⚙':c.type==='note'?'📝':c.type==='escalation'?'⬆':c.type==='attachment'?'📎':'💬'}
           </div>
           <div style="flex:1">
             <div style="font-size:12px;font-weight:600;color:var(--text)">${c.author_name}</div>
             <div style="font-size:11px;color:var(--muted2);margin-bottom:4px">${fmtDate(c.created_at)}</div>
-            <div style="font-size:13.5px;line-height:1.5;background:${c.type==='note'?'var(--orange-bg)':c.type==='system'?'var(--bg3)':'var(--bg3)'};padding:10px 12px;border-radius:10px">${c.body}</div>
+            <div style="font-size:13.5px;line-height:1.5;font-weight:${c.type==='attachment'?'600':'400'};color:${c.type==='attachment'?'#8b5cf6':'inherit'};background:${c.type==='note'?'var(--orange-bg)':c.type==='attachment'?'rgba(139,92,246,.12)':c.type==='system'?'var(--bg3)':'var(--bg3)'};padding:10px 12px;border-radius:10px">${c.body}</div>
             ${c.type==='reply' && c.agent_id ? (t.client_viewed_at && t.client_viewed_at >= c.created_at
               ? `<div style="font-size:10.5px;margin-top:4px;color:var(--accent);font-weight:500">✓✓ Visto pelo cliente em ${fmtDate(t.client_viewed_at)}</div>`
               : `<div style="font-size:10.5px;margin-top:4px;color:var(--muted2)">✓ Enviado</div>`) : ''}
@@ -678,12 +720,18 @@ function updateNotifDot() {
 
 function handleMobileUpdate(data) {
   const updated = data.updated || [];
-  const clientReplies = updated.filter(t => t.has_client_reply);
+  const clientReplies     = updated.filter(t => t.has_client_reply);
+  const clientAttachments = updated.filter(t => t.has_client_attachment);
   clientReplies.forEach(t => clientReplyIds.add(t._id));
+  clientAttachments.forEach(t => clientReplyIds.add(t._id));
   updateNotifDot();
 
-  if (clientReplies.length > 0) {
+  if (clientAttachments.length > 0) {
+    showMobileToast(clientAttachments[clientAttachments.length-1], 'attachment');
+    notifyTab('📎 Novo anexo de cliente!');
+  } else if (clientReplies.length > 0) {
     showMobileToast(clientReplies[clientReplies.length-1], 'reply');
+    notifyTab('💬 Nova resposta de cliente!');
   } else if ((data.new_tickets||0) > 0) {
     showMobileToast(updated[updated.length-1], 'new');
   }
@@ -694,13 +742,15 @@ function handleMobileUpdate(data) {
 function showMobileToast(t, kind) {
   if (!t) return;
   document.querySelectorAll('.m-toast').forEach(el=>el.remove());
-  const title = kind === 'reply'
+  const title = kind === 'attachment'
+    ? `📎 ${t.requester_name||'Cliente'} anexou um arquivo`
+    : kind === 'reply'
     ? `💬 ${t.requester_name||'Cliente'} respondeu`
     : `🎫 Novo chamado aberto`;
   const toast = document.createElement('div');
   toast.className = 'm-toast';
   toast.innerHTML = `
-    <div class="m-toast-icon">${kind==='reply'?'💬':'🎫'}</div>
+    <div class="m-toast-icon">${kind==='attachment'?'📎':kind==='reply'?'💬':'🎫'}</div>
     <div style="flex:1">
       <div class="m-toast-title">${title}</div>
       <div class="m-toast-body">Chamado #${t.number}: ${(t.title||'').slice(0,50)}${(t.title||'').length>50?'…':''}</div>

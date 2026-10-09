@@ -251,6 +251,7 @@ input[type="time"] { color-scheme: dark; }
 .tl-desc{background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.18);border-radius:7px;padding:10px 12px;margin-top:6px;font-size:13px;color:var(--text);white-space:pre-wrap;word-break:break-word}
 .tl-desc-tag{display:inline-block;background:rgba(59,130,246,0.14);color:var(--accent);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:1px 7px;border-radius:9px;margin-left:6px;vertical-align:middle}
 .tl-system{background:var(--bg3);border-radius:6px;padding:6px 10px;font-size:12px;color:var(--muted);margin-top:4px}
+.tl-attachment{background:var(--purple-bg);border:1px solid rgba(139,92,246,0.25);border-radius:7px;padding:8px 12px;margin-top:6px;font-size:12.5px;font-weight:600;color:var(--purple)}
 
 /* BTNS */
 .btn{padding:8px 16px;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;border:none;font-family:'Syne',sans-serif;transition:all .15s;letter-spacing:-0.1px}
@@ -1856,6 +1857,48 @@ const api = (method, path, body) => fetch(API+path, {
   return r.json();
 });
 
+// ── NOTIFICAÇÃO NA ABA (título pisca + favicon com bolinha quando a aba está em segundo plano) ──
+const TAB_ORIGINAL_TITLE = document.title;
+let tabFlashTimer = null;
+function notifyTab(message) {
+  if (!document.hidden && document.hasFocus()) return; // já está vendo a tela, não precisa chamar atenção
+  setFaviconBadge(true);
+  clearInterval(tabFlashTimer);
+  let toggle = true;
+  document.title = message;
+  tabFlashTimer = setInterval(() => {
+    document.title = toggle ? TAB_ORIGINAL_TITLE : message;
+    toggle = !toggle;
+  }, 1000);
+}
+function clearTabFlash() {
+  clearInterval(tabFlashTimer);
+  tabFlashTimer = null;
+  document.title = TAB_ORIGINAL_TITLE;
+  setFaviconBadge(false);
+}
+function setFaviconBadge(on) {
+  const link = document.querySelector('link[rel="icon"]');
+  if (!link) return;
+  if (!on) { if (link.dataset.orig) link.href = link.dataset.orig; return; }
+  if (!link.dataset.orig) link.dataset.orig = link.href;
+  const img = new Image();
+  img.onload = () => {
+    const size = 32;
+    const canvas = document.createElement('canvas');
+    canvas.width = size; canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, size, size);
+    ctx.beginPath(); ctx.arc(size-7, 7, 7, 0, Math.PI*2);
+    ctx.fillStyle = '#ef4444'; ctx.fill();
+    ctx.lineWidth = 2; ctx.strokeStyle = '#fff'; ctx.stroke();
+    link.href = canvas.toDataURL('image/png');
+  };
+  img.src = link.dataset.orig;
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) clearTabFlash(); });
+window.addEventListener('focus', clearTabFlash);
+
 // ── AVISO (bloqueante, exibido a cada novo login) ──────────────────────────
 let announcementQueue = [];
 async function checkAnnouncements() {
@@ -2170,7 +2213,7 @@ async function openTicket(id) {
       📎 <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.original_name}</span>
     </a>`).join('');
 
-  const tlColors = {system:'gray',reply:'blue',note:'orange',escalation:'red'};
+  const tlColors = {system:'gray',reply:'blue',note:'orange',escalation:'red',attachment:'purple'};
   const descBlock = t.description ? `
   <div class="tl-item">
     <div class="tl-l">
@@ -2186,14 +2229,14 @@ async function openTicket(id) {
     <div class="tl-item">
       <div class="tl-l">
         <div class="tl-dot ${tlColors[c.type]||'gray'}">
-          ${c.type==='system'?'⚙':c.type==='note'?'📝':c.type==='escalation'?'⬆':'💬'}
+          ${c.type==='system'?'⚙':c.type==='note'?'📝':c.type==='escalation'?'⬆':c.type==='attachment'?'📎':'💬'}
         </div>
         ${i<arr.length-1?'<div class="tl-line"></div>':''}
       </div>
       <div class="tl-r">
         <span class="tl-actor">${c.author_name}</span>
         <span class="tl-time">${fmtDate(c.created_at)}</span>
-        <div class="${c.type==='note'?'tl-note':c.type==='system'?'tl-system':'tl-msg'}">${c.body}</div>
+        <div class="${c.type==='note'?'tl-note':c.type==='system'?'tl-system':c.type==='attachment'?'tl-attachment':'tl-msg'}">${c.body}</div>
         ${c.type==='reply' && c.agent_id ? (t.client_viewed_at && t.client_viewed_at >= c.created_at
           ? `<div style="font-size:10.5px;margin-top:4px;color:var(--accent);font-weight:500">✓✓ Visto pelo cliente em ${fmtDate(t.client_viewed_at)}</div>`
           : `<div style="font-size:10.5px;margin-top:4px;color:var(--muted)">✓ Enviado</div>`) : ''}
@@ -2420,20 +2463,31 @@ function handleSSEUpdate(data) {
       if (wasOnTickets) renderTickets();
     });
 
-    const clientReplies = updated.filter(t => t.has_client_reply);
+    const clientReplies     = updated.filter(t => t.has_client_reply);
+    const clientAttachments = updated.filter(t => t.has_client_attachment);
     clientReplies.forEach(t => {
       clientReplyTicketIds.add(t._id);
       agentNotifHistory.unshift({ _id: t._id, number: t.number, title: t.title, requester_name: t.requester_name, time: new Date().toISOString() });
       if (agentNotifHistory.length > 20) agentNotifHistory.pop();
     });
+    clientAttachments.forEach(t => {
+      clientReplyTicketIds.add(t._id);
+      agentNotifHistory.unshift({ _id: t._id, number: t.number, title: t.title, requester_name: t.requester_name, time: new Date().toISOString(), isAttachment: true });
+      if (agentNotifHistory.length > 20) agentNotifHistory.pop();
+    });
 
-    // Show toast notification — datashow bookings and client replies take priority over generic updates
+    // Show toast notification — datashow bookings, anexos e respostas de cliente têm prioridade sobre updates genéricos
     if (newDatashow.length > 0) {
       const d = newDatashow[newDatashow.length - 1];
       showToast(`📽 ${d.requester_name || 'Alguém'} agendou o Datashow — ${d.location} em ${d.date} às ${d.time}`, 'accent');
+    } else if (clientAttachments.length > 0) {
+      const t = clientAttachments[clientAttachments.length - 1];
+      showToast(`📎 ${t.requester_name || 'Cliente'} anexou um arquivo no chamado #${t.number}`, 'green');
+      notifyTab('📎 Novo anexo de cliente!');
     } else if (clientReplies.length > 0) {
       const t = clientReplies[clientReplies.length - 1];
       showToast(`💬 ${t.requester_name || 'Cliente'} respondeu ao chamado #${t.number}`, 'green');
+      notifyTab('💬 Nova resposta de cliente!');
     } else if (newTickets > 0) {
       showToast(`🎫 ${newTickets} novo${newTickets>1?'s':''} chamado${newTickets>1?'s':''} aberto${newTickets>1?'s':''}!`, 'accent');
     } else if (updated.length > 0) {
@@ -2458,7 +2512,7 @@ function renderNotifPanel() {
       <div style="display:flex;gap:10px;align-items:flex-start">
         <div class="notif-unread client-reply" style="${clientReplyTicketIds.has(n._id)?'':'visibility:hidden'}"></div>
         <div>
-          <div class="notif-title">💬 ${n.requester_name || 'Cliente'} respondeu</div>
+          <div class="notif-title">${n.isAttachment ? `📎 ${n.requester_name || 'Cliente'} anexou um arquivo` : `💬 ${n.requester_name || 'Cliente'} respondeu`}</div>
           <div class="notif-desc">Chamado #${n.number}: ${(n.title||'').slice(0,50)}${(n.title||'').length>50?'…':''}</div>
           <div class="notif-time">${fmtDate(n.time)}</div>
         </div>
