@@ -46,17 +46,33 @@ router.get('/:id', auth, (req, res) => {
 router.put('/:id', auth, (req, res) => {
   if (req.user.userType === 'client' && req.user._id !== req.params.id)
     return res.status(403).json({ error:'Acesso negado' });
-  const update = { updated_at: new Date().toISOString() };
-  ['name','department'].forEach(k => { if(req.body[k]!==undefined) update[k]=req.body[k]; });
-  // Agents can also update email
-  if (req.body.email !== undefined && req.user.userType !== 'client') {
-    const newEmail = req.body.email.toLowerCase().trim();
-    // Check email not already taken
-    if (!newEmail) return res.status(400).json({ error:'Email invalido' });
-    update.email = newEmail;
-  }
-  db.clients.update({ _id:req.params.id }, { $set:update }, {}, (err,n) =>
-    n ? res.json({ message:'Atualizado' }) : res.status(404).json({ error:'Nao encontrado' }));
+  db.clients.findOne({ _id: req.params.id }, (err0, existing) => {
+    if (!existing) return res.status(404).json({ error:'Nao encontrado' });
+    const update = { updated_at: new Date().toISOString() };
+    ['name','department'].forEach(k => { if(req.body[k]!==undefined) update[k]=req.body[k]; });
+    let newEmail = null;
+    // Agents can also update email
+    if (req.body.email !== undefined && req.user.userType !== 'client') {
+      newEmail = req.body.email.toLowerCase().trim();
+      if (!newEmail) return res.status(400).json({ error:'Email invalido' });
+      update.email = newEmail;
+    }
+    db.clients.update({ _id:req.params.id }, { $set:update }, {}, (err,n) => {
+      if (!n) return res.status(404).json({ error:'Nao encontrado' });
+      if (newEmail && newEmail !== existing.email) {
+        // Chamados antigos guardam o e-mail de quem abriu (requester_email) — sem migrar isso junto,
+        // o cliente "perde" o histórico ao trocar de e-mail (tickets antigos somem da lista dele).
+        db.tickets.update(
+          { requester_email: existing.email },
+          { $set: { requester_email: newEmail } },
+          { multi: true },
+          () => res.json({ message:'Atualizado' })
+        );
+      } else {
+        res.json({ message:'Atualizado' });
+      }
+    });
+  });
 });
 
 // PUT /api/clients/:id/password — admin/agente redefine senha do cliente sem senha atual
