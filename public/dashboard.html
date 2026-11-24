@@ -640,6 +640,10 @@ select.fi{cursor:pointer;appearance:none}
         <span class="spacer"></span>
         <span style="font-size:12px;color:var(--muted)" id="ticket-count">— chamados</span>
       </div>
+      <div id="requester-filter-chip" style="display:none;align-items:center;gap:8px;background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);border-radius:8px;padding:7px 12px;margin-bottom:12px;font-size:12.5px;color:var(--accent);width:fit-content">
+        <span>👤 Mostrando chamados de <b id="requester-filter-name"></b></span>
+        <span onclick="clearRequesterFilter()" style="cursor:pointer;font-weight:700;padding:0 2px">✕</span>
+      </div>
       <div class="tbl-wrap">
         <table><thead><tr><th>#</th><th>Assunto / Descrição</th><th>Solicitante</th><th>Setor</th><th>Status</th><th>Prioridade</th><th>Agente</th><th>Nível</th><th>SLA</th><th>Aberto em</th></tr></thead>
         <tbody id="tickets-tbody"></tbody></table>
@@ -817,9 +821,12 @@ select.fi{cursor:pointer;appearance:none}
       </div>
       <!-- USERS LIST -->
       <div id="tab-users" style="display:none">
-        <div style="margin-bottom:12px;position:relative;max-width:320px">
-          <input type="text" id="user-search" class="fsel" style="width:100%;padding:8px 12px 8px 32px" placeholder="Buscar por nome ou e-mail…" oninput="filterUsers(this.value)">
-          <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:12px;pointer-events:none">🔍</span>
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;flex-wrap:wrap">
+          <div style="position:relative;max-width:320px;flex:1;min-width:220px">
+            <input type="text" id="user-search" class="fsel" style="width:100%;padding:8px 12px 8px 32px" placeholder="Buscar por nome ou e-mail…" oninput="filterUsers(this.value)">
+            <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:12px;pointer-events:none">🔍</span>
+          </div>
+          <span style="font-size:12px;color:var(--muted)" id="users-count">— usuários cadastrados</span>
         </div>
         <div class="tbl-wrap">
           <table>
@@ -1843,6 +1850,7 @@ let TOKEN = localStorage.getItem('hd_token');
 let AGENT = JSON.parse(localStorage.getItem('hd_agent') || 'null');
 let allTickets = [], allAgents = [], allClients = [], currentTicketId = null;
 let activeFilter = 'all';
+let activeRequesterFilter = null, activeRequesterLabel = '';
 let editingAgentId = null, currentClientId = null;
 
 // Auth check
@@ -2117,12 +2125,18 @@ function renderTickets() {
     if (activeFilter !== 'all' && t.status !== activeFilter) return false;
     if (prio && t.priority !== prio) return false;
     if (agent && t.agent_id !== agent) return false;
+    if (activeRequesterFilter && t.requester_email !== activeRequesterFilter) return false;
     const ticketDate = (t.created_at||'').slice(0,10);
     if (dateFrom && ticketDate < dateFrom) return false;
     if (dateTo   && ticketDate > dateTo)   return false;
     return true;
   });
   document.getElementById('ticket-count').textContent = filtered.length + ' chamados';
+  const reqChip = document.getElementById('requester-filter-chip');
+  if (reqChip) {
+    reqChip.style.display = activeRequesterFilter ? 'flex' : 'none';
+    if (activeRequesterFilter) document.getElementById('requester-filter-name').textContent = activeRequesterLabel;
+  }
   document.getElementById('tickets-tbody').innerHTML = filtered.map(t => {
     const ag = allAgents.find(a=>a._id===t.agent_id);
     const sla = slaRemaining(t.sla_resolve_deadline);
@@ -2337,17 +2351,10 @@ async function escalateTicket() {
 // Assign any agent to ticket
 async function assignAgent(agentId) {
   const body = { agent_id: agentId || null };
-  if (agentId) {
-    const ag = allAgents.find(a=>a._id===agentId);
-    body.status = 'progress';
-    await api('PATCH', '/tickets/'+currentTicketId, body);
-    await api('POST', '/tickets/'+currentTicketId+'/comments', {
-      body: `Chamado atribuído a ${ag ? ag.name : 'agente'} por ${AGENT.name}.`,
-      type: 'system'
-    });
-  } else {
-    await api('PATCH', '/tickets/'+currentTicketId, body);
-  }
+  if (agentId) body.status = 'progress';
+  // O backend já registra sozinho o comentário de sistema "Chamado atribuído a X" no PATCH —
+  // postar outro aqui duplicava a mensagem na timeline.
+  await api('PATCH', '/tickets/'+currentTicketId, body);
   await loadAll();
   openTicket(currentTicketId);
 }
@@ -2662,7 +2669,8 @@ function renderUsersTable(clients) {
   if (!tbody) return;
   tbody.innerHTML = (clients||[]).map(c => {
     const clientTickets = allTickets.filter(t=>t.requester_email===c.email).length;
-    return `<tr>
+    const nameEsc = c.name.replace(/'/g,"\\'");
+    return `<tr style="cursor:pointer" onclick="viewClientTickets('${c.email}','${nameEsc}')" title="Ver chamados de ${c.name}">
       <td>
         <div style="display:flex;align-items:center;gap:9px">
           <div class="av" style="background:#3b82f6;width:28px;height:28px;font-size:10px;flex-shrink:0">${c.name.split(' ').map(x=>x[0]).join('').slice(0,2)}</div>
@@ -2675,8 +2683,8 @@ function renderUsersTable(clients) {
       <td style="font-family:'DM Mono',monospace;font-size:13px">${clientTickets}</td>
       <td>
         <div style="display:flex;gap:5px">
-          <button class="btn btn-ghost btn-sm" onclick="openClientEdit('${c._id}','${c.name}','${c.email}','${c.department||''}')">✏ Editar</button>
-          <button class="btn btn-ghost btn-sm" style="color:var(--orange);border-color:rgba(245,158,11,.3)" onclick="openClientPassReset('${c._id}','${c.name}')">🔑 Senha</button>
+          <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openClientEdit('${c._id}','${c.name}','${c.email}','${c.department||''}')">✏ Editar</button>
+          <button class="btn btn-ghost btn-sm" style="color:var(--orange);border-color:rgba(245,158,11,.3)" onclick="event.stopPropagation();openClientPassReset('${c._id}','${c.name}')">🔑 Senha</button>
         </div>
       </td>
     </tr>`;
@@ -2688,6 +2696,30 @@ function filterUsers(query) {
   const filtered = !q ? allClients : allClients.filter(c =>
     (c.name||'').toLowerCase().includes(q) || (c.email||'').toLowerCase().includes(q));
   renderUsersTable(filtered);
+  const countEl = document.getElementById('users-count');
+  if (countEl) {
+    countEl.textContent = q
+      ? `${filtered.length} de ${allClients.length} usuários`
+      : `${allClients.length} usuário${allClients.length===1?'':'s'} cadastrado${allClients.length===1?'':'s'}`;
+  }
+}
+
+// Clica num usuário na lista de Usuários/Clientes → mostra só os chamados abertos por ele
+function viewClientTickets(email, name) {
+  activeRequesterFilter = email;
+  activeRequesterLabel  = name;
+  document.getElementById('prio-filter').value = '';
+  document.getElementById('agent-filter').value = '';
+  document.getElementById('date-from-filter').value = '';
+  document.getElementById('date-to-filter').value = '';
+  filterTickets('all', document.querySelector('#status-tabs .tab'));
+  show('tickets', document.querySelector('[data-view="tickets"]'));
+}
+
+function clearRequesterFilter() {
+  activeRequesterFilter = null;
+  activeRequesterLabel  = '';
+  renderTickets();
 }
 
 function switchAgentTab(tab) {

@@ -130,6 +130,7 @@ textarea.fi{resize:none;line-height:1.5}
 .sheet-handle{width:40px;height:4px;background:var(--bg4);border-radius:2px;margin:12px auto 16px}
 .sheet-hdr{padding:0 20px 16px;border-bottom:1px solid var(--border);margin-bottom:16px}
 .sheet-close{background:var(--bg3);border:1px solid var(--border);color:var(--muted);width:30px;height:30px;border-radius:50%;font-size:15px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;padding:0}
+.um-av{width:38px;height:38px;border-radius:50%;background:#3b82f6;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
 .sheet-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:800}
 .sheet-body{padding:0 20px}
 
@@ -197,7 +198,20 @@ textarea.fi{resize:none;line-height:1.5}
       <div class="chip" id="tf-waiting"  onclick="filterTickets('waiting',this)"  style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:7px 14px;border-radius:20px;font-size:12.5px;font-weight:500;cursor:pointer;white-space:nowrap">Aguardando</div>
       <div class="chip" id="tf-resolved" onclick="filterTickets('resolved',this)" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:7px 14px;border-radius:20px;font-size:12.5px;font-weight:500;cursor:pointer;white-space:nowrap">Resolvidos</div>
     </div>
+    <div id="requester-filter-chip-m" style="display:none;align-items:center;gap:8px;background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.3);border-radius:9px;padding:8px 12px;margin-bottom:12px;font-size:12.5px;color:var(--accent)">
+      <span style="flex:1">👤 Chamados de <b id="requester-filter-name-m"></b></span>
+      <span onclick="clearRequesterFilterM()" style="cursor:pointer;font-weight:700;padding:0 4px">✕</span>
+    </div>
     <div id="tickets-list"></div>
+  </div>
+
+  <!-- ── USUÁRIOS (CLIENTES) ──────────────────── -->
+  <div class="view" id="v-users">
+    <div class="fg">
+      <input class="fi" id="um-search" placeholder="🔎 Buscar por nome ou e-mail…" oninput="filterUsersM(this.value)">
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px" id="users-count-m">— usuários cadastrados</div>
+    <div id="users-list"></div>
   </div>
 
   <!-- ── PROFILE ───────────────────────────────── -->
@@ -231,6 +245,7 @@ textarea.fi{resize:none;line-height:1.5}
 <nav class="bnav">
   <button class="bnav-btn active" id="nav-home"    onclick="showView('home')">    <span class="ico">🏠</span><span class="lbl">Início</span></button>
   <button class="bnav-btn"        id="nav-tickets" onclick="showView('tickets')"> <span class="ico">🎫</span><span class="lbl">Chamados</span></button>
+  <button class="bnav-btn"        id="nav-users"   onclick="showView('users')">   <span class="ico">👥</span><span class="lbl">Usuários</span></button>
   <button class="bnav-btn"        id="nav-profile" onclick="showView('profile')"><span class="ico">👤</span><span class="lbl">Perfil</span></button>
 </nav>
 
@@ -289,6 +304,112 @@ textarea.fi{resize:none;line-height:1.5}
   </div>
 </div>
 
+<!-- ── EDITAR USUÁRIO (CLIENTE) ──────────────── -->
+<div class="sheet-overlay" id="user-edit-sheet" onclick="if(event.target===this)closeSheet('user-edit-sheet')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-hdr">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div class="sheet-title">✏ Editar Usuário</div>
+        <button class="sheet-close" onclick="closeSheet('user-edit-sheet')" aria-label="Fechar">✕</button>
+      </div>
+    </div>
+    <div class="sheet-body">
+      <div id="ue-ok" class="alert alert-ok"></div>
+      <div id="ue-err" class="alert alert-err"></div>
+      <div class="fg"><label class="fl">Nome completo</label><input class="fi" id="ue-name" placeholder="Nome do usuário"></div>
+      <div class="fg"><label class="fl">E-mail</label><input class="fi" id="ue-email" type="email" placeholder="email@hospital.com"></div>
+      <div class="fg" style="margin-bottom:20px"><label class="fl">Departamento / Setor</label>
+        <select class="fi" id="ue-dept">
+          <option value="">— Selecionar —</option>
+          <option>Almoxarifado</option>
+          <option>Administrativo</option>
+          <option>Ambulatorio</option>
+          <option>Alojamento Conjunto</option>
+          <option>Assessoria de Pele</option>
+          <option>Auditoria</option>
+          <option>Bloco Cirúrgico</option>
+          <option>Bloco Cirúrgico Obstétrico</option>
+          <option>CAF</option>
+          <option>CME</option>
+          <option>Clinica Cirúrgica</option>
+          <option>Clinica Médica</option>
+          <option>Consultório Cirurgião Geral</option>
+          <option>Consultório Clinico Geral</option>
+          <option>Consultório Obstétrico</option>
+          <option>Consultório Ortopedia</option>
+          <option>Direção Administrativa</option>
+          <option>Direção Geral</option>
+          <option>Direção Técnica</option>
+          <option>Enfermaria Pediátrica</option>
+          <option>Farmácia</option>
+          <option>Farmácia Satélite 01</option>
+          <option>Faturamento</option>
+          <option>Fisioterapia</option>
+          <option>Fonoaudiologia</option>
+          <option>GAF</option>
+          <option>GSL</option>
+          <option>Humanização</option>
+          <option>Lavanderia</option>
+          <option>NAE</option>
+          <option>NEP</option>
+          <option>NIR</option>
+          <option>NSP</option>
+          <option>Nutrição</option>
+          <option>Odontologia</option>
+          <option>Ouvidoria</option>
+          <option>Posto de Enf. CDI</option>
+          <option>Pré-Parto</option>
+          <option>Raio X</option>
+          <option>Recepção Ambulatório</option>
+          <option>Recepção CDI</option>
+          <option>Recepção Maternidade</option>
+          <option>Recepção Urgência/Emergência</option>
+          <option>RH</option>
+          <option>Sala Amarela</option>
+          <option>Sala Verde</option>
+          <option>Sala Vermelha</option>
+          <option>SAME</option>
+          <option>SCIH</option>
+          <option>Segurança do Trabalho</option>
+          <option>Serviço Social</option>
+          <option>TI</option>
+          <option>Tomografia</option>
+          <option>Triagem Obstetrícia</option>
+          <option>Triagem Urgência/Emergência</option>
+          <option>Imunização</option>
+          <option>UCIN</option>
+          <option>Urgência/Emergência</option>
+          <option>UTI</option>
+          <option>UTIN</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" style="width:100%" onclick="saveUserEditM()">Salvar Alterações</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── REDEFINIR SENHA (CLIENTE) ─────────────── -->
+<div class="sheet-overlay" id="user-pass-sheet" onclick="if(event.target===this)closeSheet('user-pass-sheet')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-hdr">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div class="sheet-title">🔑 Redefinir Senha</div>
+        <button class="sheet-close" onclick="closeSheet('user-pass-sheet')" aria-label="Fechar">✕</button>
+      </div>
+      <div style="font-size:12.5px;color:var(--muted);margin-top:6px" id="up-subtitle"></div>
+    </div>
+    <div class="sheet-body">
+      <div id="up-ok" class="alert alert-ok"></div>
+      <div id="up-err" class="alert alert-err"></div>
+      <div class="fg"><label class="fl">Nova senha</label><input class="fi" type="password" id="up-new" placeholder="Mín. 8 caracteres"></div>
+      <div class="fg" style="margin-bottom:20px"><label class="fl">Confirmar nova senha</label><input class="fi" type="password" id="up-confirm" placeholder="Repita a nova senha"></div>
+      <button class="btn btn-primary" style="width:100%" onclick="saveUserPasswordM()">Redefinir Senha</button>
+    </div>
+  </div>
+</div>
+
 <!-- AVISO (bloqueante) -->
 <div class="ann-overlay" id="announcement-overlay">
   <div class="ann-card">
@@ -308,6 +429,7 @@ let AGENT = JSON.parse(localStorage.getItem('hd_agent') || 'null');
 let allTickets = [];
 let currentTicketId = null;
 let activeTicketFilter = 'all';
+let activeRequesterFilterM = null, activeRequesterLabelM = '';
 let clientReplyIds = new Set();
 
 // ── AUTH CHECK ────────────────────────────────────────────────────────────────
@@ -409,7 +531,7 @@ function closeAnnouncement() {
 }
 
 // ── NAVIGATION ────────────────────────────────────────────────────────────────
-const viewTitles = { home: 'Painel do Agente', tickets: 'Chamados', profile: 'Meu Perfil' };
+const viewTitles = { home: 'Painel do Agente', tickets: 'Chamados', users: 'Usuários', profile: 'Meu Perfil' };
 
 function showView(id) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -420,6 +542,7 @@ function showView(id) {
   const navBtn = document.getElementById('nav-' + id);
   if (navBtn) navBtn.classList.add('active');
   if (id === 'tickets') loadTickets();
+  if (id === 'users')   loadUsers();
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
@@ -500,12 +623,33 @@ function filterTickets(status, el) {
   document.querySelectorAll('[id^="tf-"]').forEach(c => { c.style.background='var(--bg3)'; c.style.color='var(--text)'; });
   const activeChip = el || document.getElementById('tf-' + status);
   if (activeChip) { activeChip.style.background = 'var(--accent)'; activeChip.style.color = '#fff'; }
-  const filtered = status === 'all' ? allTickets : allTickets.filter(t => t.status === status);
+  let filtered = status === 'all' ? allTickets : allTickets.filter(t => t.status === status);
+  if (activeRequesterFilterM) filtered = filtered.filter(t => t.requester_email === activeRequesterFilterM);
   const list = document.getElementById('tickets-list');
   if (!list) return;
   list.innerHTML = filtered.length
     ? filtered.map(t => ticketItemHTML(t)).join('')
     : `<div class="card-sm" style="text-align:center;color:var(--muted);padding:24px">Nenhum chamado ${status==='all'?'':'com esse status'}</div>`;
+
+  const chip = document.getElementById('requester-filter-chip-m');
+  if (chip) {
+    chip.style.display = activeRequesterFilterM ? 'flex' : 'none';
+    if (activeRequesterFilterM) document.getElementById('requester-filter-name-m').textContent = activeRequesterLabelM;
+  }
+}
+
+function clearRequesterFilterM() {
+  activeRequesterFilterM = null;
+  activeRequesterLabelM  = '';
+  filterTickets(activeTicketFilter);
+}
+
+// Clica num usuário na lista de Usuários → mostra só os chamados abertos por ele
+function viewClientTicketsM(email, name) {
+  activeRequesterFilterM = email;
+  activeRequesterLabelM  = name;
+  showView('tickets');
+  filterTickets('all', document.getElementById('tf-all'));
 }
 
 async function openTicketSheet(id) {
@@ -571,8 +715,9 @@ async function updateStatus() {
 }
 
 async function assignToMe() {
+  // O backend já registra sozinho o comentário de sistema "Chamado atribuído a X" no PATCH —
+  // postar outro aqui duplicava a mensagem na timeline.
   await api('PATCH', `/tickets/${currentTicketId}`, { agent_id: AGENT._id, status: 'progress' });
-  await api('POST', `/tickets/${currentTicketId}/comments`, { body: `Chamado atribuído a ${AGENT.name}.`, type: 'system' });
   document.getElementById('ts-assign-btn').style.display = 'none';
   document.getElementById('ts-status').value = 'progress';
   loadTickets();
@@ -659,6 +804,109 @@ function logout() {
   localStorage.removeItem('hd_token');
   localStorage.removeItem('hd_agent');
   window.location.href = '/';
+}
+
+// ── USUÁRIOS (CLIENTES) ──────────────────────────────────────────────────────
+let allClientsM = [];
+let currentUserId = null;
+
+function userCardHTML(c) {
+  const ticketCount = allTickets.filter(t => t.requester_email === c.email).length;
+  const nameEsc = c.name.replace(/'/g,"\\'");
+  return `<div class="card">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;cursor:pointer" onclick="viewClientTicketsM('${c.email}','${nameEsc}')">
+      <div class="um-av">${initials(c.name)}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.name}</div>
+        <div style="font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.email}</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+      <span class="prio">${c.department || 'Sem setor'}</span>
+      <span class="prio" style="cursor:pointer" onclick="viewClientTicketsM('${c.email}','${nameEsc}')">🎫 ${ticketCount} chamado${ticketCount===1?'':'s'}</span>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-ghost btn-sm" style="flex:1" onclick="openUserEditSheet('${c._id}')">✏ Editar</button>
+      <button class="btn btn-ghost btn-sm" style="flex:1;color:var(--orange)" onclick="openUserPassSheet('${c._id}')">🔑 Senha</button>
+    </div>
+  </div>`;
+}
+
+async function loadUsers() {
+  const clients = await api('GET', '/clients');
+  allClientsM = Array.isArray(clients) ? clients : [];
+  filterUsersM(document.getElementById('um-search')?.value || '');
+}
+
+function filterUsersM(q) {
+  q = (q || '').trim().toLowerCase();
+  const filtered = !q ? allClientsM : allClientsM.filter(c =>
+    (c.name || '').toLowerCase().includes(q) || (c.email || '').toLowerCase().includes(q));
+  document.getElementById('users-list').innerHTML = filtered.length
+    ? filtered.map(userCardHTML).join('')
+    : '<div style="text-align:center;color:var(--muted);font-size:13px;padding:30px 0">Nenhum usuário encontrado.</div>';
+  const countEl = document.getElementById('users-count-m');
+  if (countEl) {
+    countEl.textContent = q
+      ? `${filtered.length} de ${allClientsM.length} usuários`
+      : `${allClientsM.length} usuário${allClientsM.length===1?'':'s'} cadastrado${allClientsM.length===1?'':'s'}`;
+  }
+}
+
+function openUserEditSheet(id) {
+  const c = allClientsM.find(x => x._id === id);
+  if (!c) return;
+  currentUserId = id;
+  document.getElementById('ue-name').value  = c.name || '';
+  document.getElementById('ue-email').value = c.email || '';
+  document.getElementById('ue-dept').value  = c.department || '';
+  document.getElementById('ue-ok').style.display = 'none';
+  document.getElementById('ue-err').style.display = 'none';
+  openSheet('user-edit-sheet');
+}
+
+async function saveUserEditM() {
+  const name  = document.getElementById('ue-name').value.trim();
+  const email = document.getElementById('ue-email').value.trim().toLowerCase();
+  const dept  = document.getElementById('ue-dept').value;
+  const okEl  = document.getElementById('ue-ok');
+  const errEl = document.getElementById('ue-err');
+  okEl.style.display = 'none'; errEl.style.display = 'none';
+  if (!name || !email) { errEl.textContent = 'Nome e e-mail são obrigatórios.'; errEl.style.display = 'block'; return; }
+  const r = await api('PUT', `/clients/${currentUserId}`, { name, email, department: dept });
+  if (r.message) {
+    okEl.textContent = '✓ Dados atualizados!'; okEl.style.display = 'block';
+    await loadUsers();
+    setTimeout(() => closeSheet('user-edit-sheet'), 1000);
+  } else { errEl.textContent = r.error || 'Erro ao atualizar.'; errEl.style.display = 'block'; }
+}
+
+function openUserPassSheet(id) {
+  const c = allClientsM.find(x => x._id === id);
+  if (!c) return;
+  currentUserId = id;
+  document.getElementById('up-subtitle').textContent = `Redefina a senha de ${c.name}`;
+  document.getElementById('up-new').value = '';
+  document.getElementById('up-confirm').value = '';
+  document.getElementById('up-ok').style.display = 'none';
+  document.getElementById('up-err').style.display = 'none';
+  openSheet('user-pass-sheet');
+}
+
+async function saveUserPasswordM() {
+  const novo = document.getElementById('up-new').value;
+  const conf = document.getElementById('up-confirm').value;
+  const okEl  = document.getElementById('up-ok');
+  const errEl = document.getElementById('up-err');
+  okEl.style.display = 'none'; errEl.style.display = 'none';
+  if (!novo) { errEl.textContent = 'Preencha a nova senha.'; errEl.style.display = 'block'; return; }
+  if (novo !== conf) { errEl.textContent = 'Senhas não coincidem.'; errEl.style.display = 'block'; return; }
+  if (novo.length < 8) { errEl.textContent = 'Nova senha deve ter mínimo 8 caracteres.'; errEl.style.display = 'block'; return; }
+  const r = await api('PUT', `/clients/${currentUserId}/password`, { new_password: novo });
+  if (r.message) {
+    okEl.textContent = '✓ Senha redefinida com sucesso!'; okEl.style.display = 'block';
+    setTimeout(() => closeSheet('user-pass-sheet'), 1200);
+  } else { errEl.textContent = r.error || 'Erro ao redefinir senha.'; errEl.style.display = 'block'; }
 }
 
 // ── SHEET HELPERS ─────────────────────────────────────────────────────────────

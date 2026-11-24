@@ -270,9 +270,14 @@ router.patch('/:id', auth, (req, res) => {
     if (!n) return res.status(404).json({ error: 'Nao encontrado' });
     if (req.body.agent_id) {
       db.agents.findOne({ _id: req.body.agent_id }, (err, ag) => {
-        if (ag) db.comments.insert({ _id:uuid(), ticket_id:req.params.id,
-          agent_id:req.user._id, author_name:'Sistema',
-          body:`Chamado atribuido a ${ag.name} (${req.body.tier||''}).`,
+        if (!ag) return;
+        const tierPart = req.body.tier ? ` (${req.body.tier})` : '';
+        const selfAssign = req.user._id === ag._id;
+        db.comments.insert({ _id:uuid(), ticket_id:req.params.id,
+          agent_id:req.user._id, author_name:req.user.name,
+          body: selfAssign
+            ? `Chamado atribuído a ${ag.name}${tierPart}.`
+            : `Chamado atribuído a ${ag.name}${tierPart} por ${req.user.name}.`,
           type:'system', created_at:now() });
       });
     }
