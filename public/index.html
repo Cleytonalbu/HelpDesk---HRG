@@ -520,8 +520,14 @@ function showAlert(message, type='info') {
 
 function showForgot() { showAlert('Entre em contato com o administrador do sistema para redefinir sua senha.', 'info'); }
 
-// Auto-redirect if already logged in
-if (localStorage.getItem('hd_token')) window.location.href = 'dashboard.html';
+// Auto-redirect if already logged in — respeita a mesma checagem de tela do login,
+// senão quem acessa de volta pelo celular (favorito, PWA, histórico) com sessão
+// salva caía sempre na interface desktop (dashboard.html), mesmo em tela pequena.
+if (localStorage.getItem('hd_token')) {
+  window.location.href = window.innerWidth<=768 ? 'agent-mobile.html' : 'dashboard.html';
+} else if (localStorage.getItem('hd_client_token')) {
+  window.location.href = window.innerWidth<=768 ? 'mobile.html' : 'portal.html';
+}
 </script>
 <script>
 if ('serviceWorker' in navigator) {

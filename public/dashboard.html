@@ -1848,6 +1848,14 @@ let editingAgentId = null, currentClientId = null;
 // Auth check
 if (!TOKEN || !AGENT) { window.location.href = '/'; }
 
+// Se chegou aqui numa tela pequena por um caminho que pula o redirecionamento do login
+// (favorito antigo, atalho de PWA, aba restaurada pelo navegador), manda pra versão mobile —
+// a menos que o próprio usuário tenha pedido a versão desktop de propósito (botão "Abrir
+// versão desktop" no app mobile, que marca essa escolha só para a sessão atual da aba).
+if (window.innerWidth <= 768 && !sessionStorage.getItem('hd_force_desktop')) {
+  window.location.href = '/agent-mobile.html';
+}
+
 const api = (method, path, body) => fetch(API+path, {
   method, headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+TOKEN },
   body: body ? JSON.stringify(body) : undefined
